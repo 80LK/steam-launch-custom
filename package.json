@@ -6,13 +6,16 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc && vite build && electron-builder",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "rebuild": "electron-rebuild -f -w sqlite3"
   },
   "dependencies": {
     "@mdi/js": "^7.4.47",
+    "@types/winreg": "^1.2.36",
     "vue": "^3.4.21",
     "vue-router": "^4.4.5",
-    "vuetify": "^3.7.3"
+    "vuetify": "^3.7.3",
+    "winreg": "^1.2.5"
   },
   "devDependencies": {
     "@types/adm-zip": "^0.5.6",

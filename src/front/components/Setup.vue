@@ -1,6 +1,24 @@
 <script setup lang="ts">
-import { ref } from "vue"
-const statusMessage = ref('Init');
+import { onMounted, onUnmounted, ref } from "vue"
+import InitState, { INIT_MESSAGE } from "../../SteamInitState";
+
+const emit = defineEmits(['ready']);
+const state = ref(InitState.INIT)
+const statusMessage = ref(INIT_MESSAGE);
+
+function changeState(s: InitState, m: string) {
+	state.value = s;
+	statusMessage.value = m;
+	if (s == InitState.READY) emit('ready');
+}
+let changeStateListener = 0;
+onMounted(() => {
+	Steam.getCurrentState().then((s) => changeState(s.state, s.message))
+	changeStateListener = Steam.onChangeInitState(changeState);
+})
+onUnmounted(() => {
+	Steam.offChangeInitState(changeStateListener);
+})
 </script>
 
 <template>

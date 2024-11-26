@@ -1,9 +1,14 @@
 import { BrowserWindow, nativeImage } from 'electron'
 import path from 'node:path'
 import { VITE_DEV_SERVER_URL, RENDERER_DIST, dirname, PUBLIC_PATH } from './consts';
+import Steam from './Steam';
+import IPCMessages from './IPCMessages';
+import Config from './Config';
+import IConfig from '../IConfig';
 
 namespace MainWindow {
 	let instance: BrowserWindow | null = null;
+	const steam = Steam.getInstance();
 
 	export function open() {
 		if (instance) {
@@ -28,12 +33,25 @@ namespace MainWindow {
 
 
 		//System-Bar
-		ipc.on('try-minimize', () => win.minimize());
-		ipc.on('try-close', () => win.close())
-		ipc.on('try-maximize', () => win.isMaximized() ? win.unmaximize() : win.maximize())
-		win.on('maximize', () => web.send("changeMaximized", true))
-		win.on('unmaximize', () => web.send("changeMaximized", false))
+		ipc.on(IPCMessages.SystemBar.minimize, () => win.minimize());
+		ipc.on(IPCMessages.SystemBar.close, () => win.close())
+		ipc.on(IPCMessages.SystemBar.maximize, () => win.isMaximized() ? win.unmaximize() : win.maximize())
+		win.on('maximize', () => web.send(IPCMessages.SystemBar.changeMaximized, true))
+		win.on('unmaximize', () => web.send(IPCMessages.SystemBar.changeMaximized, false))
 		win.on('close', () => instance = null);
+
+		//Steam Module
+		steam.on('changeInitState', (state, message) => web.send(IPCMessages.Steam.changeInitState, state, message))
+		ipc.handle(IPCMessages.Steam.getCurrentState, () => steam.getState())
+
+		//Config Module
+		const cfg = Config.getInstance();
+		ipc.handle(IPCMessages.Config.get, () => cfg.toJSON());
+		ipc.on(IPCMessages.Config.edit, <T extends keyof IConfig>(_: any, field: T, value: IConfig[T]) => {
+			(cfg as IConfig)[field] = value;
+			cfg.save();
+		})
+
 
 		if (VITE_DEV_SERVER_URL) {
 			win.loadURL(VITE_DEV_SERVER_URL)

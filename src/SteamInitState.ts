@@ -1,7 +1,12 @@
 enum InitState {
-	READY = 1,
+	INIT,
 	FIND_STEAM,
-	FIND_GAMES
+	CANT_FIND_STEAM,
+	FIND_GAMES,
+	READY
 }
 
+const INIT_MESSAGE = "Initialization";
+
 export default InitState;
+export { INIT_MESSAGE };

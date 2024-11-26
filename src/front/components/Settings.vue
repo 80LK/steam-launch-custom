@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { useTheme } from 'vuetify';
 import { mdiCog } from "@mdi/js";
+import { ref } from 'vue';
+import IConfig from '../../IConfig';
 
 const theme = useTheme();
 
@@ -8,6 +10,18 @@ const themes = Object.keys(theme.themes.value);
 const currentTheme = theme.global.name;
 function changeTheme() {
 	localStorage.setItem('theme', currentTheme.value);
+}
+
+
+const steamPath = ref("");
+const scanGameLaunch = ref(false);
+Config.get().then((cfg) => {
+	steamPath.value = cfg.steamPath;
+	scanGameLaunch.value = cfg.scanGameLaunch;
+});
+
+function edit<T extends keyof IConfig>(field: T, value: IConfig[T]) {
+	Config.edit(field, value);
 }
 </script>
 
@@ -27,7 +41,9 @@ function changeTheme() {
 				<v-card-text>
 					<v-select label="Theme" :items="themes" v-model="currentTheme" variant="outlined"
 						@update:modelValue="changeTheme" />
-					<v-switch label="Scan games every time launch program" color="success" />
+					<v-text-field label="Steam Path" v-model="steamPath" variant="outlined" disabled />
+					<v-switch label="Scan games every time launch program" v-model="scanGameLaunch" color="success"
+						@update:model-value="edit('scanGameLaunch', scanGameLaunch)" />
 				</v-card-text>
 				<v-divider />
 				<v-card-actions>
