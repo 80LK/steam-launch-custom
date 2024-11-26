@@ -27,16 +27,7 @@ namespace LaunchWindow {
 		})
 
 		const web = win.webContents;
-		const ipc = web.ipc;
-
-
-		//System-Bar
-		ipc.on('try-minimize', () => win.minimize());
-		ipc.on('try-close', () => win.close())
-		ipc.on('try-maximize', () => win.isMaximized() ? win.unmaximize() : win.maximize())
-		win.on('maximize', () => web.send("changeMaximized", true))
-		win.on('unmaximize', () => web.send("changeMaximized", false))
-		win.on('close', () => instance = null);
+		// const ipc = web.ipc;
 
 		if (VITE_DEV_SERVER_URL) {
 			win.loadURL(VITE_DEV_SERVER_URL + "?launch")
