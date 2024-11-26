@@ -27,7 +27,6 @@
     "src/**/*.d.ts",
     "src/**/*.tsx",
     "src/**/*.vue",
-    "electron"
   ],
   "references": [
     {

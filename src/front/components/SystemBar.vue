@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { name } from '../../package.json'
+import { name } from '../../../package.json'
 import {
 	mdiClose,
 	mdiDockWindow,

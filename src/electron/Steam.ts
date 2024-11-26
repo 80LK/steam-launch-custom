@@ -1,10 +1,6 @@
 import { EventEmitter } from "events";
+import InitState from "../SteamInitState";
 
-enum InitState {
-	READY = 1,
-	FIND_STEAM,
-	FIND_GAMES
-}
 
 interface SteamEventMap {
 	initState: [InitState, string]
