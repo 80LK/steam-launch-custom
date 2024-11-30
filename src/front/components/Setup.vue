@@ -1,31 +1,29 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from "vue"
-import InitState, { INIT_MESSAGE } from "../../SteamInitState";
 
-const emit = defineEmits(['ready']);
-const state = ref(InitState.INIT)
-const statusMessage = ref(INIT_MESSAGE);
+const statusMessage = ref("Initialization");
+const setup = ref(true);
 
-function changeState(s: InitState, m: string) {
-	state.value = s;
+function changeState(m: string | null) {
+	if (m == null) return setup.value = false;
 	statusMessage.value = m;
-	if (s == InitState.READY) emit('ready');
 }
 let changeStateListener = 0;
 onMounted(() => {
-	Steam.getCurrentState().then((s) => changeState(s.state, s.message))
-	changeStateListener = Steam.onChangeInitState(changeState);
+	App.getCurrentState().then(message => changeState(message))
+	changeStateListener = App.onChangeInitState(changeState);
 })
 onUnmounted(() => {
-	Steam.offChangeInitState(changeStateListener);
+	App.offChangeInitState(changeStateListener);
 })
 </script>
 
 <template>
-	<div :class="$style.setup">
+	<div v-if="setup" :class="$style.setup">
 		<h2 class="mb-5">{{ statusMessage }}</h2>
 		<v-progress-circular indeterminate :size="110" :width="10" />
 	</div>
+	<slot v-else />
 </template>
 
 <style module>

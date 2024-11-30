@@ -7,11 +7,21 @@
     "dev": "vite",
     "build": "vue-tsc && vite build && electron-builder",
     "preview": "vite preview",
-    "rebuild": "electron-rebuild -f -w sqlite3"
+    "rebuild": "electron-rebuild -f -w sqlite3 exe-icon-extractor"
   },
   "dependencies": {
     "@mdi/js": "^7.4.47",
+    "@node-steam/vdf": "^2.2.0",
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/sql.js": "^1.4.9",
     "@types/winreg": "^1.2.36",
+    "better-sqlite3": "^11.6.0",
+    "electron-rebuild": "^3.2.9",
+    "exe-icon-extractor": "^1.0.8",
+    "glob": "^11.0.0",
+    "reflect-metadata": "^0.2.2",
+    "sql.js": "^1.12.0",
+    "sqlite3": "^5.1.7",
     "vue": "^3.4.21",
     "vue-router": "^4.4.5",
     "vuetify": "^3.7.3",

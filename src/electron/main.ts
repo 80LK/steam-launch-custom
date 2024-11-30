@@ -1,28 +1,30 @@
-import { app, BrowserWindow } from 'electron'
-import MainWindow from './MainWindow'
-import Steam from './Steam';
+import App from "./App/App";
+import Database from "./Database";
+import Config from "./Config/Config";
+import Game from "./Game/Game";
+import Launch from "./Launch/Launch";
+import Steam from "./Steam/Steam";
+import MainWindow from "./MainWindow";
+import IPCSystemBar from "./SystemBar/SystemBar";
+import IPCConfig from "./Config/IPCConfig";
+import IPCGame from "./Game/IPCGame";
+import IPCLaunch from "./Launch/IPCLaunch";
+import IPCSteam from "./Steam/IPCSteam";
 
-Steam.getInstance();
-
-
-
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
-})
-
-app.on('activate', () => {
-  // On OS X it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
-  if (BrowserWindow.getAllWindows().length === 0) {
-    MainWindow.open();
-  }
-})
-
-app.whenReady().then(() => {
-  MainWindow.open();
-})
+App.create()
+	.addServices(
+		Database.init(
+			Config,
+			Game,
+			Launch
+		),
+		Steam.getInstance(),
+	)
+	.addIPCServices(
+		new IPCSystemBar(),
+		IPCConfig.create(),
+		new IPCGame(),
+		new IPCLaunch(),
+		new IPCSteam()
+	)
+	.open(() => new MainWindow())

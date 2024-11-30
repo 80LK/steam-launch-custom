@@ -7,7 +7,7 @@ import {
 	mdiWindowMaximize,
 	mdiMinus,
 } from "@mdi/js"
-import lightLogo from "../assets/logo-light.svg"
+import lightLogo from "../assets/logo.svg"
 
 
 const maximized = ref(false)

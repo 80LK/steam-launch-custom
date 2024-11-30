@@ -7,7 +7,8 @@ import Launch from './Launch.vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import routes from './routes';
 import './style.css'
-const IS_LAUNCH = new URL(location.toString()).searchParams.has('launch');
+import Pages, { getCurrentPage } from '../Page'
+const IS_LAUNCH = getCurrentPage() == Pages.LAUNCH;
 
 const vuetify = createVuetify({
   theme: {

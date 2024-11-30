@@ -1,50 +1,49 @@
 <script setup lang="ts">
 import { mdiCog, mdiDownload, mdiDownloadOff } from '@mdi/js';
-import { computed } from 'vue';
-import { ConfigureState, GameCardProps } from '../utils/IGame';
+import { computed, ref } from 'vue';
+import IGame, { GameState } from '../../IGame';
+const steamPath = ref("");
+Config.get().then(e => steamPath.value = e.steamPath)
 
-const { id, title, downloaded, configured } = defineProps<GameCardProps>();
-const downloadedIcon = computed(() => downloaded ? mdiDownload : mdiDownloadOff);
-const downloadedColor = computed(() => downloaded ? 'success' : 'grey');
-const downloadedTooltip = computed(() => downloaded ? 'Game installed' : 'Game not installed');
+const { game } = defineProps<{ game: IGame }>();
+const installed = computed(() => game.state & GameState.INSTALLED);
+const installedIcon = computed(() => installed.value ? mdiDownload : mdiDownloadOff);
+const installedColor = computed(() => installed.value ? 'success' : 'grey');
+const installedTooltip = computed(() => installed.value ? 'Game installed' : 'Game not installed');
+
+const configured = computed(() => game.state & GameState.CONFIGURED);
 const configuredColor = computed(() => {
-	if (!downloaded) return 'grey';
-	switch (configured) {
-		case ConfigureState.YES_NOT_WRITE:
-			return 'warning'
-		case ConfigureState.YES:
-			return 'success'
-		default:
-		case ConfigureState.NO:
-			return 'grey';
-	}
+	if (!installed.value || !configured.value) return 'grey';
+	if (game.state & GameState.NEED_WRITE) return 'warning'
+	return 'success'
 })
 
 const configuredTooltip = computed(() => {
-	if (!downloaded) return 'Not configured';
-	switch (configured) {
-		case ConfigureState.YES_NOT_WRITE:
-			return 'You need close steam and write configure'
-		case ConfigureState.YES:
-			return 'Configured'
-		default:
-		case ConfigureState.NO:
-			return 'Not configured';
-	}
+	if (!installed.value || !configured.value) return 'Not configured';
+	if (game.state & GameState.NEED_WRITE) return 'You need close steam and write configure';
+
+	return 'Configured';
 })
 </script>
 
 <template>
-	<v-card min-width="225" max-width="250" :to="`/game/${id}`" :disabled="!downloaded">
-		<v-img class="bg-grey-lighten-2" cover height="125"
-			:src="`file:///C:/Users/80lkr/Pictures/volk s arbuzom.png`" />
+	<v-card min-width="225" max-width="250" :to="`/game/${game.id}`" :disabled="!installed">
+		<v-img class="bg-grey-lighten-2" cover height="125" :src="`file:///${game.image}`" />
 		<v-card-actions>
-			<h6 class="text-h6">
-				{{ title }}
+			<h6 :class="[$style.title, 'text-h6']">
+				{{ game.name }}
 			</h6>
 			<v-spacer />
-			<v-icon :icon="downloadedIcon" :color="downloadedColor" v-tooltip="downloadedTooltip" />
-			<v-icon v-if="downloaded" :icon="mdiCog" :color="configuredColor" v-tooltip="configuredTooltip" />
+			<v-icon :icon="installedIcon" :color="installedColor" v-tooltip="installedTooltip" />
+			<v-icon v-if="installed" :icon="mdiCog" :color="configuredColor" v-tooltip="configuredTooltip" />
 		</v-card-actions>
 	</v-card>
 </template>
+
+<style module>
+.title {
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+}
+</style>

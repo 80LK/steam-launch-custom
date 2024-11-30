@@ -56,8 +56,9 @@ function edit<T extends keyof IConfig>(field: T, value: IConfig[T]) {
 
 <style lang="css" module>
 :global(.v-fab).settings {
-	position: fixed;
-	bottom: 35px;
+	position: absolute;
+	top: 0px;
 	right: 79px;
+	z-index: 1005;
 }
 </style>
