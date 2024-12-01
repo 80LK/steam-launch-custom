@@ -1,7 +1,7 @@
 {
   "name": "steam-launch-custom",
   "author": "80LK",
-  "description": "Add custom laucnh options for you steam games",
+  "description": "Add custom launch options for you steam games",
   "private": true,
   "version": "0.1.0",
   "type": "module",
