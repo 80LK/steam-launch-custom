@@ -1,10 +1,9 @@
-interface ILaunch {
+import { IRunnable } from "./IRunnable";
+
+interface ILaunch extends IRunnable {
 	id: number;
 	game_id: number;
 	name: string;
-	execute: string;
-	launch: string;
-	workdir: string;
 	image: string;
 }
 
