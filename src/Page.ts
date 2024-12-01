@@ -5,6 +5,6 @@ enum Pages {
 
 export default Pages;
 function getCurrentPage(): Pages {
-	return <Pages>new URLSearchParams(location.search).get('page');
+	return <Pages>App.page;
 }
 export { getCurrentPage };

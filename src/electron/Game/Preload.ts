@@ -18,6 +18,10 @@ namespace Game {
 	export async function needWrite(): Promise<boolean> {
 		return await IPCRenderer.invoke(GameMessages.needWrite)
 	}
+
+	export async function writeConfig(): Promise<boolean> {
+		return await IPCRenderer.invoke(GameMessages.writeConfig)
+	}
 }
 type NGame = typeof Game;
 declare global {

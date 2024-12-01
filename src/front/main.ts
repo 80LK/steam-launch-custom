@@ -9,10 +9,11 @@ import routes from './routes';
 import './style.css'
 import Pages, { getCurrentPage } from '../Page'
 const IS_LAUNCH = getCurrentPage() == Pages.LAUNCH;
+const cfg = await Config.get();
 
 const vuetify = createVuetify({
   theme: {
-    defaultTheme: localStorage.getItem('theme') || 'light'
+    defaultTheme: cfg.dark ? 'dark' : 'light'
   },
   icons: {
     defaultSet: 'mdi',

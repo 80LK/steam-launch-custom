@@ -28,7 +28,7 @@ const configuredTooltip = computed(() => {
 
 <template>
 	<v-card min-width="225" max-width="250" :to="`/game/${game.id}`" :disabled="!installed">
-		<v-img class="bg-grey-lighten-2" cover height="125" :src="`file:///${game.image}`" />
+		<v-img class="bg-grey-lighten-2" cover height="125" :src="game.image" />
 		<v-card-actions>
 			<h6 :class="[$style.title, 'text-h6']">
 				{{ game.name }}

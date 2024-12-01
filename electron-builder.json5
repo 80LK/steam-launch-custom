@@ -1,7 +1,7 @@
 // @see - https://www.electron.build/configuration/configuration
 {
   "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
-  "appId": "YourAppID",
+  "appId": "ru.80lk.steamlaunchcustom",
   "asar": true,
   "directories": {
     "output": "release/${version}/${os}"
@@ -17,13 +17,15 @@
     "artifactName": "${productName}-Mac-${version}-Installer.${ext}"
   },
   "win": {
+    "icon": "public/logo.png",
     "target": [
       {
         "target": "dir",
         "arch": [
           "x64"
         ]
-      }
+      },
+      "nsis"
     ],
     "artifactName": "${productName}-Windows-${version}-Setup.${ext}"
   },

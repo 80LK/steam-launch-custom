@@ -7,6 +7,7 @@ import { RunResult as SQLRunResult, type Statement as SQLStatement, type Databas
 import { APP_ROOT } from "./consts";
 const sqlite: typeof sqlite3 = require('sqlite3');
 
+
 type DataBinding = number | string | bigint | null | Buffer;
 type ParamsBinding = Record<string, DataBinding>;
 interface RunResult {
@@ -14,15 +15,32 @@ interface RunResult {
 	changes: number;
 }
 
+interface DatabaseDebug {
+	memory: boolean;
+	logSql: boolean;
+}
+const INIT_DATABASE_DEBUG: () => DatabaseDebug = () => ({
+	memory: false,
+	logSql: false
+});
+
+type DatabaseDebugOptions = Partial<DatabaseDebug>;
 class Database extends Service {
 	private static readonly DATABASE_PATH = path.join(APP_ROOT, "db");
+	private static _debug: DatabaseDebug = INIT_DATABASE_DEBUG();
+
+	public static debug(options: DatabaseDebugOptions = { logSql: true }) {
+		this._debug = Object.assign(INIT_DATABASE_DEBUG(), options);
+		return this;
+	}
 
 	private _db: SQLite;
 	private constructor() {
 		super("Database");
-		//@ts-expect-error
-		this._db = new sqlite.Database(":memory:" || Database.DATABASE_PATH);
-		this._db.on('trace', (sql) => console.log("[SQL]:", sql));
+		console.log("DATABASEPATH:", Database.DATABASE_PATH)
+		console.log("IN MEMORY:", Database._debug.memory)
+		this._db = new sqlite.Database(Database._debug.memory ? ":memory:" : Database.DATABASE_PATH);
+		Database._debug.logSql && this._db.on('trace', (sql) => console.log("[SQL]:", sql));
 	}
 
 	protected async _init(): Promise<void> {

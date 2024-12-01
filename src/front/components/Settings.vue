@@ -9,7 +9,7 @@ const theme = useTheme();
 const themes = Object.keys(theme.themes.value);
 const currentTheme = theme.global.name;
 function changeTheme() {
-	localStorage.setItem('theme', currentTheme.value);
+	edit('dark', currentTheme.value == "dark")
 }
 
 

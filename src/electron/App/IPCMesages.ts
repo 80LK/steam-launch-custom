@@ -1,5 +1,5 @@
 enum AppMessages {
 	changeInitState = 'app.changeInitState',
-	getCurrentState = 'app.getCurrentState'
+	getCurrentState = 'app.getCurrentState',
 }
 export default AppMessages;

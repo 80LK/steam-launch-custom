@@ -71,7 +71,7 @@ async function endRemove() {
 </script>
 
 <template>
-	<v-img v-if="game" :class="['bg-grey-lighten-2', $style.header]" cover :src="`file:///${game.image}`">
+	<v-img v-if="game" :class="['bg-grey-lighten-2', $style.header]" cover :src="game.image">
 		<v-toolbar :class="$style.toolbar">
 			<v-btn :icon="mdiArrowLeft" variant="text" to="/" />
 			<v-toolbar-title>{{ game.name }}</v-toolbar-title>
@@ -95,7 +95,7 @@ async function endRemove() {
 				<v-list lines="two" density="compact">
 					<v-list-item v-for="launch in launchs" :key="launch.id">
 						<template v-slot:prepend>
-							<v-avatar :image="`file:///${launch.image}`" />
+							<v-avatar :image="launch.image" />
 						</template>
 						<v-list-item-title>
 							{{ launch.name }}

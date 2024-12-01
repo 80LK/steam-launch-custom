@@ -1,9 +1,10 @@
 import Pages from "../Page";
 import Window from "./Window";
+import { BrowserWindowConstructorOptions } from "electron";
 
 class MainWindow extends Window {
-	constructor() {
-		super(Pages.MAIN);
+	constructor(options: BrowserWindowConstructorOptions = {}) {
+		super(Pages.MAIN, options);
 	}
 }
 

@@ -13,6 +13,7 @@ class IPCGame extends IPCSerivce {
 			return (await game.configure()).toJSON();
 		});
 		ipc.handle(GameMessages.needWrite, async () => await Game.needWrite());
+		ipc.handle(GameMessages.writeConfig, async () => await Game.writeConfig());
 	}
 }
 

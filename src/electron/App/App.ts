@@ -1,11 +1,14 @@
-import { app, BrowserWindow } from 'electron'
+import { app, protocol, BrowserWindow } from 'electron'
 import Service, { ServiceState } from "../Service";
 import Window from "../Window";
 import IPCSerivce from '../Serivce.ipc';
 import AppMessages from './IPCMesages';
+import { join } from 'path';
+import Protocol from '../Protocol';
+
 
 class App {
-	private constructor() { }
+	private constructor(private _debug: boolean) { }
 	protected _window?: Window;
 	private _message: string | null = "Initialization";
 	public get message() {
@@ -13,7 +16,7 @@ class App {
 	}
 	protected set message(value: string | null) {
 		this._message = value;
-		console.log(AppMessages.changeInitState, this._message)
+		this._debug && console.log(AppMessages.changeInitState, this._message)
 		this._window?.webContents.send(AppMessages.changeInitState, this._message);
 	}
 
@@ -30,16 +33,28 @@ class App {
 
 	protected ipcServices: IPCSerivce[] = [];
 	public addIPCServices(...services: IPCSerivce[]) {
-		this.ipcServices = services;
+		this.ipcServices = this.ipcServices.concat(services);
 		return this;
 	}
+	protected protocols: Protocol[] = [];
+	public addProtocols(...protocols: Protocol[]) {
+		this.protocols = this.protocols.concat(protocols);
+		return this;
+	}
+
+	private closeCondition: () => boolean = () => true;
+	public setCloseCondition(condition: () => boolean) {
+		this.closeCondition = condition;
+		return this;
+	}
+
 
 	public open(getWindow: () => Window) {
 		// Quit when all windows are closed, except on macOS. There, it's common
 		// for applications and their menu bar to stay active until the user quits
 		// explicitly with Cmd + Q.
 		app.on('window-all-closed', () => {
-			if (process.platform !== 'darwin') {
+			if (this.closeCondition() && process.platform !== 'darwin') {
 				app.quit();
 			}
 		});
@@ -51,10 +66,16 @@ class App {
 				this._window?.open()
 			}
 		})
+
 		app.whenReady().then(async () => {
+			this.protocols.forEach(prot => {
+				protocol.handle(prot.protocol, prot.handle);
+			})
+
 			const window = getWindow();
 			this._window = window;
 			window.webContents.ipc.handle(AppMessages.getCurrentState, () => this._message);
+
 			this.ipcServices.forEach(service => window.addService(service))
 			window.open();
 			for (const service of this.services) {
@@ -65,9 +86,18 @@ class App {
 	}
 
 	private static _instance: App;
-	public static create() {
-		if (!this._instance) this._instance = new App();
+	public static create(debug: boolean = false) {
+		if (!this._instance) this._instance = new App(debug);
 		return this._instance;
+	}
+
+	public setPath(path: string) {
+		app.setPath("userData", join(app.getPath("userData"), path));
+		return this;
+	}
+
+	public quit() {
+		app.quit();
 	}
 }
 

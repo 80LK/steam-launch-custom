@@ -1,16 +1,16 @@
-import { EventEmitter } from "events";
+import EventEmitter from "./types/EventEmiter";
 
 enum ServiceState {
 	INITALIZATION,
 	READY,
 	FAIL
 }
-
 interface ServiceEventsMap {
-	// Send current state
 	state: [ServiceState, string]
 }
-abstract class Service extends EventEmitter<ServiceEventsMap> {
+
+
+abstract class Service<T extends ServiceEventsMap = ServiceEventsMap> extends EventEmitter<T> {
 	protected constructor(public readonly name: string) {
 		super();
 	}
@@ -45,4 +45,4 @@ abstract class Service extends EventEmitter<ServiceEventsMap> {
 }
 
 export default Service;
-export { ServiceState }
+export { ServiceState, type ServiceEventsMap }

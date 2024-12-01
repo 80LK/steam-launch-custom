@@ -13,3 +13,6 @@ $process.Close()
 CloudSettings  
 `$steampath\userdata\$user_id\7\remote\sharedconfig.vdf`  
 **7 - ID STEAM, NOT GAME**
+
+
+Параметр запроса нам не подходит

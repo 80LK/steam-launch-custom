@@ -5,13 +5,14 @@ import Config from "../Config/Config";
 import { existsSync, mkdirSync, writeFileSync } from "fs";
 import { createRequire } from 'module';
 import { APP_ROOT } from "../consts";
+import ImageProtocol from "../ImageProtocol";
 const require = createRequire(import.meta.url);
 type IconExtractor = (filePath: string, type: "large" | "small") => Buffer;
 const iconExtractor: IconExtractor = require("exe-icon-extractor").extractIcon;
 
 class Launch extends Database.Model implements ILaunch {
 	private static readonly DB_NAME = "launch";
-	private static readonly ICON_CAHCE = path.join(APP_ROOT, "cache");
+	public static readonly ICON_CAHCE = path.join(APP_ROOT, "cache");
 
 	private _id: number = 0;
 	public get id(): number { return this._id };
@@ -45,13 +46,7 @@ class Launch extends Database.Model implements ILaunch {
 		return path.resolve(Launch.ICON_CAHCE, `${this.game_id}_${this.id}.ico`);
 	}
 	public get image(): string {
-		if (existsSync(this.iconPath))
-			return this.iconPath;
-
-		return path.join(
-			Config.getInstance().steamPath,
-			'public/steam_tray.ico'
-		)
+		return ImageProtocol.getIcon(this);
 	};
 	private extractIcon() {
 		if (this.id == 0 || this.game_id == 0) return;
@@ -140,7 +135,6 @@ class Launch extends Database.Model implements ILaunch {
 		return raw_games.map(e => this.createFromSQL(e));
 	}
 	public static async init() {
-
 		if (!existsSync(Launch.ICON_CAHCE)) mkdirSync(Launch.ICON_CAHCE);
 
 		const rows = await Config.get<{ name: string }>("SELECT name FROM sqlite_master WHERE type='table' AND name=$table_name LIMIT 1;", { table_name: Launch.DB_NAME });

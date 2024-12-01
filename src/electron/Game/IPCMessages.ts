@@ -3,6 +3,7 @@ enum GameMessages {
 	get = "game.get",
 	configure = "game.configure",
 	needWrite = "game.needWrite",
+	writeConfig = "game.writeConfig"
 }
 
 export default GameMessages;

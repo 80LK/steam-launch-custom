@@ -1,6 +1,6 @@
-import { BrowserWindow, nativeImage, BrowserWindowConstructorOptions } from "electron";
+import { BrowserWindow, BrowserWindowConstructorOptions } from "electron";
 import path from 'node:path'
-import { PUBLIC_PATH, RENDERER_DIST, dirname, VITE_DEV_SERVER_URL } from "./consts";
+import { RENDERER_DIST, dirname, VITE_DEV_SERVER_URL } from "./consts";
 import IPCSerivce from "./Serivce.ipc";
 import Pages from "../Page";
 
@@ -11,26 +11,28 @@ interface IPCTunnel {
 }
 class Window extends BrowserWindow {
 	private _isOpened: boolean = false;
+	//@ts-expect-error
 	private _page: string;
 
 	protected constructor(page: Pages, options: BrowserWindowConstructorOptions = {}) {
-		const icon = nativeImage.createFromPath(path.join(PUBLIC_PATH, `logo.png`))
-		super(Object.assign(options,
+		options = Object.assign(options,
 			{
-				icon: icon,
 				frame: false,
 				minWidth: 600,
-				webPreferences: Object.assign(options.webPreferences || {}, {
-					webSecurity: !VITE_DEV_SERVER_URL,
+				webPreferences: Object.assign({
 					devTools: !!VITE_DEV_SERVER_URL,
 					preload: path.join(dirname, 'preload.mjs'),
+				}, options.webPreferences || {}, {
+					additionalArguments: [`--window=${page}`].concat(options.webPreferences?.additionalArguments || []),
 				}),
 			}
-		));
+		);
+
+		super(options);
 		this._page = page;
 		this.on('close', () => {
 			this._isOpened = false;
-		})
+		});
 	}
 
 	private getIPCTunnel(): IPCTunnel {
@@ -58,13 +60,13 @@ class Window extends BrowserWindow {
 	}
 	public open() {
 		this._isOpened = true;
-		console.log(VITE_DEV_SERVER_URL)
+
 		if (VITE_DEV_SERVER_URL) {
-			this.loadURL(VITE_DEV_SERVER_URL + "?page=" + this._page)
-			this.webContents.openDevTools({ mode: 'undocked' });
+			this.loadURL(VITE_DEV_SERVER_URL)
 		} else {
-			this.loadFile(path.join(RENDERER_DIST, "index.html?page=" + this._page))
+			this.loadFile(path.join(RENDERER_DIST, "index.html"))
 		}
+		this.webContents.openDevTools({ mode: 'undocked' });
 		return this;
 	}
 }

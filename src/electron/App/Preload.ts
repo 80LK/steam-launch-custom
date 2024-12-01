@@ -1,6 +1,7 @@
 import { ipcRenderer as IPCRenderer } from 'electron'
 import { name, version } from '../../../package.json';
 import AppMessages from "./IPCMesages";
+import Pages from '../../Page';
 
 namespace App {
 	export async function getCurrentState(): Promise<string | null> {
@@ -36,6 +37,10 @@ namespace App {
 			return version
 		}
 	}
+
+
+	const window_arg = process.argv.find(e => e.startsWith('--window'));
+	export const page: Pages = window_arg ? <Pages>window_arg.split('=')[1] : Pages.MAIN;
 }
 type NApp = typeof App;
 declare global {

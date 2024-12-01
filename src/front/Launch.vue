@@ -1,58 +1,78 @@
 <script setup lang="ts">
 import { mdiPlay, mdiStop } from '@mdi/js';
+import Setup from './components/Setup.vue';
+import IGame from '../IGame';
+import { ref } from 'vue';
+import ILaunch from '../ILaunch';
+const game = ref(null as IGame | null);
+const launchs = ref([] as ILaunch[]);
+Game.get(LaunchWindow.gameId).then(async e => {
+	if (!e) return startCurrent();
+	game.value = e;
+	launchs.value = await Launch.getAll(e.id);
+})
 
-const c = 12;
+function cancel() {
+	SystemBar.close();
+}
+
+function startCurrent() {
+	console.log("Try start")
+	LaunchWindow.start();
+}
+function start(launchId: number) {
+	console.log("Try start", launchId)
+	LaunchWindow.start(launchId);
+}
 </script>
 
 <template>
 	<v-app id="inspire">
 		<v-main scrollable>
-			<v-img :class="['bg-grey-lighten-2', $style.header]" cover
-				:src="`file:///C:/Users/80lkr/Pictures/volk s arbuzom.png`">
-				<v-toolbar :class="$style.toolbar">
-					<v-toolbar-title class="ma-0">Game</v-toolbar-title>
-				</v-toolbar>
+			<Setup>
+				<div v-if="!game"></div>
+				<template v-else>
+					<v-img :class="['bg-grey-lighten-2', $style.header]" cover :src="game.image">
+						<v-toolbar :class="$style.toolbar">
+							<v-toolbar-title class="ma-0">{{ game.name }}</v-toolbar-title>
+						</v-toolbar>
 
-				<!-- href="steam://rungameid/730" -->
-				<v-btn :prepend-icon="mdiStop" tile color="error" size="large" :class="$style.play">Cancel</v-btn>
-			</v-img>
-			<v-container fluid :class="$style.main">
-				<!-- <v-row>
-					<v-col cols="12"> -->
-				<v-card tile>
-					<template v-for="i in c" :key="i">
-						<v-divider v-if="i != 1" />
-						<v-card-item>
-							<template v-slot:prepend>
-								<v-avatar image="file:///C:/Users/80lkr/Pictures/volk s arbuzom.png" />
+						<v-btn :prepend-icon="mdiStop" tile color="error" size="large" :class="$style.play"
+							@click="cancel()">Cancel</v-btn>
+					</v-img>
+					<v-container fluid :class="$style.main">
+						<v-card tile>
+							<v-card-item>
+								<template v-slot:prepend>
+									<v-avatar image="slc-image://currentLaunch" />
+								</template>
+								<v-card-title>
+									{{ game.name }}
+								</v-card-title>
+								<template v-slot:append>
+									<v-btn :prepend-icon="mdiPlay" tile color="success" size="large"
+										@click="startCurrent()">Launch</v-btn>
+								</template>
+							</v-card-item>
+							<template v-for="launch in launchs" :key="launch.id">
+								<v-divider />
+								<v-card-item>
+									<template v-slot:prepend>
+										<v-avatar :image="launch.image" />
+									</template>
+									<v-card-title>
+										{{ launch.name }}
+									</v-card-title>
+									<template v-slot:append>
+										<v-btn :prepend-icon="mdiPlay" tile color="success" size="large"
+											@click="start(launch.id)">Launch</v-btn>
+									</template>
+								</v-card-item>
 							</template>
-							<v-card-title>
-								Title {{ i }}
-							</v-card-title>
-							<template v-slot:append>
-								<v-btn :prepend-icon="mdiPlay" tile color="success" size="large">Launch</v-btn>
-							</template>
-						</v-card-item>
-					</template>
-				</v-card>
-				<!-- </v-col>
-				</v-row> -->
-			</v-container>
-
-			<!-- <template v-for="i in c" :key="i">
-				<v-divider v-if="i != 1" />
-				<v-list-item>
-					<template v-slot:prepend>
-						<v-avatar image="file:///C:/Users/80lkr/Pictures/volk s arbuzom.png" />
-					</template>
-					<v-list-item-title>
-						Title {{ i }}
-					</v-list-item-title>
-					<template v-slot:append>
-						<v-btn :prepend-icon="mdiPlay" tile color="success" size="large">Launch</v-btn>
-					</template>
-				</v-list-item>
-			</template> -->
+						</v-card>
+					</v-container>
+				</template>
+			</Setup>
 		</v-main>
 	</v-app>
 </template>

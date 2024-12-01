@@ -18,19 +18,22 @@ class Config extends Database.Model implements IConfig {
 		this._steamPath = value;
 	}
 	public scanGameLaunch: boolean = false;
+	public dark: boolean = false;
 
 	public async save() {
 		const querty = Database.Model.prepare(`INSERT OR REPLACE INTO ${Config.DB_NAME} (name, value) values ($key, $value);`);
 		await Promise.all([
 			querty.run({ key: 'steamPath', value: this._steamPath }),
-			querty.run({ key: 'scanGameLaunch', value: (this.scanGameLaunch ? 1 : 0).toString() })
+			querty.run({ key: 'scanGameLaunch', value: (this.scanGameLaunch ? 1 : 0).toString() }),
+			querty.run({ key: 'dark', value: (this.dark ? 1 : 0).toString() })
 		]);
 	}
 
 	public toJSON(): IConfig {
 		return {
 			steamPath: this.steamPath,
-			scanGameLaunch: this.scanGameLaunch
+			scanGameLaunch: this.scanGameLaunch,
+			dark: this.dark
 		}
 	}
 
@@ -63,6 +66,9 @@ class Config extends Database.Model implements IConfig {
 
 		const scanGameLaunch = (await state.get({ key: 'scanGameLaunch' }))?.value;
 		if (scanGameLaunch) cfg.scanGameLaunch = scanGameLaunch == "1";
+
+		const dark = (await state.get({ key: 'dark' }))?.value;
+		if (dark) cfg.dark = dark == "1";
 	}
 }
 

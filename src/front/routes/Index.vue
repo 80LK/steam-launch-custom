@@ -14,7 +14,12 @@ const all_games = ref([] as IGame[]);
 const games = computed(() => all_games.value.filter(e => search.value ? e.name.toLowerCase().includes(search.value.toLowerCase()) : true))
 
 Config.get().then(e => canScan.value = !e.scanGameLaunch)
-Game.needWrite().then(e => needWrite.value = e);
+
+async function checkNeedWrite() {
+	const need = await Game.needWrite();
+	needWrite.value = need;
+}
+
 
 async function getGames() {
 	loading.value = true;
@@ -29,7 +34,16 @@ async function scanGame() {
 	loading.value = false;
 }
 
+async function writeConfig() {
+	loading.value = true;
+	await Game.writeConfig()
+	await getGames();
+	await checkNeedWrite();
+	loading.value = false;
+}
+
 getGames();
+checkNeedWrite();
 </script>
 
 <template>
@@ -39,7 +53,7 @@ getGames();
 				<v-alert type="warning" variant="tonal" border="start">
 					<div style="display: flex; align-items: center; justify-content: space-between">
 						You need close Steam and rewrite launch option
-						<v-btn color="warning">Now</v-btn>
+						<v-btn color="warning" @click="writeConfig()">Now</v-btn>
 					</div>
 				</v-alert>
 			</v-col>

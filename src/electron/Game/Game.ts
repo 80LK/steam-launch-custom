@@ -2,9 +2,13 @@ import IGame, { GameState } from "../../IGame";
 import path from "path";
 import Database from "../Database";
 import Config from "../Config/Config";
-import { existsSync } from "fs";
-import { globSync } from "glob";
+
+import { existsSync, readFileSync, writeFileSync } from "fs";
 import Steam from "../Steam/Steam";
+import VDF from "valve-key-values";
+import ObjectProxy from "../ObjectProxy";
+import ImageProtocol from "../ImageProtocol";
+
 const CFG = Config.getInstance();
 
 class Game extends Database.Model implements IGame {
@@ -25,26 +29,8 @@ class Game extends Database.Model implements IGame {
 		return this._state;
 	}
 
-	public get image() {
-		const userdata = path.join(
-			CFG.steamPath,
-			"userdata",
-			Steam.getLastUserId().toString(),
-			"config/grid"
-		);
-
-		const header_custom = globSync(`${this.id}_hero.{png,jpeg,jpg}`, { cwd: userdata });
-		if (header_custom.length) return path.join(userdata, header_custom[0]);
-
-		const librarycache = path.join(CFG.steamPath, "appcache/librarycache");
-
-		const header = globSync(`${this.id}_header.{png,jpeg,jpg}`, { cwd: librarycache });
-		if (header.length) return path.join(librarycache, header[0]);
-
-		const library_header = globSync(`${this.id}_library_header.{png,jpeg,jpg}`, { cwd: librarycache });
-		if (library_header.length) return path.join(librarycache, library_header[0]);
-
-		return path.join(CFG.steamPath, "tenfoot/resource/images/bootstrapper.jpg");
+	public get image(): string {
+		return ImageProtocol.getHeader(this);
 	}
 
 	public toJSON(): IGame {
@@ -129,6 +115,57 @@ class Game extends Database.Model implements IGame {
 		const count = await this.countNeedConfigurate();
 		return count > 0;
 	}
+
+	public static async writeConfig() {
+		const stop_steam = Steam.stop();
+		const games = (await Game.getAll<IGame>(`SELECT id, name, state, installDir FROM ${Game.DB_NAME} WHERE state & $state`, { state: GameState.NEED_WRITE })).map(e => {
+			return this.createFromSQL(e);
+		});
+		const cfg_path = path.join(
+			CFG.steamPath,
+			"userdata",
+			Steam.getLastUserId().toString(),
+			"config/localconfig.vdf"
+		);
+		const cfg_raw = readFileSync(cfg_path, "utf-8");
+
+		const cfg = new ObjectProxy<LocalConfig>(VDF.parse<any>(cfg_raw));
+		const apps_dict = cfg.get("UserLocalConfigStore").get('Software').get('Valve').get('Steam').get('apps')
+
+
+		for (const game of games) {
+
+			const gameCfg = apps_dict.get(game.id.toString())
+			if (!gameCfg) continue;
+
+			const exe = process.argv[0].replace(/\\/g, "/");
+			const launch = [`"${exe}"`, ...process.argv.slice(1), `--launch=${game.id}`, "%command%"].join(' ');
+			gameCfg.set("LaunchOptions", launch);
+
+			game._state ^= GameState.NEED_WRITE;
+			game.save();
+		}
+		await stop_steam;
+		writeFileSync(cfg_path, VDF.strigify(<any>cfg.object));
+		await Steam.start();
+	}
 }
+
+interface LocalConfig {
+	UserLocalConfigStore: {
+		Software: {
+			Valve: {
+				Steam: {
+					apps: {
+						[id: string]: {
+							LaunchOptions: string;
+						}
+					}
+				}
+			}
+		}
+	};
+}
+
 
 export default Game;
