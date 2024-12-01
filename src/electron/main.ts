@@ -20,9 +20,6 @@ import { require } from "./consts";
 type IconExtractor = (filePath: string, type: "large" | "small") => Buffer;
 const iconExtractor: IconExtractor = require("exe-icon-extractor").extractIcon;
 
-process.argv.push('--launch=1540960')
-process.argv.push('D:\\Soft\\Steam\\steamapps\\common\\Underworld Idle\\imp_inf.exe')
-
 const imageProtocol = ImageProtocol.getInstance();
 const app = App.create()
 	.addProtocols(
@@ -30,7 +27,10 @@ const app = App.create()
 	)
 	.addServices(
 		Database
-			// .debug({ memory: true })
+			.debug({
+				memory: process.env.DATABASE_MEMORY?.toLowerCase() == "true",
+				logSql: process.env.DATABASE_LOG?.toLowerCase() == "true"
+			})
 			.init(
 				Config,
 				Game,
