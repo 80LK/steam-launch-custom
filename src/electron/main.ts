@@ -54,12 +54,12 @@ if (index !== -1) {
 		.open(() => new LaunchWindow(appId, {
 			cmdline: process.argv.slice(index + 1),
 			cwd: process.cwd()
-		}, { webPreferences: { devTools: true } }));
+		}));
 	spawn.on('closeAll', () => app.quit());
 } else {
 	app
 		.addServices(
 			Steam.getInstance()
 		)
-		.open(() => new MainWindow({ webPreferences: { devTools: true } }))
+		.open(() => new MainWindow())
 }
