@@ -17,9 +17,6 @@ import Spawn from "./Spawn";
 
 // process.argv.push('--launch=1540960')
 // process.argv.push('D:\\Soft\\Steam\\steamapps\\common\\Underworld Idle\\imp_inf.exe')
-// console.log(process.argv);
-
-// "D:\\dev\\electron\\steam-launch-custom\\node_modules\\electron\\dist\\electron.exe" "D:\\dev\\electron\\steam-launch-custom" --no-sandbox --launch=4500 %command%
 
 const imageProtocol = ImageProtocol.getInstance();
 const app = App.create()

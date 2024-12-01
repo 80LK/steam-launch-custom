@@ -17,11 +17,9 @@ function cancel() {
 }
 
 function startCurrent() {
-	console.log("Try start")
 	LaunchWindow.start();
 }
 function start(launchId: number) {
-	console.log("Try start", launchId)
 	LaunchWindow.start(launchId);
 }
 </script>

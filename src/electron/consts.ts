@@ -1,7 +1,6 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createRequire } from 'node:module'
-// import { existsSync, mkdirSync } from "fs";
 
 export const require = createRequire(import.meta.url)
 
@@ -10,7 +9,6 @@ export const ASAR_ROOT = path.join(dirname, '..')
 
 export const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL'];
 export const DEV = !!VITE_DEV_SERVER_URL;
-// export const MAIN_DIST = path.join(APP_ROOT, 'dist-electron')
 export const RENDERER_DIST = path.join(ASAR_ROOT, 'dist')
 export const PUBLIC_PATH = path.join(ASAR_ROOT, "public");
 

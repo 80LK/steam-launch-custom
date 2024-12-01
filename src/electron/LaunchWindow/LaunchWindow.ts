@@ -34,7 +34,6 @@ class LaunchWindow extends Window {
 	}
 
 	private async start(launchId?: number) {
-		console.log('try start:', launchId || 'current');
 		const spawn = Spawn.getInstance();
 		if (!launchId) {
 			const { cmdline: [exe, ...args], cwd } = this.currentLaunch;

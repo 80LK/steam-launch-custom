@@ -37,7 +37,6 @@ class Config extends Database.Model implements IConfig {
 		}
 	}
 
-	// Singleton
 	private constructor() { super() }
 	private static _instance: Config;
 	public static getInstance(): Config {
@@ -45,7 +44,6 @@ class Config extends Database.Model implements IConfig {
 		return this._instance;
 	}
 
-	// Model
 	private static readonly DB_NAME = "setting";
 
 	public static async init() {

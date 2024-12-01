@@ -37,8 +37,6 @@ class Database extends Service {
 	private _db: SQLite;
 	private constructor() {
 		super("Database");
-		console.log("DATABASEPATH:", Database.DATABASE_PATH)
-		console.log("IN MEMORY:", Database._debug.memory)
 		this._db = new sqlite.Database(Database._debug.memory ? ":memory:" : Database.DATABASE_PATH);
 		Database._debug.logSql && this._db.on('trace', (sql) => console.log("[SQL]:", sql));
 	}

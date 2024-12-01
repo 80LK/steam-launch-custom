@@ -11,8 +11,6 @@ interface IPCTunnel {
 }
 class Window extends BrowserWindow {
 	private _isOpened: boolean = false;
-	//@ts-expect-error
-	private _page: string;
 
 	protected constructor(page: Pages, options: BrowserWindowConstructorOptions = {}) {
 		options = Object.assign(options,
@@ -29,7 +27,6 @@ class Window extends BrowserWindow {
 		);
 
 		super(options);
-		this._page = page;
 		this.on('close', () => {
 			this._isOpened = false;
 		});
