@@ -3,10 +3,8 @@ import Database from "../Database";
 import path from "path";
 import Config from "../Config/Config";
 import { existsSync, mkdirSync, writeFileSync } from "fs";
-import { createRequire } from 'module';
-import { APP_ROOT } from "../consts";
 import ImageProtocol from "../ImageProtocol";
-const require = createRequire(import.meta.url);
+import { require, APP_ROOT } from "../consts";
 type IconExtractor = (filePath: string, type: "large" | "small") => Buffer;
 const iconExtractor: IconExtractor = require("exe-icon-extractor").extractIcon;
 

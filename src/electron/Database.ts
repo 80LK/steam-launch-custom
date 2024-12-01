@@ -1,10 +1,8 @@
 import Service from "./Service";
 import path from "path";
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
 import type sqlite3 from "sqlite3";
 import { RunResult as SQLRunResult, type Statement as SQLStatement, type Database as SQLite } from "sqlite3";
-import { APP_ROOT } from "./consts";
+import { require, APP_ROOT } from "./consts";
 const sqlite: typeof sqlite3 = require('sqlite3');
 
 
