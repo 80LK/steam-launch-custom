@@ -3,7 +3,7 @@
   "author": "80LK",
   "description": "Add custom launch options for you steam games",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
