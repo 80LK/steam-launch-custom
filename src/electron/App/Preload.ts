@@ -39,8 +39,8 @@ namespace App {
 		}
 	}
 
-	export async function selectFile(type: FileType) {
-		return await IPCRenderer.invoke(AppMessages.selectFile, type);
+	export async function selectFile(type: FileType, defaultPath?: string) {
+		return await IPCRenderer.invoke(AppMessages.selectFile, type, defaultPath);
 	}
 
 

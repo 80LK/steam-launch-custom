@@ -3,7 +3,7 @@ import Service, { ServiceState } from "../Service";
 import Window from "../Window";
 import IPCSerivce from '../Serivce.ipc';
 import AppMessages from './IPCMesages';
-import { join } from 'path';
+import { join, resolve } from 'path';
 import Protocol from '../Protocol';
 
 
@@ -75,7 +75,7 @@ class App {
 			const window = getWindow();
 			this._window = window;
 			window.webContents.ipc.handle(AppMessages.getCurrentState, () => this._message);
-			window.webContents.ipc.handle(AppMessages.selectFile, async (_, type: FileType) => {
+			window.webContents.ipc.handle(AppMessages.selectFile, async (_, type: FileType, defaultPath: string) => {
 				let property: 'openFile' | 'openDirectory' = 'openFile';
 				const filters = [];
 				if (type == 'directory') {
@@ -83,7 +83,8 @@ class App {
 				} else {
 					filters.push(type);
 				}
-				const { canceled, filePaths } = await dialog.showOpenDialog({ properties: [property], filters: filters });
+				if (defaultPath) defaultPath = resolve(defaultPath);
+				const { canceled, filePaths } = await dialog.showOpenDialog({ defaultPath, properties: [property], filters: filters });
 				if (canceled || filePaths.length == 0) return false;
 				return filePaths[0]
 			})

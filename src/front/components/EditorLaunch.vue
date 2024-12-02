@@ -1,7 +1,8 @@
 <script lang="ts" setup>
-import { mdiPencil } from '@mdi/js';
-import { watch, ref, toRaw } from 'vue';
+import { mdiApplicationOutline, mdiCog, mdiFolder, mdiPencil } from '@mdi/js';
+import { watch, ref, toRaw, computed } from 'vue';
 import ILaunch, { INIT_LAUNCH } from '../../ILaunch';
+import FilePicker from './FilePicker.vue';
 
 const launch = defineModel<ILaunch | null>({
 	default: null,
@@ -34,6 +35,19 @@ function submit() {
 function clear() {
 	cacheLaunch.value = INIT_LAUNCH();
 }
+
+const defaultPathForExe = computed(() => {
+	const l = cacheLaunch.value;
+	if (!l.execute) return undefined;
+	return l.execute + '/..';
+})
+
+const defaultPathForWorkDir = computed(() => {
+	const l = cacheLaunch.value;
+	if (!l.workdir) return defaultPathForExe.value;
+	return l.workdir;
+})
+
 </script>
 
 <template>
@@ -47,10 +61,17 @@ function clear() {
 			<v-divider />
 			<v-card-text>
 				<v-text-field label="Title" variant="outlined" v-model="cacheLaunch.name" />
-				<v-text-field label="Executable file" variant="outlined" v-model="cacheLaunch.execute" />
-				<v-combobox label="Launch options" variant="outlined" v-model="cacheLaunch.launch" clearable chips
-					multiple closable-chips hint="Press enter for add parameter"></v-combobox>
-				<v-text-field label="Work Directory" variant="outlined" v-model="cacheLaunch.workdir" />
+
+				<FilePicker label="Executable file" variant="outlined" v-model:model-value="cacheLaunch.execute"
+					:icon="mdiApplicationOutline" :file="{ name: 'Application', extensions: ['exe'] }"
+					:default-path="defaultPathForExe" />
+
+				<v-combobox :prepend-inner-icon="mdiCog" label="Launch options" variant="outlined"
+					v-model="cacheLaunch.launch" clearable chips multiple closable-chips
+					hint="Press enter for add parameter"></v-combobox>
+
+				<FilePicker label="Work Directory" variant="outlined" v-model:model-value="cacheLaunch.workdir"
+					:icon="mdiFolder" file="directory" :default-path="defaultPathForWorkDir" />
 			</v-card-text>
 			<v-divider />
 			<v-card-actions>
