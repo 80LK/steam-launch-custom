@@ -34,7 +34,7 @@ class LaunchWindow extends Window {
 		const spawn = Spawn.getInstance();
 		const launch = launchId ? await Launch.find(this.gameId, launchId) : this.currentLaunch;
 		if (!launch) return;
-		spawn.start(launch.execute, launch.launch.split(' '), launch.workdir || dirname(launch.execute))
+		spawn.start(launch.execute, launch.launch, launch.workdir || dirname(launch.execute))
 		this.webContents.close();
 	}
 }

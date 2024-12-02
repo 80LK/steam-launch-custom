@@ -54,7 +54,7 @@ if (index !== -1) {
 	const current_icon = path.join(Launch.ICON_CAHCE, `current_launch_${appId}.ico`);
 	const current: IRunnable = {
 		execute: process.argv[index + 1],
-		launch: process.argv.slice(index + 2).join(" "),
+		launch: process.argv.slice(index + 2),
 		workdir: process.cwd()
 	}
 

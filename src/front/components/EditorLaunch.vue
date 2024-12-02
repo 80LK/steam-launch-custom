@@ -34,7 +34,6 @@ function submit() {
 function clear() {
 	cacheLaunch.value = INIT_LAUNCH();
 }
-
 </script>
 
 <template>
@@ -49,7 +48,8 @@ function clear() {
 			<v-card-text>
 				<v-text-field label="Title" variant="outlined" v-model="cacheLaunch.name" />
 				<v-text-field label="Executable file" variant="outlined" v-model="cacheLaunch.execute" />
-				<v-text-field label="Launch options" variant="outlined" v-model="cacheLaunch.launch" />
+				<v-combobox label="Launch options" variant="outlined" v-model="cacheLaunch.launch" clearable chips
+					multiple closable-chips hint="Press enter for add parameter"></v-combobox>
 				<v-text-field label="Work Directory" variant="outlined" v-model="cacheLaunch.workdir" />
 			</v-card-text>
 			<v-divider />

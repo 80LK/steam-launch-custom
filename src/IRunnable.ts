@@ -1,6 +1,6 @@
 interface IRunnable {
 	execute: string;
-	launch: string;
+	launch: string[];
 	workdir: string;
 }
 

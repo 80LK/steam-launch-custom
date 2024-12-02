@@ -13,7 +13,7 @@ function INIT_LAUNCH(game_id: number = 0): ILaunch {
 		game_id: game_id,
 		name: '',
 		execute: '',
-		launch: '',
+		launch: [],
 		workdir: '',
 		image: ""
 	}

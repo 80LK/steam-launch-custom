@@ -5,8 +5,12 @@ import Config from "../Config/Config";
 import { existsSync, mkdirSync, writeFileSync } from "fs";
 import ImageProtocol from "../ImageProtocol";
 import { require, APP_ROOT } from "../consts";
+import { ExcludeFields } from "../../utils/ExcludeFields";
+import SilentJSON from "../../utils/SilentJSON";
 type IconExtractor = (filePath: string, type: "large" | "small") => Buffer;
 const iconExtractor: IconExtractor = require("exe-icon-extractor").extractIcon;
+
+type SQLLaunch = ExcludeFields<ILaunch, 'launch'> & { launch: string };
 
 class Launch extends Database.Model implements ILaunch {
 	private static readonly DB_NAME = "launch";
@@ -37,7 +41,7 @@ class Launch extends Database.Model implements ILaunch {
 		this._execute = value;
 		this.extractIcon();
 	};
-	public launch: string = "";
+	public launch: string[] = [];
 	public workdir: string = "";
 
 	private get iconPath() {
@@ -68,25 +72,23 @@ class Launch extends Database.Model implements ILaunch {
 	}
 
 	public async save() {
+		const game_id = this.game_id,
+			name = this.name,
+			execute = this.execute,
+			workdir = this.workdir,
+			launch = JSON.stringify(this.launch);
+
 		if (this.id == 0) {
-			const res = await Launch.run(`INSERT INTO ${Launch.DB_NAME} (game_id, name, execute, launch, workdir) values ($game_id, $name, $execute, $launch, $workdir);`, {
-				game_id: this.game_id,
-				name: this.name,
-				launch: this.launch,
-				execute: this.execute,
-				workdir: this.workdir,
-			});
+			const res = await Launch.run(
+				`INSERT INTO ${Launch.DB_NAME} (game_id, name, execute, launch, workdir) values ($game_id, $name, $execute, $launch, $workdir);`,
+				{ game_id, name, launch, execute, workdir }
+			);
 			this.id = res.lastID;
 		} else {
-			await Launch.run(`UPDATE ${Launch.DB_NAME} SET name = $name, execute = $execute, workdir = $workdir, launch = $launch WHERE id = $id AND game_id = $game_id;`,
-				{
-					id: this.id,
-					game_id: this.game_id,
-					name: this.name,
-					launch: this.launch,
-					execute: this.execute,
-					workdir: this.workdir,
-				});
+			await Launch.run(
+				`UPDATE ${Launch.DB_NAME} SET name = $name, execute = $execute, workdir = $workdir, launch = $launch WHERE id = $id AND game_id = $game_id;`,
+				{ id: this.id, game_id, name, launch, execute, workdir }
+			);
 		}
 		return this;
 	}
@@ -98,7 +100,7 @@ class Launch extends Database.Model implements ILaunch {
 		});
 	}
 
-	public static create(game_id: number, name: string, execute: string, launch: string = "", workdir: string = ""): Launch {
+	public static create(game_id: number, name: string, execute: string, launch: string[] = [], workdir: string = ""): Launch {
 		const game = new Launch();
 
 		game._game_id = game_id;
@@ -110,26 +112,26 @@ class Launch extends Database.Model implements ILaunch {
 		return game;
 	}
 
-	private static createFromSQL(raw: ILaunch): Launch {
+	private static createFromSQL(raw: SQLLaunch): Launch {
 		const launch = new Launch();
 		launch._id = raw.id;
 		launch._game_id = raw.game_id;
 		launch._execute = raw.execute;
 		launch.name = raw.name;
-		launch.launch = raw.launch;
+		launch.launch = SilentJSON.parse(raw.launch, []);
 		launch.workdir = raw.workdir;
 
 		return launch;
 	}
 
 	public static async find(game_id: number, id: number) {
-		const raw_game = await this.get<ILaunch>(`SELECT id, game_id, name, execute, launch, workdir installDir FROM ${Launch.DB_NAME} WHERE game_id = $game_id AND id = $id`, { id, game_id });
+		const raw_game = await this.get<SQLLaunch>(`SELECT id, game_id, name, execute, launch, workdir installDir FROM ${Launch.DB_NAME} WHERE game_id = $game_id AND id = $id`, { id, game_id });
 		if (!raw_game) return;
 		return this.createFromSQL(raw_game);
 	}
 
 	public static async findAll(game_id: number) {
-		const raw_games = await this.getAll<ILaunch>(`SELECT id, game_id, name, execute, launch, workdir FROM ${Launch.DB_NAME} WHERE game_id = $game_id`, { game_id });
+		const raw_games = await this.getAll<SQLLaunch>(`SELECT id, game_id, name, execute, launch, workdir FROM ${Launch.DB_NAME} WHERE game_id = $game_id`, { game_id });
 		return raw_games.map(e => this.createFromSQL(e));
 	}
 	public static async init() {
