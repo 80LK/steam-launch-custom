@@ -16,7 +16,7 @@ function submit() {
 
 
 <template>
-	<v-dialog persistent v-model="open">
+	<v-dialog max-width="600" persistent v-model="open">
 		<v-card>
 			<v-card-item :prepend-icon="mdiDelete">
 				<v-card-title>
