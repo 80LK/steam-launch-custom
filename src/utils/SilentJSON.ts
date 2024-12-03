@@ -1,5 +1,7 @@
 namespace SilentJSON {
-	export function parse<T, D extends T | undefined = undefined>(text: string, defaultV: D): D | T {
+	export function parse<T>(text: string): T | undefined;
+	export function parse<T>(text: string, defaultV: T): T;
+	export function parse<T>(text: string, defaultV?: T): T | undefined {
 		try {
 			return <T>JSON.parse(text)
 		} catch (e) {
