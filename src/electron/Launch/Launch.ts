@@ -1,7 +1,6 @@
 import ILaunch from "../../ILaunch";
 import Database from "../Database";
 import path from "path";
-import Config from "../Config/Config";
 import { existsSync, mkdirSync, writeFileSync } from "fs";
 import ImageProtocol from "../ImageProtocol";
 import { require, APP_ROOT } from "../consts";
@@ -101,7 +100,7 @@ class Launch extends Database.Model implements ILaunch {
 	}
 
 	public static create(game_id: number, name: string, execute: string, launch: string[] = [], workdir: string = ""): Launch {
-		const game = new Launch();
+		const game = new this();
 
 		game._game_id = game_id;
 		game.name = name;
@@ -113,7 +112,7 @@ class Launch extends Database.Model implements ILaunch {
 	}
 
 	private static createFromSQL(raw: SQLLaunch): Launch {
-		const launch = new Launch();
+		const launch = new this();
 		launch._id = raw.id;
 		launch._game_id = raw.game_id;
 		launch._execute = raw.execute;
@@ -125,22 +124,22 @@ class Launch extends Database.Model implements ILaunch {
 	}
 
 	public static async find(game_id: number, id: number) {
-		const raw_game = await this.get<SQLLaunch>(`SELECT id, game_id, name, execute, launch, workdir installDir FROM ${Launch.DB_NAME} WHERE game_id = $game_id AND id = $id`, { id, game_id });
+		const raw_game = await this.get<SQLLaunch>(`SELECT id, game_id, name, execute, launch, workdir installDir FROM ${this.DB_NAME} WHERE game_id = $game_id AND id = $id`, { id, game_id });
 		if (!raw_game) return;
 		return this.createFromSQL(raw_game);
 	}
 
 	public static async findAll(game_id: number) {
-		const raw_games = await this.getAll<SQLLaunch>(`SELECT id, game_id, name, execute, launch, workdir FROM ${Launch.DB_NAME} WHERE game_id = $game_id`, { game_id });
+		const raw_games = await this.getAll<SQLLaunch>(`SELECT id, game_id, name, execute, launch, workdir FROM ${this.DB_NAME} WHERE game_id = $game_id`, { game_id });
 		return raw_games.map(e => this.createFromSQL(e));
 	}
 	public static async init() {
-		if (!existsSync(Launch.ICON_CAHCE)) mkdirSync(Launch.ICON_CAHCE);
+		if (!existsSync(this.ICON_CAHCE)) mkdirSync(this.ICON_CAHCE);
 
-		const rows = await Config.get<{ name: string }>("SELECT name FROM sqlite_master WHERE type='table' AND name=$table_name LIMIT 1;", { table_name: Launch.DB_NAME });
-		if (rows) return;
+		const table_exist = await this.get<{ name: string }>("SELECT name FROM sqlite_master WHERE type='table' AND name=$table_name LIMIT 1;", { table_name: this.DB_NAME });
+		if (table_exist) return;
 
-		await Config.run(`CREATE TABLE ${Launch.DB_NAME} (
+		await this.run(`CREATE TABLE ${this.DB_NAME} (
 				id INTEGER PRIMARY KEY,
 				game_id INT,
 				name varchar(255),

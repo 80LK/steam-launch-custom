@@ -40,25 +40,25 @@ class Config extends Database.Model implements IConfig {
 	private constructor() { super() }
 	private static _instance: Config;
 	public static getInstance(): Config {
-		if (!this._instance) this._instance = new Config();
+		if (!this._instance) this._instance = new this();
 		return this._instance;
 	}
 
 	private static readonly DB_NAME = "setting";
 
 	public static async init() {
-		const rows = await Config.get<{ name: string }>("SELECT name FROM sqlite_master WHERE type='table' AND name=$table_name LIMIT 1;", { table_name: Config.DB_NAME });
-		if (!rows) {
-			await Config.run(`CREATE TABLE ${Config.DB_NAME} (
+		const table_exist = await this.get<{ name: string }>("SELECT name FROM sqlite_master WHERE type='table' AND name=$table_name LIMIT 1;", { table_name: this.DB_NAME });
+		if (!table_exist) {
+			await this.run(`CREATE TABLE ${this.DB_NAME} (
 			name varchar(32) PRIMARY KEY,
 			value varchar(255)
 		);`);
-			await Config.run(`INSERT INTO ${Config.DB_NAME} VALUES($key, $value)`, { key: "db_version", value: "1" })
+			await this.run(`INSERT INTO ${this.DB_NAME} VALUES($key, $value)`, { key: "db_version", value: "1" })
 			return;
 		}
 
 		const cfg = this.getInstance();
-		const state = Config.prepare<SettingRow>(`SELECT name, value FROM ${Config.DB_NAME} WHERE name = $key`);
+		const state = this.prepare<SettingRow>(`SELECT name, value FROM ${this.DB_NAME} WHERE name = $key`);
 		const steamPath = (await state.get({ key: 'steamPath' }))?.value;
 		if (steamPath) cfg._steamPath = steamPath;
 

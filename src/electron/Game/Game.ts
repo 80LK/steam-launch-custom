@@ -54,7 +54,7 @@ class Game extends Database.Model implements IGame {
 	}
 
 	public static create(id: number, name: string = "", installDir: string = ""): Game {
-		const game = new Game();
+		const game = new this();
 
 		game._id = id;
 		game._name = name;
@@ -65,7 +65,7 @@ class Game extends Database.Model implements IGame {
 	}
 
 	private static createFromSQL(raw: IGame): Game {
-		const game = new Game();
+		const game = new this();
 		game._id = raw.id;
 		game._name = raw.name;
 		game._installDir = raw.installDir;
@@ -82,20 +82,20 @@ class Game extends Database.Model implements IGame {
 	}
 
 	public static async find(id: number) {
-		const raw_game = await this.get<IGame>(`SELECT id, name, state, installDir FROM ${Game.DB_NAME} WHERE id = $id`, { id });
+		const raw_game = await this.get<IGame>(`SELECT id, name, state, installDir FROM ${this.DB_NAME} WHERE id = $id`, { id });
 		if (!raw_game) return;
 		return this.createFromSQL(raw_game);
 	}
 
 	public static async findAll() {
-		const raw_games = await this.getAll<IGame>(`SELECT id, name, state, installDir FROM ${Game.DB_NAME} ORDER BY state DESC`);
+		const raw_games = await this.getAll<IGame>(`SELECT id, name, state, installDir FROM ${this.DB_NAME} ORDER BY state DESC`);
 		return raw_games.map(e => this.createFromSQL(e));
 	}
 	public static async init() {
-		const rows = await Config.get<{ name: string }>("SELECT name FROM sqlite_master WHERE type='table' AND name=$table_name LIMIT 1;", { table_name: Game.DB_NAME });
+		const rows = await this.get<{ name: string }>("SELECT name FROM sqlite_master WHERE type='table' AND name=$table_name LIMIT 1;", { table_name: this.DB_NAME });
 		if (rows) return;
 
-		await Config.run(`CREATE TABLE ${Game.DB_NAME} (
+		await this.run(`CREATE TABLE ${this.DB_NAME} (
 				id INT PRIMARY KEY,
 				name varchar(255),
 				state INT,
@@ -106,7 +106,7 @@ class Game extends Database.Model implements IGame {
 	}
 
 	public static async countNeedConfigurate(): Promise<number> {
-		const { count } = await Game.get<{ count: number }>(`SELECT count(*) as count FROM ${Game.DB_NAME} WHERE state & $state`, { state: GameState.NEED_WRITE }) || { count: 0 };
+		const { count } = await this.get<{ count: number }>(`SELECT count(*) as count FROM ${this.DB_NAME} WHERE state & $state`, { state: GameState.NEED_WRITE }) || { count: 0 };
 		return count;
 	}
 
@@ -118,7 +118,7 @@ class Game extends Database.Model implements IGame {
 
 	public static async writeConfig() {
 		const stop_steam = Steam.stop();
-		const games = (await Game.getAll<IGame>(`SELECT id, name, state, installDir FROM ${Game.DB_NAME} WHERE state & $state`, { state: GameState.NEED_WRITE })).map(e => {
+		const games = (await this.getAll<IGame>(`SELECT id, name, state, installDir FROM ${this.DB_NAME} WHERE state & $state`, { state: GameState.NEED_WRITE })).map(e => {
 			return this.createFromSQL(e);
 		});
 		const cfg_path = path.join(
