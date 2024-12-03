@@ -41,8 +41,7 @@ function focus(e: FocusEvent) {
 </script>
 
 <template>
-	<v-input class="v-text-field cursor-pointer" v-slot:default="{ id, isValid, isValidating }" :rules="rules"
-		v-model="value">
+	<v-input class="v-text-field cursor-pointer" v-slot:default="{ id, isValid }" :rules="rules" v-model="value">
 		<v-field :variant="variant" :label="label" :id="id.value" @click="selectFile()" :active="isNotEmpty"
 			:error="isValid.value == false">
 			<template v-slot:prepend-inner>
