@@ -53,7 +53,6 @@ class Config extends Database.Model implements IConfig {
 			name varchar(32) PRIMARY KEY,
 			value varchar(255)
 		);`);
-			await this.run(`INSERT INTO ${this.DB_NAME} VALUES($key, $value)`, { key: "db_version", value: "1" })
 			return;
 		}
 
@@ -68,6 +67,18 @@ class Config extends Database.Model implements IConfig {
 		const dark = (await state.get({ key: 'dark' }))?.value;
 		if (dark) cfg.dark = dark == "1";
 	}
+
+	public static async read(name: string, defaultValue: string): Promise<string>;
+	public static async read(name: string): Promise<string | undefined>;
+	public static async read(name: string, defaultValue?: string): Promise<string | undefined> {
+		let value = (await Config.get<{ value: string }>(`SELECT value FROM ${Config.DB_NAME} WHERE name = $name`, { name }))?.value;
+		if (!value) value = defaultValue;
+		return value;
+	}
+	public static async write(name: string, value: string) {
+		this.run(`INSERT OR REPLACE INTO ${Config.DB_NAME} (name, value) values ($name, $value);`, { name, value });
+	}
+
 }
 
 export default Config;

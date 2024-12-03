@@ -1,5 +1,6 @@
 import ILaunch from "../../ILaunch";
 import Database from "../Database";
+import Config from "../Config/Config";
 import path from "path";
 import { existsSync, mkdirSync, writeFileSync } from "fs";
 import ImageProtocol from "../ImageProtocol";
@@ -12,8 +13,6 @@ const iconExtractor: IconExtractor = require("exe-icon-extractor").extractIcon;
 type SQLLaunch = ExcludeFields<ILaunch, 'launch'> & { launch: string };
 
 class Launch extends Database.Model implements ILaunch {
-	private static readonly DB_NAME = "launch";
-	public static readonly ICON_CAHCE = path.join(APP_ROOT, "cache");
 
 	private _id: number = 0;
 	public get id(): number { return this._id };
@@ -133,13 +132,18 @@ class Launch extends Database.Model implements ILaunch {
 		const raw_games = await this.getAll<SQLLaunch>(`SELECT id, game_id, name, execute, launch, workdir FROM ${this.DB_NAME} WHERE game_id = $game_id`, { game_id });
 		return raw_games.map(e => this.createFromSQL(e));
 	}
+
+	private static readonly DB_NAME = "launch";
+	private static readonly CONFIG_NAME = "launch_db_version";
+	private static readonly DB_VERSION = 1;
+	public static readonly ICON_CAHCE = path.join(APP_ROOT, "cache");
+
 	public static async init() {
 		if (!existsSync(this.ICON_CAHCE)) mkdirSync(this.ICON_CAHCE);
 
 		const table_exist = await this.get<{ name: string }>("SELECT name FROM sqlite_master WHERE type='table' AND name=$table_name LIMIT 1;", { table_name: this.DB_NAME });
-		if (table_exist) return;
-
-		await this.run(`CREATE TABLE ${this.DB_NAME} (
+		if (!table_exist) {
+			await this.run(`CREATE TABLE ${this.DB_NAME} (
 				id INTEGER PRIMARY KEY,
 				game_id INT,
 				name varchar(255),
@@ -147,8 +151,26 @@ class Launch extends Database.Model implements ILaunch {
 				launch TEXT,
 				workdir TEXT
 			);`);
-		return;
 
+			await Config.write(this.CONFIG_NAME, this.DB_VERSION.toString());
+			return;
+		}
+		const cur_db_version = parseInt(await Config.read(this.CONFIG_NAME, "0"));
+		switch (cur_db_version) {
+			case this.DB_VERSION: return;
+			case 0: {
+				const launchs = await this.getAll<SQLLaunch>(`SELECT id, game_id, launch FROM ${this.DB_NAME} WHERE launch = $launch`, { launch: '' });
+				const state = this.prepare(`UPDATE ${this.DB_NAME} SET launch = $launch WHERE id = $id AND game_id = $game_id`);
+				await Promise.all(launchs.map(launch => {
+					const launchOptions = SilentJSON.parse(launch.launch);
+					if (launchOptions) return;
+					launch.launch = JSON.stringify(launch.launch.split(' '));
+					return state.run(launch)
+				}))
+				await Config.write(this.CONFIG_NAME, this.DB_VERSION.toString());
+			} break;
+			default: return console.error(`Unknown DB version ${this.DB_NAME}`);
+		}
 	}
 }
 
