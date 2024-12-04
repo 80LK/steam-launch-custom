@@ -102,7 +102,7 @@ async function endRemove() {
 						</v-list-item-title>
 						<v-list-item-subtitle>
 							{{ launch.execute }}
-							<template v-if="launch.launch">
+							<template v-if="launch.launch.length">
 								<v-divider />
 								{{ launch.launch }}
 							</template>

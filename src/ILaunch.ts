@@ -1,10 +1,9 @@
-interface ILaunch {
+import { IRunnable } from "./IRunnable";
+
+interface ILaunch extends IRunnable {
 	id: number;
 	game_id: number;
 	name: string;
-	execute: string;
-	launch: string;
-	workdir: string;
 	image: string;
 }
 
@@ -14,7 +13,7 @@ function INIT_LAUNCH(game_id: number = 0): ILaunch {
 		game_id: game_id,
 		name: '',
 		execute: '',
-		launch: '',
+		launch: [],
 		workdir: '',
 		image: ""
 	}

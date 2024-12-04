@@ -1,11 +1,10 @@
-import { app, protocol, BrowserWindow } from 'electron'
+import { app, dialog, protocol, BrowserWindow } from 'electron'
 import Service, { ServiceState } from "../Service";
 import Window from "../Window";
 import IPCSerivce from '../Serivce.ipc';
 import AppMessages from './IPCMesages';
-import { join } from 'path';
+import { join, resolve } from 'path';
 import Protocol from '../Protocol';
-
 
 class App {
 	private constructor(private _debug: boolean) { }
@@ -75,6 +74,19 @@ class App {
 			const window = getWindow();
 			this._window = window;
 			window.webContents.ipc.handle(AppMessages.getCurrentState, () => this._message);
+			window.webContents.ipc.handle(AppMessages.selectFile, async (_, type: FileType, defaultPath: string) => {
+				let property: 'openFile' | 'openDirectory' = 'openFile';
+				const filters = [];
+				if (type == 'directory') {
+					property = 'openDirectory';
+				} else {
+					filters.push(type);
+				}
+				if (defaultPath) defaultPath = resolve(defaultPath);
+				const { canceled, filePaths } = await dialog.showOpenDialog({ defaultPath, properties: [property], filters: filters });
+				if (canceled || filePaths.length == 0) return false;
+				return filePaths[0]
+			})
 
 			this.ipcServices.forEach(service => window.addService(service))
 			window.open();
@@ -101,4 +113,6 @@ class App {
 	}
 }
 
+type FileType = 'directory' | { name: string, extensions: string[] };
 export default App;
+export type { FileType };

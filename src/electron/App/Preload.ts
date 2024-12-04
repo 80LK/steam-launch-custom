@@ -2,6 +2,7 @@ import { ipcRenderer as IPCRenderer } from 'electron'
 import { name, version } from '../../../package.json';
 import AppMessages from "./IPCMesages";
 import Pages from '../../Page';
+import { FileType } from './App';
 
 namespace App {
 	export async function getCurrentState(): Promise<string | null> {
@@ -36,6 +37,10 @@ namespace App {
 		get [name]() {
 			return version
 		}
+	}
+
+	export async function selectFile(type: FileType, defaultPath?: string) {
+		return await IPCRenderer.invoke(AppMessages.selectFile, type, defaultPath);
 	}
 
 

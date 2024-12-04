@@ -3,7 +3,7 @@ import { IPCTunnel } from "../Window";
 import Game from "./Game";
 import GameMessages from "./IPCMessages";
 
-class IPCGame extends IPCSerivce {
+class IPCGame implements IPCSerivce {
 	init(ipc: IPCTunnel): void {
 		ipc.handle(GameMessages.get, async (id: number) => (await Game.find(id))?.toJSON());
 		ipc.handle(GameMessages.getAll, async () => (await Game.findAll()).map(e => e.toJSON()));

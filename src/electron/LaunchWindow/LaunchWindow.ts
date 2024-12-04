@@ -5,13 +5,10 @@ import { BrowserWindowConstructorOptions } from "electron";
 import { dirname } from "path";
 import LaunchWindowMessages from './IPCMessages';
 import Spawn from '../Spawn';
+import { IRunnable } from '../../IRunnable';
 
-interface CurrentLaunch {
-	cmdline: string[];
-	cwd: string;
-}
 class LaunchWindow extends Window {
-	constructor(public readonly gameId: number, public readonly currentLaunch: CurrentLaunch, options: BrowserWindowConstructorOptions = {}) {
+	constructor(public readonly gameId: number, public readonly currentLaunch: IRunnable, options: BrowserWindowConstructorOptions = {}) {
 		super(
 			Pages.LAUNCH,
 			Object.assign({
@@ -35,14 +32,9 @@ class LaunchWindow extends Window {
 
 	private async start(launchId?: number) {
 		const spawn = Spawn.getInstance();
-		if (!launchId) {
-			const { cmdline: [exe, ...args], cwd } = this.currentLaunch;
-			spawn.start(exe, args, cwd);
-			return this.webContents.close();
-		};
-		const launch = await Launch.find(this.gameId, launchId);
+		const launch = launchId ? await Launch.find(this.gameId, launchId) : this.currentLaunch;
 		if (!launch) return;
-		spawn.start(launch.execute, launch.launch.split(' '), launch.workdir || dirname(launch.execute))
+		spawn.start(launch.execute, launch.launch, launch.workdir || dirname(launch.execute))
 		this.webContents.close();
 	}
 }

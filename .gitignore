@@ -27,3 +27,4 @@ release
 *.local
 db*
 cache
+update

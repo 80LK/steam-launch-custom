@@ -4,7 +4,7 @@ import { IPCTunnel } from "../Window";
 import LaunchMessages from "./IPCMessages";
 import Launch from "./Launch";
 
-class IPCLaunch extends IPCSerivce {
+class IPCLaunch implements IPCSerivce {
 	init(ipc: IPCTunnel): void {
 		ipc.handle(LaunchMessages.getAll, async (game_id: number) => {
 			return (await Launch.findAll(game_id)).map(e => e.toJSON());
