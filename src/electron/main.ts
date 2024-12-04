@@ -10,6 +10,7 @@ import IPCConfig from "./Config/IPCConfig";
 import IPCGame from "./Game/IPCGame";
 import IPCLaunch from "./Launch/IPCLaunch";
 import IPCSteam from "./Steam/IPCSteam";
+import CheckerUpdate from "./CheckerUpdate/CheckerUpdate"
 import LaunchWindow from "./LaunchWindow/LaunchWindow";
 import ImageProtocol from "./ImageProtocol";
 import path from "path";
@@ -75,6 +76,9 @@ if (index !== -1) {
 	app
 		.addServices(
 			Steam.getInstance()
+		)
+		.addIPCServices(
+			new CheckerUpdate()
 		)
 		.open(() => new MainWindow())
 }

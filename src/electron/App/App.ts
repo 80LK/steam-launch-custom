@@ -6,7 +6,6 @@ import AppMessages from './IPCMesages';
 import { join, resolve } from 'path';
 import Protocol from '../Protocol';
 
-
 class App {
 	private constructor(private _debug: boolean) { }
 	protected _window?: Window;
