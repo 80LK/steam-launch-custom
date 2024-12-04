@@ -4,10 +4,8 @@ import ConfigMessages from "./IPCMessages";
 import IPCSerivce from "../Serivce.ipc";
 import { IPCTunnel } from "../Window";
 
-class IPCConfig extends IPCSerivce {
-	protected constructor(private cfg: Config) {
-		super();
-	}
+class IPCConfig implements IPCSerivce {
+	protected constructor(private cfg: Config) { }
 
 	init(ipc: IPCTunnel): void {
 		ipc.handle(ConfigMessages.get, () => this.cfg.toJSON());

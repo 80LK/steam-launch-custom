@@ -3,7 +3,7 @@ import { IPCTunnel } from "../Window";
 import SteamMessages from "./IPCMessages";
 import Steam from "./Steam";
 
-class IPCSteam extends IPCSerivce {
+class IPCSteam implements IPCSerivce {
 	private steam = Steam.getInstance();
 
 	init(ipc: IPCTunnel): void {
