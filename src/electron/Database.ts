@@ -6,7 +6,7 @@ import getAppDataFilePath from "../utils/getAppDataFilePath";
 const sqlite: typeof sqlite3 = require('sqlite3');
 
 
-type DataBinding = number | string | bigint | null | Buffer;
+type DataBinding = number | string | bigint | null | Buffer | undefined;
 type ParamsBinding = Record<string, DataBinding>;
 interface RunResult {
 	lastID: number;

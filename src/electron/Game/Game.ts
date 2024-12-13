@@ -87,8 +87,13 @@ class Game extends Database.Model implements IGame {
 		return this.createFromSQL(raw_game);
 	}
 
-	public static async findAll() {
-		const raw_games = await this.getAll<IGame>(`SELECT id, name, state, installDir FROM ${this.DB_NAME} ORDER BY state DESC`);
+	public static async findAll(limit: number = 10, offset: number = 0, search?: string) {
+		console.log('search', search);
+		let sql = `SELECT id, name, state, installDir FROM ${this.DB_NAME} `;
+		if (search)
+			sql += 'WHERE name LIKE $search ';
+		sql += 'ORDER BY state DESC LIMIT $limit OFFSET $offset;'
+		const raw_games = await this.getAll<IGame>(sql, { limit, offset, search: search ? `%${search}%` : undefined });
 		return raw_games.map(e => this.createFromSQL(e));
 	}
 	public static async init() {

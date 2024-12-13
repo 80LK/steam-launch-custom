@@ -10,7 +10,6 @@ async function checkUpdate() {
 	update.value = await CheckerUpdate.check();
 	if (update.value.state !== UpdateState.NO)
 		available.value = true;
-
 }
 
 async function download() {
@@ -27,7 +26,7 @@ onMounted(() => checkUpdate());
 </script>
 
 <template>
-	<v-alert type="warning" variant="tonal" border="start" class="ma-4 mb-0" v-if="available">
+	<v-alert type="warning" variant="tonal" border="start" v-if="available">
 		<div style="display: flex; align-items: center; justify-content: space-between">
 			Update {{ update.version }} is available
 			<div>
@@ -35,7 +34,7 @@ onMounted(() => checkUpdate());
 					@click="insatll()">Install</v-btn>
 				<v-btn color="success" class="mr-2" v-if="update.state == UpdateState.YES" @click="download()"
 					:loading="loading">Download</v-btn>
-				<v-btn color="error" v-if="!loading">Hide</v-btn>
+				<v-btn color="error" v-if="!loading" @click="available = false">Hide</v-btn>
 			</div>
 		</div>
 	</v-alert>

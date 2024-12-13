@@ -2,7 +2,6 @@
 import SystemBar from './components/SystemBar.vue';
 import Setup from './components/Setup.vue';
 import Settings from "./components/Settings.vue"
-import Updater from './components/Updater.vue';
 
 const versions = App.versions;
 </script>
@@ -12,8 +11,6 @@ const versions = App.versions;
     <SystemBar />
     <v-main scrollable>
       <Setup>
-        <Updater />
-
         <RouterView />
       </Setup>
     </v-main>

@@ -7,8 +7,8 @@ namespace Game {
 		return await IPCRenderer.invoke(GameMessages.get, id);
 	}
 
-	export async function getAll(): Promise<IGame[]> {
-		return await IPCRenderer.invoke(GameMessages.getAll);
+	export async function getAll(limit: number, offset: number, search?: string): Promise<IGame[]> {
+		return await IPCRenderer.invoke(GameMessages.getAll, limit, offset, search);
 	}
 
 	export async function configure(gameId: number): Promise<IGame | undefined> {
