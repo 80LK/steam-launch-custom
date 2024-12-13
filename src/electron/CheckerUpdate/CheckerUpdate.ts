@@ -39,7 +39,7 @@ class CheckerUpdate extends EventEmitter<CheckerUpdateEvents> implements IPCSeri
 	}
 
 	private async check() {
-		if (app.isPackaged) return this.setState(UpdateState.NO);
+		if (!app.isPackaged) return this.setState(UpdateState.NO);
 
 		const request = await fetch(`https://api.github.com/repos/${author}/${name}/releases/latest`);
 		const release: Release = await request.json();
