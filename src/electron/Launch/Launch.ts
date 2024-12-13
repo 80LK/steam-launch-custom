@@ -4,9 +4,10 @@ import Config from "../Config/Config";
 import path from "path";
 import { existsSync, mkdirSync, writeFileSync } from "fs";
 import ImageProtocol from "../ImageProtocol";
-import { require, APP_ROOT } from "../consts";
+import { require } from "../consts";
 import { ExcludeFields } from "../../utils/ExcludeFields";
 import SilentJSON from "../../utils/SilentJSON";
+import getAppDataFilePath from "../../utils/getAppDataFilePath";
 type IconExtractor = (filePath: string, type: "large" | "small") => Buffer;
 const iconExtractor: IconExtractor = require("exe-icon-extractor").extractIcon;
 
@@ -136,7 +137,7 @@ class Launch extends Database.Model implements ILaunch {
 	private static readonly DB_NAME = "launch";
 	private static readonly CONFIG_NAME = "launch_db_version";
 	private static readonly DB_VERSION = 1;
-	public static readonly ICON_CAHCE = path.join(APP_ROOT, "cache");
+	public static readonly ICON_CAHCE = getAppDataFilePath("icon_cache");
 
 	public static async init() {
 		if (!existsSync(this.ICON_CAHCE)) mkdirSync(this.ICON_CAHCE);

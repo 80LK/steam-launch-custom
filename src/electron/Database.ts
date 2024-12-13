@@ -1,8 +1,8 @@
 import Service from "./Service";
-import path from "path";
 import type sqlite3 from "sqlite3";
 import { RunResult as SQLRunResult, type Statement as SQLStatement, type Database as SQLite } from "sqlite3";
-import { require, APP_ROOT } from "./consts";
+import { require } from "./consts";
+import getAppDataFilePath from "../utils/getAppDataFilePath";
 const sqlite: typeof sqlite3 = require('sqlite3');
 
 
@@ -24,7 +24,7 @@ const INIT_DATABASE_DEBUG: () => DatabaseDebug = () => ({
 
 type DatabaseDebugOptions = Partial<DatabaseDebug>;
 class Database extends Service {
-	private static readonly DATABASE_PATH = path.join(APP_ROOT, "db");
+	private static readonly DATABASE_PATH = getAppDataFilePath("./db");
 	private static _debug: DatabaseDebug = INIT_DATABASE_DEBUG();
 
 	public static debug(options: DatabaseDebugOptions = { logSql: true }) {
