@@ -1,11 +1,17 @@
-import Pages from "../Page";
-import Window from "./Window";
-import { BrowserWindowConstructorOptions } from "electron";
+import { BrowserWindow, BrowserWindowConstructorOptions } from "electron";
+import { VITE_DEV_SERVER_URL, DEV, dirname, RENDERER_DIST } from './consts';
+import { join } from 'path';
+import BaseWindow from "./BaseWindow";
 
-class MainWindow extends Window {
+class MainWindow extends BaseWindow {
 	constructor(options: BrowserWindowConstructorOptions = {}) {
-		super(Pages.MAIN, options);
+		super(Object.assign({
+			minWidth: 600,
+			minHeight: 440,
+		}, options));
+		this.setPage('index.html');
 	}
 }
+
 
 export default MainWindow;

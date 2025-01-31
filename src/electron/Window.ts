@@ -1,72 +1,28 @@
-import { BrowserWindow, BrowserWindowConstructorOptions } from "electron";
-import path from 'node:path'
-import { RENDERER_DIST, dirname, VITE_DEV_SERVER_URL } from "./consts";
-import IPCSerivce from "./Serivce.ipc";
-import Pages from "../Page";
+import { BrowserWindow } from 'electron';
+import { VITE_DEV_SERVER_URL, DEV, dirname, RENDERER_DIST } from './consts';
+import { join } from 'path';
+import getIPCTunnel from './IPCTunnel';
 
-interface IPCTunnel {
-	on(channel: string, listener: (...args: any[]) => void): void;
-	send(channel: string, ...args: any[]): void;
-	handle(channel: string, listener: (...args: any[]) => (Promise<any>) | (any)): void;
-}
-class Window extends BrowserWindow {
-	private _isOpened: boolean = false;
-
-	protected constructor(page: Pages, options: BrowserWindowConstructorOptions = {}) {
-		options = Object.assign(options,
-			{
-				frame: false,
-				minWidth: 600,
-				webPreferences: Object.assign({
-					devTools: !!VITE_DEV_SERVER_URL,
-					preload: path.join(dirname, 'preload.mjs'),
-				}, options.webPreferences || {}, {
-					additionalArguments: [`--window=${page}`].concat(options.webPreferences?.additionalArguments || []),
-				}),
-			}
-		);
-
-		super(options);
-		this.on('close', () => {
-			this._isOpened = false;
-		});
-	}
-
-	private getIPCTunnel(): IPCTunnel {
-		const web = this.webContents;
-		const ipc = web.ipc;
-		return {
-			on(channel: string, listener: (...args: any[]) => void) {
-				ipc.on(channel, (_, ...args: any[]) => listener(...args));
-			},
-			send(channel: string, ...args: any[]) {
-				web.send(channel, ...args)
-			},
-			handle(channel: string, listener: (...args: any[]) => (Promise<any>) | (any)) {
-				ipc.handle(channel, (_, ...args: any[]) => listener(...args))
-			}
+const Window = () => {
+	const win = new BrowserWindow({
+		frame: false,
+		minWidth: 600,
+		minHeight: 440,
+		webPreferences: {
+			devTools: DEV,
+			preload: join(dirname, './preload.js')
 		}
+	});
+	const ipc = getIPCTunnel(win);
+
+	if (DEV) {
+		win.loadURL(VITE_DEV_SERVER_URL + `/index.html`)
+		win.webContents.openDevTools({ mode: 'undocked' });
+	} else {
+		win.loadFile(join(RENDERER_DIST, `index.html`))
 	}
 
-	public addService(service: IPCSerivce) {
-		service.init(this.getIPCTunnel(), this)
-	}
-
-	public isOpened() {
-		return this._isOpened;
-	}
-	public open() {
-		this._isOpened = true;
-
-		if (VITE_DEV_SERVER_URL) {
-			this.loadURL(VITE_DEV_SERVER_URL)
-		} else {
-			this.loadFile(path.join(RENDERER_DIST, "index.html"))
-		}
-		this.webContents.openDevTools({ mode: 'undocked' });
-		return this;
-	}
+	return { win, ipc };
 }
 
 export default Window;
-export type { IPCTunnel };

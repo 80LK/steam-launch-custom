@@ -2,33 +2,47 @@
 import { useTheme } from 'vuetify';
 import { mdiCog } from "@mdi/js";
 import { ref } from 'vue';
-import IConfig from '../../IConfig';
+import { setDark } from '@store/isDark';
 
 const theme = useTheme();
 
 const themes = Object.keys(theme.themes.value);
 const currentTheme = theme.global.name;
 function changeTheme() {
-	edit('dark', currentTheme.value == "dark")
+	setDark(currentTheme.value == "dark")
 }
 
 
-const steamPath = ref("");
 const scanGameLaunch = ref(false);
-Config.get().then((cfg) => {
-	steamPath.value = cfg.steamPath;
-	scanGameLaunch.value = cfg.scanGameLaunch;
-});
+Settings.getBoolean("scanGameLaunch", false).then(v => scanGameLaunch.value = v);
 
-function edit<T extends keyof IConfig>(field: T, value: IConfig[T]) {
-	Config.edit(field, value);
+
+function edit(field: string, value: any) {
+	switch (typeof value) {
+		case "boolean":
+			Settings.setBoolean(field, value);
+			break;
+
+		case "number":
+			Settings.setNumber(field, value);
+			break;
+
+		case "string":
+			Settings.set(field, value);
+			break;
+
+		default:
+			Settings.set(field, value.toString());
+			break;
+	}
 }
 </script>
 
 <template>
 	<v-dialog max-width="500">
 		<template v-slot:activator="{ props: activatorProps }">
-			<v-fab :icon="mdiCog" :class="$style.settings" v-bind="activatorProps" />
+			<v-fab :icon="mdiCog" :class="$style.settings" v-bind="activatorProps" location="top right" absolute
+				offset />
 		</template>
 		<template v-slot:default="{ isActive }">
 			<v-card>
@@ -41,7 +55,6 @@ function edit<T extends keyof IConfig>(field: T, value: IConfig[T]) {
 				<v-card-text>
 					<v-select label="Theme" :items="themes" v-model="currentTheme" variant="outlined"
 						@update:modelValue="changeTheme" />
-					<v-text-field label="Steam Path" v-model="steamPath" variant="outlined" disabled />
 					<v-switch label="Scan games every time launch program" v-model="scanGameLaunch" color="success"
 						@update:model-value="edit('scanGameLaunch', scanGameLaunch)" />
 				</v-card-text>
@@ -56,9 +69,7 @@ function edit<T extends keyof IConfig>(field: T, value: IConfig[T]) {
 
 <style lang="css" module>
 :global(.v-fab).settings {
-	position: absolute;
-	top: 0px;
-	right: 79px;
 	z-index: 1005;
+	right: 30px;
 }
 </style>

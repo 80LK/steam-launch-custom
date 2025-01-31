@@ -1,52 +1,34 @@
-import Service from "./Service";
-import type sqlite3 from "sqlite3";
-import { RunResult as SQLRunResult, type Statement as SQLStatement, type Database as SQLite } from "sqlite3";
-import { require } from "./consts";
-import getAppDataFilePath from "../utils/getAppDataFilePath";
-const sqlite: typeof sqlite3 = require('sqlite3');
-
-
-type DataBinding = number | string | bigint | null | Buffer | undefined;
-type ParamsBinding = Record<string, DataBinding>;
-interface RunResult {
-	lastID: number;
-	changes: number;
-}
+import { getAppDataFilePath, require } from "./consts";
+import { IInitialable } from "./App";
+import type { default as sqlite3, Database as SQLite, Statement as SQLStatement, RunResult as SQLRunResult } from "sqlite3";
+const sqlite = require('sqlite3') as typeof sqlite3;
 
 interface DatabaseDebug {
 	memory: boolean;
 	logSql: boolean;
 }
+type DatabaseDebugOptions = Partial<DatabaseDebug>;
 const INIT_DATABASE_DEBUG: () => DatabaseDebug = () => ({
 	memory: false,
 	logSql: false
 });
 
-type DatabaseDebugOptions = Partial<DatabaseDebug>;
-class Database extends Service {
-	private static readonly DATABASE_PATH = getAppDataFilePath("./db");
-	private static _debug: DatabaseDebug = INIT_DATABASE_DEBUG();
-
-	public static debug(options: DatabaseDebugOptions = { logSql: true }) {
-		this._debug = Object.assign(INIT_DATABASE_DEBUG(), options);
-		return this;
-	}
-
+class Database implements IInitialable {
 	private _db: SQLite;
 	private constructor() {
-		super("Database");
 		this._db = new sqlite.Database(Database._debug.memory ? ":memory:" : Database.DATABASE_PATH);
 		Database._debug.logSql && this._db.on('trace', (sql) => console.log("[SQL]:", sql));
 	}
 
-	protected async _init(): Promise<void> {
-		for (const model of Database._models) {
-			this.setState(`Initalization model ${model.name}`)
-			await model.init();
-		}
+	private _models = new Set<typeof Database.Model>();
+	public register(model: typeof Database.Model, ...models: typeof Database.Model[]): this;
+	public register(...models: typeof Database.Model[]) {
+		models.forEach(model => this._models.add(model));
+		return this;
 	}
 
-	public prepare<T>(sql: string, params?: Record<string, any>) {
+	// SQL
+	public prepare<T>(sql: string, params?: ParamsBinding) {
 		const statement = new Database.Statement<T>(this._db.prepare(sql));
 		params && statement.bind(params);
 		return statement;
@@ -63,19 +45,37 @@ class Database extends Service {
 		return this.prepare<T>(sql).getAll(params)
 	}
 
-	private static _models: typeof Database.Model[];
-	public static init(...models: typeof Database.Model[]) {
-		const DB = this.getInstance();
-		this._models = models;
-		return DB;
+	// IInitialable	
+	public async init(state: (msg: string) => void): Promise<void> {
+		state('Initialization Database');
+		for (const model of this._models) {
+			await model.init()
+		}
+		return;
+	}
+
+
+	private static readonly DATABASE_PATH = getAppDataFilePath("./db");
+	private static _debug: DatabaseDebug = INIT_DATABASE_DEBUG();
+	public static debug(options: DatabaseDebugOptions = { logSql: true }) {
+		this._debug = Object.assign(INIT_DATABASE_DEBUG(), options);
+		return this;
 	}
 
 	private static _instance: Database;
-	public static getInstance() {
+	public static get() {
 		if (!this._instance) this._instance = new Database();
 		return this._instance;
 	}
 }
+
+type DataBinding = number | string | bigint | null | Buffer | undefined;
+type ParamsBinding = Record<string, DataBinding>;
+interface RunResult {
+	lastID: number;
+	changes: number;
+}
+
 
 namespace Database {
 	export class Statement<T> {
@@ -128,30 +128,15 @@ namespace Database {
 		}
 	}
 
-	export abstract class Model {
-		public static name: string = "Model";
-
-		public static prepare<T>(sql: string, params?: Record<string, any>) {
-			return Database.getInstance().prepare<T>(sql, params);
+	export class Model {
+		public static prepare<T>(sql: string, params?: ParamsBinding) {
+			return Database.get().prepare<T>(sql, params);
 		}
 
-		protected static run(sql: string, params?: ParamsBinding) {
-			return this.prepare(sql).run(params);
-		}
-
-		protected static get<T>(sql: string, params?: ParamsBinding) {
-			return this.prepare<T>(sql).get(params)
-		}
-		protected static getAll<T>(sql: string, params?: ParamsBinding) {
-			return this.prepare<T>(sql).getAll(params)
-		}
-
-		public static init(): Promise<void> | void {
+		public static init(): Promise<void> {
 			throw new Error("Method not implemented.");
 		}
 	}
-
 }
 
 export default Database;
-export type { DataBinding, ParamsBinding, RunResult };

@@ -1,0 +1,28 @@
+{
+	"extends": "../tsconfig.json",
+	"compilerOptions": {
+		"tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+		"useDefineForClassFields": true,
+		"lib": [
+			// "ES2020",
+			"DOM",
+			"DOM.Iterable"
+		],
+		/* Bundler mode */
+		"jsx": "preserve",
+		"paths": {
+			"@components/*": [
+				"./components/*"
+			],
+			"@store/*": [
+				"./store/*"
+			],
+		}
+	},
+	"include": [
+		"**/*.ts",
+		"**/*.d.ts",
+		"**/*.tsx",
+		"**/*.vue",
+	],
+}
