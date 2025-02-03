@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "exe-icon-extractor": "^1.0.8",
-    "glob": "^11.0.0",
+    "glob": "^11.0.1",
     "sqlite3": "^5.1.7",
     "valve-key-values": "^1.0.0",
     "winreg": "^1.2.5"
