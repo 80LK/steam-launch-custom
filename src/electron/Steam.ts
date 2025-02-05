@@ -210,18 +210,16 @@ class Steam implements IInitialable {
 	public async init(message: (msg: string) => void): Promise<void> {
 		message("Init stema");
 
-		let path = await Settings.get(Steam.SETTINGS_KEY);
-		if (!path) {
-			path = (await this.getPathFromRegistry()) || null;
-			path && Settings.set(Steam.SETTINGS_KEY, this.path);
-		}
+		let path = await Settings.get(Steam.SETTINGS_KEY) || await this.getPathFromRegistry();
 
-		if (!path)
+		if (!path || !await exsist(path, 'dir'))
 			throw new Error("Steam not found");
 
 		this._path = path;
+		Settings.set(Steam.SETTINGS_KEY, this._path);
 
 		const libraryPath = resolve(this._path, 'steamapps/libraryfolders.vdf');
+
 		if (!exsist(libraryPath))
 			throw new Error("Steam library not found");
 
