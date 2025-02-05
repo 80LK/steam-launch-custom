@@ -1,5 +1,5 @@
 import Index from './Index.vue'
-// import Game from './Game.vue';
+import Game from './Game.vue';
 import { createMemoryHistory, createRouter } from 'vue-router'
 
 const router = createRouter({
@@ -9,10 +9,10 @@ const router = createRouter({
 			path: '/',
 			component: Index
 		},
-		// {
-		// 	path: '/game/:gameId(\\d+)',
-		// 	component: Game
-		// }
+		{
+			path: '/game/:gameId(\\d+)',
+			component: Game
+		}
 	],
 });
 

@@ -1,5 +1,5 @@
-import { getAppDataFilePath, require } from "./consts";
-import { IInitialable } from "./App";
+import { getAppDataFilePath, require } from "../consts";
+import { IInitialable } from "../App";
 import type { default as sqlite3, Database as SQLite, Statement as SQLStatement, RunResult as SQLRunResult } from "sqlite3";
 const sqlite = require('sqlite3') as typeof sqlite3;
 
@@ -55,7 +55,7 @@ class Database implements IInitialable {
 	}
 
 
-	private static readonly DATABASE_PATH = getAppDataFilePath("./db");
+	private static readonly DATABASE_PATH = getAppDataFilePath("db");
 	private static _debug: DatabaseDebug = INIT_DATABASE_DEBUG();
 	public static debug(options: DatabaseDebugOptions = { logSql: true }) {
 		this._debug = Object.assign(INIT_DATABASE_DEBUG(), options);
@@ -129,6 +129,7 @@ namespace Database {
 	}
 
 	export class Model {
+
 		public static prepare<T>(sql: string, params?: ParamsBinding) {
 			return Database.get().prepare<T>(sql, params);
 		}

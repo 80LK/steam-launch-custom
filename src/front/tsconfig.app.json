@@ -11,6 +11,12 @@
 		/* Bundler mode */
 		"jsx": "preserve",
 		"paths": {
+			"@utils/*": [
+				"../utils/*"
+			],
+			"@shared/*": [
+				"../shared/*"
+			],
 			"@components/*": [
 				"./components/*"
 			],

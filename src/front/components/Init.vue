@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from "vue"
+import { type StateMessage, State } from "@shared/App";
+import { mdiAlertOutline } from "@mdi/js";
 
-const statusMessage = ref("Initialization");
-const setup = ref(true);
+const statusMessage = ref({ state: State.INIT, message: "Initialization" } as StateMessage);
 
-function changeState(m: string | null) {
-	if (m == null) return setup.value = false;
+function changeState(m: StateMessage) {
 	statusMessage.value = m;
 }
 let changeStateListener = 0;
@@ -19,9 +19,10 @@ onUnmounted(() => {
 </script>
 
 <template>
-	<div v-if="setup" :class="$style.setup">
-		<h2 class="mb-5">{{ statusMessage }}</h2>
-		<v-progress-circular indeterminate :size="110" :width="10" />
+	<div v-if="statusMessage.state != State.READY" :class="$style.setup">
+		<h2 class="mb-5">{{ statusMessage.message }}</h2>
+		<v-progress-circular indeterminate :size="110" :width="10" v-if="statusMessage.state == State.INIT" />
+		<v-icon :icon="mdiAlertOutline" size="110" v-else-if="statusMessage.state == State.ERROR" />
 	</div>
 	<slot v-else />
 </template>

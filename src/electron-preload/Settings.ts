@@ -1,5 +1,5 @@
 import { ipcRenderer } from "electron";
-import Messages from "../electron/SettingsMessages";
+import { Messages } from "@shared/Settings";
 
 namespace Settings {
 	export async function get(name: string, def?: string) {

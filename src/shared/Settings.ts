@@ -1,3 +1,4 @@
+
 enum Messages {
 	get = "settings.get",
 	set = "settings.set",
@@ -7,4 +8,4 @@ enum Messages {
 	setBoolean = "settings.setBoolean",
 }
 
-export default Messages;
+export { Messages };

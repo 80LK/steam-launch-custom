@@ -1,12 +1,7 @@
 import { BrowserWindow } from "electron";
 import { IPCTunnel } from "./IPCTunnel";
+import { Messages } from "@shared/SystemBar";
 
-enum Messages {
-	minimize = "systembar.minimize",
-	maximize = "systembar.maximize",
-	close = "systembar.close",
-	changeMaximized = "systembar.changeMaximized"
-}
 
 function SystemBar(win: BrowserWindow, ipc: IPCTunnel) {
 	ipc.on(Messages.minimize, () => win.minimize());
@@ -17,4 +12,3 @@ function SystemBar(win: BrowserWindow, ipc: IPCTunnel) {
 }
 
 export default SystemBar;
-export { Messages }

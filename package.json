@@ -1,7 +1,11 @@
 {
   "name": "steam-launch-custom",
+  "author": "80LK",
   "version": "0.2.0",
   "main": "dist-electron/main.js",
+  "keywords": [],
+  "license": "MIT",
+  "description": "Add custom launch options for you steam games",
   "type": "module",
   "private": true,
   "scripts": {
@@ -12,16 +16,13 @@
     "postinstall": "electron-builder install-app-deps",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "devDependencies": {
     "@80lk/vite-plugin-electron": "^1.0.0",
     "@babel/traverse": "^7.26.7",
     "@mdi/js": "^7.4.47",
     "@types/babel__traverse": "^7.20.6",
     "@types/node": "^22.10.10",
+    "@types/winreg": "^1.2.36",
     "@vitejs/plugin-vue": "^5.2.1",
     "electron": "^34.0.1",
     "electron-builder": "^25.1.8",
@@ -36,6 +37,7 @@
   },
   "dependencies": {
     "glob": "^11.0.1",
+    "icon-extractor": "^1.0.3",
     "sqlite3": "^5.1.7",
     "valve-key-values": "^1.0.0",
     "winreg": "^1.2.5"

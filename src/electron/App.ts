@@ -1,28 +1,28 @@
-import { app as electron, dialog } from "electron";
+import { app as electron, dialog, protocol } from "electron";
 import getIPCTunnel, { IPCTunnel } from "./IPCTunnel";
-import BaseWindow from "./BaseWindow";
+import BaseWindow from "./Window/BaseWindow";
 import { resolve, join } from 'path';
-import Messages from "./AppMessages";
+import { FileType, Messages, State, StateMessage } from "@shared/App";
 import { getAppDataFilePath } from "./consts";
+import Protocol from "./Protocol/Protocol";
+import { spawn } from "child_process";
 
 
 interface IInitialable {
 	init(setmessage: (msg: string) => void): Promise<void>;
 }
-type FileType = 'directory' | { name: string, extensions: string[] };
 
 type BaseWindowConstructor = typeof BaseWindow | (() => BaseWindow);
-
 type UseIPC = (win: BaseWindow, ipc: IPCTunnel) => void
 class App {
 	private constructor(private _windowConstructor: BaseWindowConstructor) { };
 	private _window?: BaseWindow;
 
-	private _message: string | null = "Initialization";
+	private _message: StateMessage = { message: "Initialization", state: State.INIT };
 	public get message() {
 		return this._message;
 	}
-	public set message(value: string | null) {
+	public set message(value: StateMessage) {
 		this._message = value;
 		this._window && getIPCTunnel(this._window).send(Messages.changeInitState, value);
 	}
@@ -33,6 +33,27 @@ class App {
 		uses.forEach(use => this.useIPCList.add(use));
 		return this;
 	}
+	private AppIPC: UseIPC = (_, ipc) => {
+		ipc.handle(Messages.getCurrentState, () => this.message);
+		ipc.handle(Messages.selectFile, async (type: FileType, defaultPath: string) => {
+			let property: 'openFile' | 'openDirectory' = 'openFile';
+			const filters = [];
+			if (type == 'directory') {
+				property = 'openDirectory';
+			} else {
+				filters.push(type);
+			}
+
+			if (defaultPath) defaultPath = resolve(defaultPath);
+			const { canceled, filePaths } = await dialog.showOpenDialog({ defaultPath, properties: [property], filters: filters });
+			if (canceled || filePaths.length == 0) return false;
+			return filePaths[0]
+		})
+		ipc.handle(Messages.getAppData, () => getAppDataFilePath())
+		ipc.on(Messages.openExplorer, (dir: string) => {
+			spawn('explorer', [resolve(dir)], { detached: true })
+		})
+	}
 
 	private initsList = new Set<IInitialable>();
 	public init(init: IInitialable, ...inits: IInitialable[]): this;
@@ -41,22 +62,12 @@ class App {
 		return this;
 	}
 
-	private AppIPC: UseIPC = (_, ipc) => {
-		ipc.handle(Messages.getCurrentState, () => this.message);
-		ipc.handle(Messages.selectFile, async (_, type: FileType, defaultPath: string) => {
-			let property: 'openFile' | 'openDirectory' = 'openFile';
-			const filters = [];
-			if (type == 'directory') {
-				property = 'openDirectory';
-			} else {
-				filters.push(type);
-			}
-			if (defaultPath) defaultPath = resolve(defaultPath);
-			const { canceled, filePaths } = await dialog.showOpenDialog({ defaultPath, properties: [property], filters: filters });
-			if (canceled || filePaths.length == 0) return false;
-			return filePaths[0]
-		})
+	protected protocols: Protocol[] = [];
+	public addProtocols(...protocols: Protocol[]) {
+		this.protocols = this.protocols.concat(protocols);
+		return this;
 	}
+
 
 
 	public setPath(path: string) {
@@ -64,8 +75,12 @@ class App {
 		return this;
 	}
 
-	public open() {
+	public open(ready?: () => void) {
 		electron.whenReady().then(async () => {
+			this.protocols.forEach(prot => {
+				protocol.handle(prot.protocol, prot.handle);
+			})
+
 			if (BaseWindow.isExtends(this._windowConstructor)) {
 				this._window = new this._windowConstructor()
 			} else {
@@ -79,9 +94,21 @@ class App {
 
 			win.open();
 			for (const init of this.initsList) {
-				await init.init((msg) => this.message = msg)
+				try {
+					await init.init((msg) => this.message.message = msg)
+				} catch (err) {
+
+					if (err instanceof Error)
+						this.message = { state: State.ERROR, message: err.message }
+					else if (typeof err == "string")
+						this.message = { state: State.ERROR, message: err }
+					else
+						this.message = { state: State.ERROR, message: (<any>err).toString() }
+					return;
+				}
 			}
-			this.message = null;
+			this.message = { state: State.READY, message: "Ready" };
+			ready && ready();
 		})
 
 		electron.on('window-all-closed', () => {
@@ -93,6 +120,10 @@ class App {
 
 	public static create(window: BaseWindowConstructor) {
 		return new App(window);
+	}
+
+	public static getExecutable() {
+		return process.argv[0].replace(/\\/g, "/");
 	}
 }
 export default App;

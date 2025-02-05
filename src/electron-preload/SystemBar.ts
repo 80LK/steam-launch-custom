@@ -1,4 +1,4 @@
-import { Messages } from "../electron/SystemBar";
+import { Messages } from "@shared/SystemBar";
 import { ipcRenderer } from 'electron'
 import EventMap from "./EventMap";
 

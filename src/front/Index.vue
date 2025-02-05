@@ -15,7 +15,7 @@ const versions = App.versions;
 			</Init>
 		</v-main>
 
-		<v-footer app class="py-5">
+		<v-footer app class="py-5 border-t-thin">
 			<v-row justify="center" no-gutters>
 				<v-btn v-for="(version, module) in versions" :key="module" class="ma-1" variant="text" size="small">
 					{{ module }} - {{ version }}

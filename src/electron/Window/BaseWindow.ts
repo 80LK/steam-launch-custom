@@ -1,5 +1,5 @@
 import { BrowserWindow, BrowserWindowConstructorOptions } from "electron";
-import { VITE_DEV_SERVER_URL, DEV, dirname, RENDERER_DIST } from './consts';
+import { VITE_DEV_SERVER_URL, DEV, dirname, RENDERER_DIST } from '../consts';
 import { join } from 'path';
 
 class BaseWindow extends BrowserWindow {

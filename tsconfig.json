@@ -13,11 +13,6 @@
 		"resolveJsonModule": true,
 		"isolatedModules": true,
 		"noEmit": true,
-		"paths": {
-			"@utils/*": [
-				"./src/utils/*"
-			]
-		},
 		/* Linting */
 		"strict": true,
 		"noUnusedLocals": true,

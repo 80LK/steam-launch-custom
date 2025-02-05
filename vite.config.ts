@@ -10,7 +10,11 @@ const front = resolve(src, 'front');
 const preload = resolve(src, 'electron-preload');
 const electron = resolve(src, 'electron');
 const distFolder = resolve(root, 'dist');
-const utils = resolve(src, 'utils');
+
+const globalAliases = {
+	"@utils": resolve(src, 'utils'),
+	"@shared": resolve(src, 'shared'),
+}
 
 export default defineElectronConfig(
 	//Electron
@@ -22,9 +26,7 @@ export default defineElectronConfig(
 
 		// Vite
 		resolve: {
-			alias: {
-				"@utils": utils
-			},
+			alias: globalAliases,
 			extensions: [
 				".ts"
 			]
@@ -36,11 +38,13 @@ export default defineElectronConfig(
 		root: front,
 		base: './',
 		resolve: {
-			alias: {
-				"@utils": utils,
-				"@components": resolve(front, "components"),
-				"@store": resolve(front, "store"),
-			},
+			alias: Object.assign(
+				globalAliases,
+				{
+					"@components": resolve(front, "components"),
+					"@store": resolve(front, "store"),
+				}
+			),
 			extensions: [
 				".ts",
 				".vue"
@@ -54,7 +58,7 @@ export default defineElectronConfig(
 				input: {
 					main: resolve(front, 'index.html'),
 					launch: resolve(front, 'launch.html')
-				}
+				},
 			},
 			outDir: distFolder,
 		},

@@ -1,8 +1,8 @@
-import BaseWindow from "./BaseWindow";
+import BaseWindow from "../Window/BaseWindow";
 import Database from "./Database";
-import { IPCTunnel } from "./IPCTunnel";
+import { IPCTunnel } from "../IPCTunnel";
 import parseBoolean from "@utils/parseBoolean";
-import Messages from "./SettingsMessages";
+import { Messages } from "@shared/Settings";
 
 class Settings extends Database.Model {
 	private static readonly DB_NAME = "setting";
@@ -54,7 +54,6 @@ class Settings extends Database.Model {
 
 		ipc.handle(Messages.getNumber, (name: string) => Settings.getNumber(name));
 		ipc.on(Messages.setNumber, (name: string, value: number) => Settings.setNumber(name, value));
-
 
 		ipc.handle(Messages.getBoolean, (name: string) => Settings.getBoolean(name));
 		ipc.on(Messages.setBoolean, (name: string, value: boolean) => Settings.setBoolean(name, value));
