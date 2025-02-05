@@ -26,7 +26,7 @@ class Updater {
 	private version: string = CURRENT_VERSION;
 
 	private async check(): Promise<CheckResult> {
-		// if (!electron.isPackaged) return this.set(UpdateState.NO);
+		if (!electron.isPackaged) return this.set(UpdateState.NO);
 
 		const request = await fetch(`https://api.github.com/repos/${author}/${name}/releases/latest`);
 		if (request.status != 200) return this.set(UpdateState.NO);

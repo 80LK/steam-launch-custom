@@ -8,7 +8,7 @@ const showen = ref(true);
 const store = useUpdaterStore();
 store.check();
 
-const hasUpdate = computed(() => store.state != UpdateState.NO && showen);
+const hasUpdate = computed(() => store.state != UpdateState.NO && showen.value);
 const isCheck = computed(() => store.state == UpdateState.CHECK);
 const isAvailable = computed(() => store.state == UpdateState.HAVE || store.state == UpdateState.DOWNLOADING);
 const isDownloading = computed(() => store.state == UpdateState.DOWNLOADING);
@@ -22,7 +22,7 @@ const message = computed(() => isCheck.value ? 'Checking updates' : `Update ${st
 		<template v-slot:prepend v-if="isCheck">
 			<v-progress-circular indeterminate />
 		</template>
-		{{ message }} | {{ store.state }}
+		{{ message }}
 		<template v-slot:close v-if="!isCheck">
 			<v-btn color="success" class="mr-2" size="small" variant="flat" :icon="false"
 				v-if="isDownloaded">Install</v-btn>
