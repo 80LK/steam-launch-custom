@@ -68,14 +68,18 @@ class App {
 		return this;
 	}
 
-
+	private closeCondition: () => boolean = () => true;
+	public setCloseCondition(condition: () => boolean) {
+		this.closeCondition = condition;
+		return this;
+	}
 
 	public setPath(path: string) {
 		electron.setPath("userData", getAppDataFilePath(join("web_cache", path)));
 		return this;
 	}
 
-	public open(ready?: () => void) {
+	public open(ready?: (setmessage: (msg: string) => void) => Promise<void>) {
 		electron.whenReady().then(async () => {
 			this.protocols.forEach(prot => {
 				protocol.handle(prot.protocol, prot.handle);
@@ -93,9 +97,10 @@ class App {
 			this.useIPCList.forEach(useIPC => useIPC(win, ipc));
 
 			win.open();
+			const setmessage = (msg: string) => this.message.message = msg;
 			for (const init of this.initsList) {
 				try {
-					await init.init((msg) => this.message.message = msg)
+					await init.init(setmessage)
 				} catch (err) {
 
 					if (err instanceof Error)
@@ -107,15 +112,19 @@ class App {
 					return;
 				}
 			}
+			ready && await ready(setmessage);
 			this.message = { state: State.READY, message: "Ready" };
-			ready && ready();
 		})
 
 		electron.on('window-all-closed', () => {
-			if (process.platform !== 'darwin') {
+			if (this.closeCondition() && process.platform !== 'darwin') {
 				electron.quit();
 			}
 		});
+	}
+
+	public quit() {
+		electron.quit();
 	}
 
 	public static create(window: BaseWindowConstructor) {
@@ -124,6 +133,19 @@ class App {
 
 	public static getExecutable() {
 		return process.argv[0].replace(/\\/g, "/");
+	}
+
+	public static getLaunchApp(): number {
+		const index = process.argv.findIndex(e => e.startsWith('--launch'));
+		const isLaunch = index != -1;
+		const appId = isLaunch ? parseInt(process.argv[index].split('=')[1]) : 0;
+		return appId
+	}
+
+	public static getSteamArgs(): string[] {
+		const index = process.argv.findIndex(e => e.startsWith('--launch'));
+		if (index == -1) return [];
+		return process.argv.slice(index + 1);
 	}
 }
 export default App;

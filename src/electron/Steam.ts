@@ -7,6 +7,7 @@ import exsist from "@utils/exists";
 import VDF from "valve-key-values";
 import ObjectProxy from "../utils/ObjectProxy";
 import { spawn } from "child_process";
+import { app } from "electron";
 
 interface SteamUserInfo extends VDF.VDFObject {
 	timeused: string;
@@ -204,7 +205,10 @@ class Steam implements IInitialable {
 	}
 
 	public getLaunchPath(id: number) {
-		return [`"${App.getExecutable()}"`, `--launch=${id}`, "%command%"].join(' ')
+		const args = [`"${App.getExecutable()}"`];
+		if (!app.isPackaged) args.push(`"${process.argv[1].replace(/\\/g, "/")}"`);
+		args.push(`--launch=${id}`, "%command%")
+		return args.join(' ')
 	}
 
 	public async init(message: (msg: string) => void): Promise<void> {

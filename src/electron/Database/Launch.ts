@@ -7,6 +7,10 @@ import { writeFileSync } from "fs";
 import extractIcon from "../extractIcon";
 import ImageProtocol from "../Protocol/ImgaeProtocol";
 import { rm } from "fs/promises";
+import App from "../App";
+import Game from "./Game";
+import Spawn from "../Spawn";
+import BaseWindow from "../Window/BaseWindow";
 
 type SQLLaunch = Omit<ILaunch, 'launch'> & { launch: string };
 
@@ -119,7 +123,23 @@ class Launch extends Database.Model implements ILaunch {
 		await Settings.setNumber(Launch.DB_VER_KEY, Launch.DB_VER);
 	}
 
-	public static IPC(_: any, ipc: IPCTunnel) {
+	public static async getCurrentLaunch(): Promise<ILaunch | null> {
+		const game_id = App.getLaunchApp();
+		if (game_id == 0) return null;
+		const [exe, ...args] = App.getSteamArgs();
+		console.log(exe);
+		const launch = new Launch();
+		launch.name = (await Game.getLaunch())?.name || "";
+		launch.id = -1;
+		launch.game_id = game_id;
+		launch.execute = exe;
+		launch.launch = args;
+		launch.workdir = process.cwd();
+		await launch.generateIcon();
+		return launch.toJSON();
+	}
+
+	public static IPC(win: BaseWindow, ipc: IPCTunnel) {
 		ipc.handle(Messages.getForGame, async (game_id: number, offset: number, limit: number) => (await Launch.getForGame(game_id, offset, limit)).map(e => e.toJSON()))
 		ipc.handle(Messages.create, async (launch: ILaunch) => {
 			const new_launch = new Launch();
@@ -144,6 +164,14 @@ class Launch extends Database.Model implements ILaunch {
 			const launch = await Launch.get(launch_id);
 			if (!launch) return false;
 			await launch.remove();
+			return true;
+		});
+		ipc.handle(Messages.getCurrentLaunch, () => Launch.getCurrentLaunch());
+		ipc.on(Messages.start, async (id: number) => {
+			const launch = await (id == -1 ? Launch.getCurrentLaunch() : Launch.get(id));
+			if (!launch) return false;
+			Spawn.get().start(launch.execute, launch.launch, launch.workdir);
+			win.webContents.close();
 			return true;
 		});
 	}

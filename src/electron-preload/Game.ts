@@ -28,6 +28,10 @@ namespace Game {
 	export function write(): Promise<number[]> {
 		return ipcRenderer.invoke(Messages.write);
 	}
+
+	export function getLaunch(): Promise<IGame | null> {
+		return ipcRenderer.invoke(Messages.getLaunch);
+	}
 }
 
 export default Game;

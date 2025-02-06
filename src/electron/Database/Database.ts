@@ -1,6 +1,6 @@
 import { getAppDataFilePath, require } from "../consts";
 import { IInitialable } from "../App";
-import type { default as sqlite3, Database as SQLite, Statement as SQLStatement, RunResult as SQLRunResult } from "sqlite3";
+import { default as sqlite3, Database as SQLite, Statement as SQLStatement, RunResult as SQLRunResult } from "sqlite3";
 const sqlite = require('sqlite3') as typeof sqlite3;
 
 interface DatabaseDebug {
@@ -15,8 +15,8 @@ const INIT_DATABASE_DEBUG: () => DatabaseDebug = () => ({
 
 class Database implements IInitialable {
 	private _db: SQLite;
-	private constructor() {
-		this._db = new sqlite.Database(Database._debug.memory ? ":memory:" : Database.DATABASE_PATH);
+	private constructor(readonly: boolean = false) {
+		this._db = new sqlite.Database(Database._debug.memory ? ":memory:" : Database.DATABASE_PATH, readonly ? sqlite.OPEN_READONLY : undefined);
 		Database._debug.logSql && this._db.on('trace', (sql) => console.log("[SQL]:", sql));
 	}
 
@@ -63,8 +63,8 @@ class Database implements IInitialable {
 	}
 
 	private static _instance: Database;
-	public static get() {
-		if (!this._instance) this._instance = new Database();
+	public static get(readonly: boolean = false) {
+		if (!this._instance) this._instance = new Database(readonly);
 		return this._instance;
 	}
 }

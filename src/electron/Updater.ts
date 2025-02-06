@@ -1,4 +1,4 @@
-import { getAppDataFilePath } from "./consts";
+import { DEV, getAppDataFilePath } from "./consts";
 import { IPCTunnel } from "./IPCTunnel";
 import { name, author, version as CURRENT_VERSION } from "../../package.json";
 import { app as electron } from "electron";
@@ -26,7 +26,7 @@ class Updater {
 	private version: string = CURRENT_VERSION;
 
 	private async check(): Promise<CheckResult> {
-		if (!electron.isPackaged) return this.set(UpdateState.NO);
+		if (DEV) return this.set(UpdateState.NO);
 
 		const request = await fetch(`https://api.github.com/repos/${author}/${name}/releases/latest`);
 		if (request.status != 200) return this.set(UpdateState.NO);

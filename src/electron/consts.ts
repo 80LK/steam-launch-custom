@@ -7,8 +7,8 @@ import { app } from "electron";
 
 export const require = createRequire(import.meta.url)
 
-export const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL'];
-export const DEV = !!VITE_DEV_SERVER_URL;
+export const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL'] || 'http://localhost:5173/';
+export const DEV = !app.isPackaged;
 
 export const dirname = getDirname(fileURLToPath(import.meta.url))
 export const ASAR_ROOT = join(dirname, '..')

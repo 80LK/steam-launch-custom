@@ -5,6 +5,7 @@ import parseBoolean from "@utils/parseBoolean";
 import Steam from "../Steam";
 import { IPCTunnel } from "../IPCTunnel";
 import ImageProtocol from "../Protocol/ImgaeProtocol";
+import App from "../App";
 
 const steam = Steam.get();
 
@@ -211,6 +212,11 @@ class Game extends Database.Model implements IGame {
 		return editedIds;
 	};
 
+	public static async getLaunch() {
+		const appId = App.getLaunchApp();
+		return (await this.get(appId))?.toJSON();
+	}
+
 	public static IPC(_: any, ipc: IPCTunnel) {
 		ipc.handle(Messages.getAll, async (offset: number, limit: number, search: string | null) => {
 			const games = await Game.getAll(offset, limit, search);
@@ -246,6 +252,7 @@ class Game extends Database.Model implements IGame {
 
 		ipc.handle(Messages.needWrite, () => Game.needWrite());
 		ipc.handle(Messages.write, () => Game.write());
+		ipc.handle(Messages.getLaunch, () => Game.getLaunch());
 	}
 };
 

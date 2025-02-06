@@ -25,7 +25,9 @@ enum Messages {
 	getForGame = 'launch.getForGame',
 	create = 'launch.create',
 	edit = 'launch.edit',
-	remove = 'launch.remove'
+	remove = 'launch.remove',
+	getCurrentLaunch = 'launch.getCurrentLaunch',
+	start = 'launch.start'
 }
 
 export {

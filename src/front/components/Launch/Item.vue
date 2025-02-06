@@ -10,7 +10,7 @@ const { detail = false, launch } = defineProps<{ detail?: boolean, launch: ILaun
 			<v-avatar :image="launch.image" class="bg-grey-lighten-2" />
 		</template>
 		<v-list-item-title>
-			{{ launch.name }} | {{ launch.id }}
+			{{ launch.name }}
 		</v-list-item-title>
 		<v-list-item-subtitle v-if="detail">
 			{{ launch.execute }}

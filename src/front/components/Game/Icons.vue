@@ -31,7 +31,9 @@ function star(event: PointerEvent) {
 </script>
 
 <template>
-	<v-icon :icon="installedIcon" :color="installedColor" v-tooltip="installedTooltip" />
-	<v-icon :icon="mdiCog" :color="configuredColor" v-tooltip="configuredTooltip" />
-	<v-icon :icon="isFavoriteIcon" :color="isFavoriteColor" v-tooltip="'Favourites'" @click="star" />
+	<div>
+		<v-icon :icon="installedIcon" :color="installedColor" v-tooltip="installedTooltip" />
+		<v-icon :icon="mdiCog" :color="configuredColor" v-tooltip="configuredTooltip" />
+		<v-icon :icon="isFavoriteIcon" :color="isFavoriteColor" v-tooltip="'Favourites'" @click="star" />
+	</div>
 </template>

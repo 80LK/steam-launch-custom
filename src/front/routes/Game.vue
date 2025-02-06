@@ -2,6 +2,7 @@
 import ConfirmRemove from '@components/ConfirmRemove.vue';
 import Container, { Done } from '@components/Container.vue';
 import GameIcons from '@components/Game/Icons.vue';
+import Header from '@components/Game/Header.vue';
 import Editor from '@components/Launch/Editor.vue';
 import LaunchList from '@components/Launch/List.vue';
 import { mdiArrowLeft, mdiClose, mdiPencil, mdiPlay, mdiPlus, mdiTrashCan } from '@mdi/js';
@@ -60,13 +61,13 @@ function delet(launch_id: number) {
 <template>
 	<Container padding="0" @load="loadLaunchs" ref="container" :is-infinite-scroll="game.configured">
 		<template v-slot:header>
-			<v-img v-if="game" :class="['bg-grey-lighten-2', $style.header]" cover :src="game.image">
-				<v-toolbar :class="$style.toolbar">
+			<Header :game="game">
+				<template v-slot:toolbar-prepare>
 					<v-btn :icon="mdiArrowLeft" variant="text" to="/" />
-					<v-toolbar-title>{{ game.name }}</v-toolbar-title>
-					<v-spacer />
-					<GameIcons :game="game" />
-				</v-toolbar>
+				</template>
+				<template v-slot:toolbar-append>
+					<GameIcons :game="game" :class="$style.icons" />
+				</template>
 
 				<v-btn :prepend-icon="mdiPlay" tile color="success" size="large" :class="$style.play"
 					:href="`steam://rungameid/${game.id}`">Launch</v-btn>
@@ -77,7 +78,8 @@ function delet(launch_id: number) {
 					<v-btn :icon="mdiPlus" color="success" v-tooltip:start="'Add variant launch'"
 						@click="editor?.create(game.id)" />
 				</div>
-			</v-img>
+
+			</Header>
 		</template>
 
 		<div v-if="!hasLaucnhs" :class="$style.center">
@@ -100,30 +102,23 @@ function delet(launch_id: number) {
 </template>
 
 <style module>
-.header {
-	height: var(--header-height, 225px);
-	overflow: visible;
-	z-index: 1;
-}
-
-.header .play {
+.play {
 	position: absolute;
 	left: 1em;
 	bottom: 1em;
 }
 
-.header .toolbar {
-	background: linear-gradient(180deg, black, transparent);
-	color: white;
-	padding-right: 1em;
-}
-
-.header .add {
+.add {
 	position: absolute;
 	display: flex;
 	gap: 1em;
 	bottom: 1em;
 	right: 1em;
+}
+
+.icons {
+	padding-right: 1em;
+
 }
 
 .center {

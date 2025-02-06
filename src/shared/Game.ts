@@ -21,7 +21,8 @@ enum Messages {
 	configure = 'game.configure',
 	resetConfigure = 'game.resetConfigure',
 	needWrite = 'game.needWrite',
-	write = 'game.write'
+	write = 'game.write',
+	getLaunch = 'game.getLaunch'
 }
 
 export {
