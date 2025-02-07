@@ -12,7 +12,6 @@ import Updater from './Updater';
 import LaunchWindow from './Window/LaunchWindow';
 import Spawn from './Spawn';
 
-
 const appId = App.getLaunchApp();
 const isLaunch = appId !== 0;
 const image = ImageProtocol.get();

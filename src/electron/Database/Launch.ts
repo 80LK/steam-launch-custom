@@ -29,8 +29,9 @@ class Launch extends Database.Model implements ILaunch {
 		if (this.id == 0 || this.game_id == 0) return;
 		if (!await exsist(this.execute)) return;
 		try {
-			const buf = await extractIcon(this.execute)
-			writeFileSync(ImageProtocol.getFileIcon(this.game_id, this.id), buf);
+			const buf = extractIcon(this.execute)
+			if (buf)
+				writeFileSync(ImageProtocol.getFileIcon(this.game_id, this.id), buf);
 		} catch (e) { }
 	}
 

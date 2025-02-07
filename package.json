@@ -1,7 +1,7 @@
 {
   "name": "steam-launch-custom",
   "author": "80LK",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Add custom launch options for you steam games",
   "license": "MIT",
   "keywords": [],
@@ -36,8 +36,8 @@
     "vuetify": "^3.7.4"
   },
   "dependencies": {
+    "extract-file-icon": "^0.3.2",
     "glob": "^11.0.1",
-    "icon-extractor": "^1.0.3",
     "sqlite3": "^5.1.7",
     "valve-key-values": "^1.0.0",
     "winreg": "^1.2.5"
