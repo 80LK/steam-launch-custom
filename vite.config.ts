@@ -1,58 +1,71 @@
-import { defineConfig, loadEnv } from 'vite'
-import path from 'node:path'
-import electron from 'vite-plugin-electron/simple'
-import vue from '@vitejs/plugin-vue'
+import vue from "@vitejs/plugin-vue";
 import vuetify from 'vite-plugin-vuetify'
 import vueDevTools from 'vite-plugin-vue-devtools'
+import defineElectronConfig from "@80lk/vite-plugin-electron";
+import { resolve } from "path";
 
-// https://vitejs.dev/config/
-export default defineConfig(({ mode }) => {
-  const cwd = process.cwd();
+const root = __dirname;
+const src = resolve(root, 'src');
+const front = resolve(src, 'front');
+const preload = resolve(src, 'electron-preload');
+const electron = resolve(src, 'electron');
+const distFolder = resolve(root, 'dist');
 
-  return {
-    build: {
-      target: "ES2022"
-    },
-    plugins: [
-      vue(),
-      vuetify(),
-      vueDevTools(),
-      electron({
-        main: {
-          // Shortcut of `build.lib.entry`.
-          entry: 'src/electron/main.ts',
-          onstart({ startup }) {
-            const env = loadEnv(mode, cwd, '');
-            const args = [cwd];
-            if (mode == "launch") {
-              const id = env.LAUNCH_ID;
-              if (!id) {
-                console.error("LAUNCH_ID not set in env");
-              } else {
-                const exe = env.LAUNCH_EXECUTE;
-                if (!exe)
-                  console.error("LAUNCH_EXECUTE not set in env");
-                else
-                  args.push(`--launch=${id}`, exe);
-              }
-            }
+const globalAliases = {
+	"@utils": resolve(src, 'utils'),
+	"@shared": resolve(src, 'shared'),
+}
 
-            startup(args, { env });
-          },
-        },
-        preload: {
-          // Shortcut of `build.rollupOptions.input`.
-          // Preload scripts may contain Web assets, so use the `build.rollupOptions.input` instead `build.lib.entry`.
-          input: path.join(__dirname, 'src/electron/preload.ts'),
-        },
-        // Ployfill the Electron and Node.js API for Renderer process.
-        // If you want use Node.js in Renderer process, the `nodeIntegration` needs to be enabled in the Main process.
-        // See 👉 https://github.com/electron-vite/vite-plugin-electron-renderer
-        renderer: process.env.NODE_ENV === 'test'
-          // https://github.com/electron-vite/vite-plugin-electron-renderer/issues/78#issuecomment-2053600808
-          ? undefined
-          : {},
-      }),
-    ],
-  }
-})
+export default defineElectronConfig(
+	//Electron
+	{
+		main: resolve(electron, 'index.ts'),
+		preload: resolve(preload, 'main.ts'),
+		outDir: resolve(root, 'dist-electron'),
+		declarationPreload: resolve(front, 'preload-env.d.ts'),
+
+		// Vite
+		resolve: {
+			alias: globalAliases,
+			extensions: [
+				".ts"
+			]
+		},
+	},
+	//Front-app
+	{
+		label: "Front-app",
+		root: front,
+		base: './',
+		resolve: {
+			alias: Object.assign(
+				globalAliases,
+				{
+					"@components": resolve(front, "components"),
+					"@store": resolve(front, "store"),
+				}
+			),
+			extensions: [
+				".ts",
+				".vue"
+			]
+		},
+		publicDir: resolve(root, 'public'),
+		build: {
+			target: "ES2022",
+			emptyOutDir: true,
+			rollupOptions: {
+				input: {
+					main: resolve(front, 'index.html'),
+					launch: resolve(front, 'launch.html')
+				},
+			},
+			outDir: distFolder,
+		},
+		plugins: [
+			vue(),
+			vuetify(),
+			vueDevTools()
+		],
+	}
+);

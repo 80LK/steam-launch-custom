@@ -1,42 +1,36 @@
 <script lang="ts" setup>
-import { onMounted, ref } from 'vue';
-import { UpdateInfo, UpdateState } from '../../UpdateInfo';
+import { UpdateState } from '@shared/Updater';
+import useUpdaterStore from '@store/updater';
+import { computed, ref } from 'vue';
 
-const update = ref({ state: UpdateState.NO, version: null } as UpdateInfo);
-const available = ref(false);
-const loading = ref(false);
+const showen = ref(true);
 
-async function checkUpdate() {
-	update.value = await CheckerUpdate.check();
-	if (update.value.state !== UpdateState.NO)
-		available.value = true;
+const store = useUpdaterStore();
+store.check();
 
-}
-
-async function download() {
-	loading.value = true;
-	if (await CheckerUpdate.download()) {
-		update.value.state = UpdateState.DOWNLOADED;
-	}
-	loading.value = false;
-}
-function insatll() {
-	CheckerUpdate.install();
-}
-onMounted(() => checkUpdate());
+const hasUpdate = computed(() => store.state != UpdateState.NO && showen.value);
+const isCheck = computed(() => store.state == UpdateState.CHECK);
+const isAvailable = computed(() => store.state == UpdateState.HAVE || store.state == UpdateState.DOWNLOADING);
+const isDownloading = computed(() => store.state == UpdateState.DOWNLOADING);
+const isDownloaded = computed(() => store.state == UpdateState.DOWNLOADED);
+const color = computed(() => isCheck.value ? undefined : 'success')
+const message = computed(() => isCheck.value ? 'Checking updates' : `Update ${store.version} is available`);
 </script>
 
 <template>
-	<v-alert type="warning" variant="tonal" border="start" class="ma-4 mb-0" v-if="available">
-		<div style="display: flex; align-items: center; justify-content: space-between">
-			Update {{ update.version }} is available
-			<div>
-				<v-btn color="success" class="mr-2" v-if="update.state == UpdateState.DOWNLOADED"
-					@click="insatll()">Install</v-btn>
-				<v-btn color="success" class="mr-2" v-if="update.state == UpdateState.YES" @click="download()"
-					:loading="loading">Download</v-btn>
-				<v-btn color="error" v-if="!loading">Hide</v-btn>
-			</div>
-		</div>
+	<v-alert :type="color" variant="tonal" border="start" v-if="hasUpdate">
+		<template v-slot:prepend v-if="isCheck">
+			<v-progress-circular indeterminate />
+		</template>
+		{{ message }}
+		<template v-slot:close v-if="!isCheck">
+			<v-btn color="success" class="mr-2" size="small" variant="flat" :icon="false"
+				v-if="isDownloaded">Install</v-btn>
+
+			<v-btn color="success" class="mr-2" size="small" variant="flat" :icon="false" v-if="isAvailable"
+				:loading="isDownloading" @click="store.download()">Download</v-btn>
+
+			<v-btn color="error" size="small" variant="flat" :icon="false" @click="showen = false">Hide</v-btn>
+		</template>
 	</v-alert>
 </template>

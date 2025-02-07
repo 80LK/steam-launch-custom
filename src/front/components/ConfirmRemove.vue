@@ -1,22 +1,35 @@
 <script setup lang="ts">
 import { mdiDelete } from '@mdi/js';
-const emit = defineEmits(['submit', 'cancel']);
-const open = defineModel<boolean>({ default: false });
-const { thing = 'this' } = defineProps<{ thing: string }>();
+import { ref } from 'vue';
+
+const thingRemove = ref('this');
+const isOpen = ref(false);
+
+let confirm = () => { };
+let reject = () => { };
+function open(thing: string = 'this') {
+	isOpen.value = true;
+	thingRemove.value = thing;
+	return new Promise<boolean>(r => {
+		confirm = () => r(true)
+		reject = () => r(false);
+	});
+}
+
+defineExpose({ open });
 
 function cancel() {
-	open.value = false;
-	emit('cancel')
+	isOpen.value = false;
+	reject();
 }
 function submit() {
-	open.value = false;
-	emit('submit')
+	isOpen.value = false;
+	confirm();
 }
 </script>
 
-
 <template>
-	<v-dialog max-width="600" persistent v-model="open">
+	<v-dialog max-width="600" persistent v-model="isOpen">
 		<v-card>
 			<v-card-item :prepend-icon="mdiDelete">
 				<v-card-title>
@@ -24,7 +37,7 @@ function submit() {
 				</v-card-title>
 			</v-card-item> <v-divider></v-divider>
 			<v-card-text>
-				Are you sure you want to remove {{ thing }}?
+				Are you sure you want to remove {{ thingRemove }}?
 			</v-card-text>
 			<v-card-actions>
 				<v-btn text="No" @click="cancel()"></v-btn>

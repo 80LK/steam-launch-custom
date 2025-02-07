@@ -1,21 +1,20 @@
-import { spawn } from 'child_process';
-import Service, { ServiceEventsMap } from './Service';
+import { spawn } from "child_process";
 
-interface SpawnEvents extends ServiceEventsMap {
-	closeAll: []
-}
-
-class Spawn extends Service<SpawnEvents> {
-	protected _init() { }
+class Spawn {
 	private processes: Set<number> = new Set();
 	public get hasRunning() {
 		return this.processes.size !== 0
 	}
 
+	private _onClose: () => void = () => { };
+	public onClose(callback: () => void) {
+		this._onClose = callback;
+	}
+
 	private exit(pid: number) {
 		this.processes.delete(pid);
 		if (!this.hasRunning)
-			this.emit('closeAll');
+			this._onClose();
 	}
 
 	public start(exe: string, args: string[], cwd: string) {
@@ -29,8 +28,8 @@ class Spawn extends Service<SpawnEvents> {
 
 
 	private static _instance: Spawn;
-	public static getInstance() {
-		if (!this._instance) this._instance = new Spawn("Spawn");
+	public static get() {
+		if (!this._instance) this._instance = new Spawn();
 
 		return this._instance;
 	}

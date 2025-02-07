@@ -1,81 +1,91 @@
 <script setup lang="ts">
 import { mdiCached, mdiMagnify } from "@mdi/js";
-import Container from "../components/FlexGrid.vue"
-import GameCard from "../components/GameCard.vue";
-import { computed, ref } from "vue";
-import IGame from "../../IGame";
+import Updater from '@components/Updater.vue';
+import NeedConfigure from '@components/Game/NeedConfigure.vue';
+import Container, { Done } from '@components/Container.vue';
+import GameCard from "@components/Game/Card.vue";
+import { ref, useTemplateRef } from "vue";
+import { IGame } from "@shared/Game";
+import useGamesStore from "@store/games";
 
-const loading = ref(true);
-const needWrite = ref(false);
-const canScan = ref(true);
+const store = useGamesStore();
+const games = ref([] as IGame[]);
 const search = ref(null as string | null);
-const all_games = ref([] as IGame[]);
+const container = useTemplateRef('container');
+let total = 0;
+const limit = 12;
 
-const games = computed(() => all_games.value.filter(e => search.value ? e.name.toLowerCase().includes(search.value.toLowerCase()) : true))
+async function loadGames(done: Done) {
+	await scaned();
+	const items = await store.getAll(total, limit, search.value);
+	games.value = games.value.concat(items);
+	total += items.length;
+	done(items.length < limit ? 'empty' : 'ok');
+}
 
-Config.get().then(e => canScan.value = !e.scanGameLaunch)
+function resetGames() {
+	games.value = [];
+	total = 0;
+	container.value?.reset();
+}
 
-async function checkNeedWrite() {
-	const need = await Game.needWrite();
-	needWrite.value = need;
+function searching() {
+	resetGames();
 }
 
 
-async function getGames() {
-	loading.value = true;
-	all_games.value = await Game.getAll();
-	loading.value = false;
-}
+let isScaning = false;
+let onScaned = () => { };
 
-async function scanGame() {
-	loading.value = true;
-	await Steam.scanGames()
-	await getGames();
-	loading.value = false;
-}
+function scaned() {
+	if (!isScaning) return Promise.resolve();
 
-async function writeConfig() {
-	loading.value = true;
-	await Game.writeConfig()
-	await getGames();
-	await checkNeedWrite();
-	loading.value = false;
+	return new Promise<void>(resolve => {
+		onScaned = resolve;
+	})
 }
-
-getGames();
-checkNeedWrite();
+async function scan() {
+	isScaning = true;
+	resetGames();
+	await Game.scan();
+	isScaning = false;
+	onScaned();
+}
 </script>
 
 <template>
-	<v-container fluid>
-		<v-row v-if="needWrite">
-			<v-col cols="12">
-				<v-alert type="warning" variant="tonal" border="start">
-					<div style="display: flex; align-items: center; justify-content: space-between">
-						You need close Steam and rewrite launch option
-						<v-btn color="warning" @click="writeConfig()">Now</v-btn>
-					</div>
-				</v-alert>
-			</v-col>
-		</v-row>
-		<v-row>
-			<v-col cols="12">
-				<v-text-field label="Search" clearable variant="outlined" hide-details="auto" v-model="search">
-					<template v-slot:label="{ label }">
-						<v-icon :icon="mdiMagnify" /> {{ label }}
-					</template>
-					<template v-slot:append v-if="canScan">
-						<v-btn size="x-large" color="green" :prepend-icon="mdiCached" @click="scanGame()">Scan
-							game</v-btn>
-					</template>
-				</v-text-field>
+	<Container @load="loadGames" ref="container" is-infinite-scroll>
+		<template v-slot:header>
+			<Updater class="mb-4" />
 
-			</v-col>
-			<v-col cols="12">
-				<Container padding="0" :loading="loading">
-					<GameCard v-for="i in games" :key="i.id" :game="i" />
-				</Container>
-			</v-col>
-		</v-row>
-	</v-container>
+			<NeedConfigure class="mb-4" />
+
+			<v-text-field label="Search" clearable variant="outlined" hide-details="auto" v-model="search"
+				@update:modelValue="searching">
+				<template v-slot:label="{ label }">
+					<v-icon :icon="mdiMagnify" /> {{ label }}
+				</template>
+
+				<template v-slot:append>
+					<v-btn size="x-large" height="56px" color="green" :prepend-icon="mdiCached" @click="scan">
+						Scan game
+					</v-btn>
+				</template>
+			</v-text-field>
+		</template>
+
+		<div :class="$style.grid">
+			<GameCard v-for="i in games" :game="i" />
+		</div>
+	</Container>
 </template>
+
+<style module>
+.grid {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 16px;
+}
+</style>
