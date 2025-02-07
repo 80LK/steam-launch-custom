@@ -1,6 +1,7 @@
 import { getAppDataFilePath, require } from "../consts";
 import { IInitialable } from "../App";
 import { default as sqlite3, Database as SQLite, Statement as SQLStatement, RunResult as SQLRunResult } from "sqlite3";
+import EventEmitter from "events";
 const sqlite = require('sqlite3') as typeof sqlite3;
 
 interface DatabaseDebug {
@@ -15,6 +16,7 @@ const INIT_DATABASE_DEBUG: () => DatabaseDebug = () => ({
 
 class Database implements IInitialable {
 	private _db: SQLite;
+	private _emmiter = new EventEmitter();
 	private constructor(readonly: boolean = false) {
 		this._db = new sqlite.Database(Database._debug.memory ? ":memory:" : Database.DATABASE_PATH, readonly ? sqlite.OPEN_READONLY : undefined);
 		Database._debug.logSql && this._db.on('trace', (sql) => console.log("[SQL]:", sql));
@@ -45,11 +47,21 @@ class Database implements IInitialable {
 		return this.prepare<T>(sql).getAll(params)
 	}
 
+	public awaitModel(model: typeof Database.Model) {
+		let test: (...args: any[]) => void;
+		return new Promise<void>(r => this._emmiter.on("init", test = (inited: typeof Database.Model) => {
+			if (inited !== model) return;
+			r();
+			this._emmiter.off('init', test);
+		}))
+	}
+
 	// IInitialable	
 	public async init(state: (msg: string) => void): Promise<void> {
 		state('Initialization Database');
 		for (const model of this._models) {
 			await model.init()
+			this._emmiter.emit('init', model);
 		}
 		return;
 	}

@@ -98,20 +98,23 @@ class App {
 
 			win.open();
 			const setmessage = (msg: string) => this.message.message = msg;
+			const inits = [];
 			for (const init of this.initsList) {
-				try {
-					await init.init(setmessage)
-				} catch (err) {
-
-					if (err instanceof Error)
-						this.message = { state: State.ERROR, message: err.message }
-					else if (typeof err == "string")
-						this.message = { state: State.ERROR, message: err }
-					else
-						this.message = { state: State.ERROR, message: (<any>err).toString() }
-					return;
-				}
+				inits.push(init.init(setmessage));
 			}
+
+			try {
+				await Promise.all(inits);
+			} catch (err) {
+				if (err instanceof Error)
+					this.message = { state: State.ERROR, message: err.message + err.stack }
+				else if (typeof err == "string")
+					this.message = { state: State.ERROR, message: err }
+				else
+					this.message = { state: State.ERROR, message: (<any>err).toString() }
+				return;
+			}
+
 			ready && await ready(setmessage);
 			this.message = { state: State.READY, message: "Ready" };
 		})

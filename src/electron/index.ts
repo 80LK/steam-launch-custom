@@ -19,8 +19,8 @@ const image = ImageProtocol.get();
 const app = App.create(isLaunch ? LaunchWindow : MainWindow)
 	.setPath(isLaunch ? `game/${appId}` : 'main')
 	.init(
-		Database.debug().get().register(Settings, Game, Launch),
-		Steam.get()
+		Steam.get(),
+		Database.get().register(Settings, Game, Launch),
 	)
 	.addProtocols(image);
 

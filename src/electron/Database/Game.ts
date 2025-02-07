@@ -2,7 +2,7 @@ import Database from "./Database";
 import Settings from "./Settings";
 import { IGame, Messages } from "@shared/Game";
 import parseBoolean from "@utils/parseBoolean";
-import Steam from "../Steam";
+import Steam, { TestLaunch } from "../Steam";
 import { IPCTunnel } from "../IPCTunnel";
 import ImageProtocol from "../Protocol/ImgaeProtocol";
 import App from "../App";
@@ -37,14 +37,39 @@ class Game extends Database.Model implements IGame {
 			const db_ver = await Settings.getNumber(Game.DB_VER_KEY, 0);
 			if (db_ver == Game.DB_VER) return;
 
-			// TODO: MIGRATION
-			// /".*\/steam-launch-custom.exe" --launch=\d+ %command%/
-			// await this.prepare(`
-			// 	ALTER TABLE ${this.DB_NAME} DROP COLUMN installDir;
-			// 	ALTER TABLE ${this.DB_NAME} DROP COLUMN state;
-			// 	ALTER TABLE ${this.DB_NAME} ADD COLUMN stared BOOLEAN DEFAULT 0;
-			// 	ALTER TABLE ${this.DB_NAME} ADD COLUMN addTimestamp DATETIME DEFAULT CURRENT_TIMESTAMP;
-			// `).run()
+			const queries = [
+				`ALTER TABLE ${this.DB_NAME} DROP COLUMN installDir;`,
+				`ALTER TABLE ${this.DB_NAME} ADD COLUMN stared BOOLEAN DEFAULT 0;`,
+				`ALTER TABLE ${this.DB_NAME} ADD COLUMN addTimestamp DATETIME;`,
+				`ALTER TABLE ${this.DB_NAME} ADD COLUMN library TEXT;`,
+				`ALTER TABLE ${this.DB_NAME} ADD COLUMN installed BOOLEAN DEFAULT 0;`,
+				`ALTER TABLE ${this.DB_NAME} ADD COLUMN configured BOOLEAN DEFAULT 0;`,
+				`ALTER TABLE ${this.DB_NAME} ADD COLUMN needWrite BOOLEAN DEFAULT 0;`,
+			];
+
+			await Promise.all(queries.map(e => this.prepare(e).run()));
+
+			await this.prepare(`UPDATE ${this.DB_NAME} SET addTimestamp = CURRENT_TIMESTAMP;`).run();
+
+			const sql_games = await this.prepare<SQLGame & { state: number }>(`SELECT * FROM ${this.DB_NAME}`).getAll();
+			const libraries = await Steam.get().getLibraries();
+			function findLibrary(id: string) {
+				for (const i in libraries) {
+					const library = libraries[i];
+					const _id = Object.keys(library.apps).find(e => e == id);
+					if (_id == id) return library.path;
+				}
+				return '';
+			}
+
+			await Promise.all(sql_games.map(async game => {
+				game.library = findLibrary(game.id.toString());
+				game.configured = (game.state & 0b100).toString();
+				game.needWrite = (game.state & 0b010).toString();
+				return (await Game.createFromSql(game)).save()
+			}))
+
+			await this.prepare(`ALTER TABLE ${this.DB_NAME} DROP COLUMN state;`).run();
 		} else {
 			await this.prepare(`CREATE TABLE ${this.DB_NAME} (
 				id INT PRIMARY KEY,
@@ -124,13 +149,23 @@ class Game extends Database.Model implements IGame {
 
 	private async checkConfigured() {
 		if (!this.installed) return;
-		const launch_options = await steam.getLaunchOptions(this.id);
-		const configured = launch_options == steam.getLaunchPath(this.id);
+		const test = await steam.testLaunchPath(this.id);
 
-		if (this.configured == configured || this.needWrite) return;
+		const old_configured = this.configured;
+		const old_needWrite = this.needWrite;
 
-		this.configured = configured;
-		await this.save();
+		if (this.configured && this.needWrite && test == TestLaunch.CURRENT) {
+			this.needWrite = false;
+		} else if (this.configured && !this.needWrite && test != TestLaunch.CURRENT) {
+			this.needWrite = true;
+		} else if (!this.configured && this.needWrite && test == TestLaunch.NO) {
+			this.needWrite = false;
+		} else if (!this.configured && !this.needWrite && test != TestLaunch.NO) {
+			this.needWrite = true;
+		}
+
+		if (old_configured != this.configured || old_needWrite != this.needWrite)
+			await this.save();
 	}
 
 	public toJSON(): IGame {

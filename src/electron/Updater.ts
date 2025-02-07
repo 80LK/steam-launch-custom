@@ -78,7 +78,6 @@ class Updater {
 			await new Promise<void>(r => update_file.write(value, () => r()));
 		}
 		await Settings.set(Updater.SETTINGS_KEY, this.version);
-		console.log("[Settings.set]", Updater.SETTINGS_KEY, this.version);
 		return true;
 	}
 

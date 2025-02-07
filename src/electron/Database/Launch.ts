@@ -38,7 +38,7 @@ class Launch extends Database.Model implements ILaunch {
 	private static readonly DB_VER_KEY: string = "launch-db-ver";
 	private static readonly DB_VER: number = 1;
 
-	private static createFromSQL(raw: SQLLaunch): Launch {
+	private static async createFromSQL(raw: SQLLaunch): Promise<Launch> {
 		const launch = new this();
 		launch.id = raw.id;
 		launch.game_id = raw.game_id;
@@ -47,18 +47,21 @@ class Launch extends Database.Model implements ILaunch {
 		launch.launch = JSON.parse(raw.launch) || [];
 		launch.workdir = raw.workdir;
 
+		if (!await exsist(ImageProtocol.getFileIcon(launch.game_id, launch.id)))
+			await launch.generateIcon();
+
 		return launch;
 	}
 
 	public static async getForGame(game_id: number, offset: number = 0, limit: number = 10) {
 		const raw_games = await this.prepare<SQLLaunch>(`SELECT id, game_id, name, execute, launch, workdir FROM ${this.DB_NAME} WHERE game_id = $game_id LIMIT $limit OFFSET $offset;`).getAll({ game_id, offset, limit });
-		return raw_games.map(e => this.createFromSQL(e));
+		return await Promise.all(raw_games.map(e => this.createFromSQL(e)));
 	}
 
 	public static async get(id: number) {
 		const raw_game = await this.prepare<SQLLaunch>(`SELECT id, game_id, name, execute, launch, workdir FROM ${this.DB_NAME} WHERE id = $id`).get({ id });
 		if (!raw_game) return null;
-		return this.createFromSQL(raw_game);
+		return await this.createFromSQL(raw_game);
 	}
 
 	public async save() {
@@ -152,7 +155,6 @@ class Launch extends Database.Model implements ILaunch {
 		const game_id = App.getLaunchApp();
 		if (game_id == 0) return null;
 		const [exe, ...args] = App.getSteamArgs();
-		console.log(exe);
 		const launch = new Launch();
 		launch.name = (await Game.getLaunch())?.name || "";
 		launch.id = -1;

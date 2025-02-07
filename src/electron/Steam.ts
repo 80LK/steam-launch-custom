@@ -8,6 +8,7 @@ import VDF from "valve-key-values";
 import ObjectProxy from "../utils/ObjectProxy";
 import { spawn } from "child_process";
 import { app } from "electron";
+import Database from "./Database/Database";
 
 interface SteamUserInfo extends VDF.VDFObject {
 	timeused: string;
@@ -33,6 +34,12 @@ interface Library extends VDF.VDFObject {
 }
 interface Libraries extends VDF.VDFObject {
 	libraryfolders: Record<string, Library>;
+}
+
+enum TestLaunch {
+	NO = 'no',
+	CURRENT = 'current',
+	NOT_CURRENT = 'not current'
 }
 
 class Steam implements IInitialable {
@@ -204,6 +211,15 @@ class Steam implements IInitialable {
 		return editIds;
 	}
 
+	public async testLaunchPath(id: number): Promise<TestLaunch> {
+		const path = await this.getLaunchOptions(id);
+		if (!path) return TestLaunch.NO;
+		// /".*\/electron.exe" ".*" --launch=\d+ %command%/
+
+		if (!/".*\/(?:steam-launch-custom.exe|electron.exe" ".*)" --launch=\d+ %command%/.test(path))
+			return TestLaunch.NO;
+		return path == this.getLaunchPath(id) ? TestLaunch.CURRENT : TestLaunch.NOT_CURRENT;
+	}
 	public getLaunchPath(id: number) {
 		const args = [`"${App.getExecutable()}"`];
 		if (!app.isPackaged) args.push(`"${process.argv[1].replace(/\\/g, "/")}"`);
@@ -212,7 +228,8 @@ class Steam implements IInitialable {
 	}
 
 	public async init(message: (msg: string) => void): Promise<void> {
-		message("Init stema");
+		await Database.get().awaitModel(Settings);
+		message("Init Steam");
 
 		let path = await Settings.get(Steam.SETTINGS_KEY) || await this.getPathFromRegistry();
 
@@ -237,8 +254,6 @@ class Steam implements IInitialable {
 		const proc = spawn('powershell', ['-Command', `&{$process = Get-Process -Id ${pid};Stop-Process $process;$process.WaitForExit();$process.Close()}`]);
 		await new Promise<void>(r => proc.on('close', () => r()))
 		await this.resetPIDFromRegistry();
-
-		console.log("PID:", await this.getPIDFromRegistry())
 	}
 
 	public async isRunning() {
@@ -280,3 +295,4 @@ interface LocalConfig extends VDF.VDFObject {
 }
 
 export default Steam;
+export { TestLaunch }

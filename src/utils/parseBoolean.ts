@@ -2,6 +2,9 @@ const IS_TRUE = ['t', 'true', 'y', 'yes', '1'];
 const IS_FALSE = ['f', 'false', 'n', 'no', '0'];
 
 function parseBoolean(value: any): boolean | null {
+	if (/^(\d*\.)?\d+$/.test(value))
+		value = parseFloat(value);
+
 	switch (typeof value) {
 		case "number":
 			return value != 0;
