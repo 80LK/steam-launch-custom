@@ -31,6 +31,10 @@ export default defineElectronConfig(
 				".ts"
 			]
 		},
+		define: {
+			// @see - https://github.com/vitejs/vite/blob/v5.0.11/packages/vite/src/node/plugins/define.ts#L20
+			'process.env': 'process.env',
+		},
 	},
 	//Front-app
 	{
