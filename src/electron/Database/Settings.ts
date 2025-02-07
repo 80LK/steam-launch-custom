@@ -17,6 +17,8 @@ class Settings extends Database.Model {
 	}
 
 	//String
+	public static async get(name: string): Promise<string | null>;
+	public static async get(name: string, defaultValue: string): Promise<string>;
 	public static async get(name: string, defaultValue?: string): Promise<string | null> {
 		const result = await this.prepare<{ value: string }>(`SELECT value FROM ${this.DB_NAME} WHERE name = $name LIMIT 1;`).get({ name });
 		if (!result) return defaultValue ?? null;
@@ -27,6 +29,8 @@ class Settings extends Database.Model {
 	};
 
 	//Number
+	public static async getNumber(name: string): Promise<number | null>;
+	public static async getNumber(name: string, defaultValue: number): Promise<number>;
 	public static async getNumber(name: string, defaultValue?: number): Promise<number | null> {
 		const value = await this.get(name);
 		if (!value) return defaultValue ?? null;
@@ -38,6 +42,8 @@ class Settings extends Database.Model {
 	};
 
 	//Boolean
+	public static async getBoolean(name: string): Promise<boolean | null>;
+	public static async getBoolean(name: string, defaultValue: boolean): Promise<boolean>;
 	public static async getBoolean(name: string, defaultValue?: boolean): Promise<boolean | null> {
 		const value = await this.get(name);
 		if (!value) return defaultValue ?? null;
@@ -46,6 +52,10 @@ class Settings extends Database.Model {
 	};
 	public static setBoolean(name: string, value: boolean) {
 		return this.set(name, value.toString());
+	};
+
+	public static delete(name: string) {
+		return this.prepare(`DELETE FROM ${this.DB_NAME} WHERE name = $name;`).run({ name });
 	};
 
 	public static IPC(_: BaseWindow, ipc: IPCTunnel) {

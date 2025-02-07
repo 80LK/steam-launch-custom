@@ -107,11 +107,36 @@ class Launch extends Database.Model implements ILaunch {
 	}
 
 	public static async init() {
-		const exsist = await this.prepare<{ name: string }>("SELECT name FROM sqlite_master WHERE type='table' AND name = $name LIMIT 1;").get({ name: this.DB_NAME });
+		const exsist = await Launch.prepare<{ name: string }>("SELECT name FROM sqlite_master WHERE type='table' AND name = $name LIMIT 1;").get({ name: Launch.DB_NAME });
 		if (exsist) {
-			// TODO MIGRATE
+			const LEGACY_KEY = "launch_db_version";
+			const vers = await Settings.getNumber(Launch.DB_VER_KEY, 0);
+			if (vers == Launch.DB_VER) return;
+
+			const legacy_vers = await Settings.getNumber(LEGACY_KEY, 0);
+			if (legacy_vers) await Settings.delete(LEGACY_KEY);
+			switch (legacy_vers) {
+				case 0: {
+					const launchs = (await Launch.prepare<SQLLaunch>(`SELECT * FROM ${Launch.DB_NAME}`).getAll());
+					const state = this.prepare(`UPDATE ${this.DB_NAME} SET launch = $launch WHERE id = $id AND game_id = $game_id`);
+					await Promise.all(launchs.map(launch => {
+						if (launch.launch == '') launch.launch = '[]';
+						else launch.launch = JSON.stringify(launch.launch.split(' '));
+						return state.run({ launch: launch.launch, game_id: launch.game_id, id: launch.id });
+					}));
+				} break;
+
+				case 1: {
+					const launchs = (await Launch.prepare<SQLLaunch>(`SELECT * FROM ${Launch.DB_NAME} WHERE launch NOT LIKE $launch`).getAll({ launch: '[%' }));
+					const state = this.prepare(`UPDATE ${this.DB_NAME} SET launch = $launch WHERE id = $id AND game_id = $game_id`);
+					await Promise.all(launchs.map(launch => {
+						launch.launch = JSON.stringify(launch.launch.split(' '));
+						return state.run({ launch: launch.launch, game_id: launch.game_id, id: launch.id });
+					}));
+				} break;
+			}
 		} else {
-			await this.prepare(`CREATE TABLE ${this.DB_NAME} (
+			await Launch.prepare(`CREATE TABLE ${Launch.DB_NAME} (
 				id INTEGER PRIMARY KEY,
 				game_id INT,
 				name VARCHAR(255),
