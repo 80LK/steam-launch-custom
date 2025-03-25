@@ -29,6 +29,9 @@ function openPath(path: string) {
 					<v-select :label="$t('settings.theme')" :items="settings.theme.available"
 						:model-value="settings.theme.current" variant="outlined" density="compact"
 						@update:model-value="settings.theme.set" />
+					<v-select :label="$t('settings.language')" :items="settings.locale.available"
+						:model-value="settings.locale.current" variant="outlined" density="compact"
+						@update:model-value="settings.locale.set" />
 					<v-switch :label="$t('settings.scan_every_launch')" :model-value="settings.scanGameLaunch.value"
 						color="success" @update:model-value="settings.scanGameLaunch.set" />
 					<v-text-field readonly :label="$t('settings.appdata')" v-model="settings.appDataPath"

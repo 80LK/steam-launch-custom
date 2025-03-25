@@ -1,4 +1,5 @@
 {
+	"$lang": "English",
 	"update": {
 		"checking": "Checking updates",
 		"available": "Update {0} is available",
@@ -71,7 +72,8 @@
 		"appdata": "AppData",
 		"steam": "Steam",
 		"open": "Open",
-		"close": "Close"
+		"close": "Close",
+		"language": "Language"
 	},
 	"theme": {
 		"dark": "Dark",
