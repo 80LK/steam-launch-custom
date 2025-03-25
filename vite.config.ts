@@ -1,4 +1,5 @@
 import vue from "@vitejs/plugin-vue";
+import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite'
 import vuetify from 'vite-plugin-vuetify'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import defineElectronConfig from "@80lk/vite-plugin-electron";
@@ -45,6 +46,7 @@ export default defineElectronConfig(
 			alias: Object.assign(
 				globalAliases,
 				{
+					"@locales": resolve(front, "locales"),
 					"@components": resolve(front, "components"),
 					"@store": resolve(front, "store"),
 				}
@@ -69,7 +71,8 @@ export default defineElectronConfig(
 		plugins: [
 			vue(),
 			vuetify(),
-			vueDevTools()
+			vueDevTools(),
+			VueI18nPlugin()
 		],
 	}
 );

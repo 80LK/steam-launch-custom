@@ -1,8 +1,8 @@
 {
   "name": "steam-launch-custom",
   "author": "80LK",
-  "version": "0.2.1",
-  "description": "Add custom launch options for you steam games",
+  "version": "0.2.2",
+  "description": "Steam Launch Custom",
   "license": "MIT",
   "keywords": [],
   "private": true,
@@ -19,6 +19,7 @@
   "devDependencies": {
     "@80lk/vite-plugin-electron": "^1.0.0",
     "@babel/traverse": "^7.26.7",
+    "@intlify/unplugin-vue-i18n": "^6.0.5",
     "@mdi/js": "^7.4.47",
     "@types/babel__traverse": "^7.20.6",
     "@types/node": "^22.10.10",
@@ -32,6 +33,7 @@
     "vite-plugin-vue-devtools": "^7.7.1",
     "vite-plugin-vuetify": "^2.0.4",
     "vue": "^3.5.13",
+    "vue-i18n": "^11.1.2",
     "vue-router": "^4.5.0",
     "vuetify": "^3.7.4"
   },

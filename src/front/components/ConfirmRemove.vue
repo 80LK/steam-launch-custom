@@ -33,15 +33,15 @@ function submit() {
 		<v-card>
 			<v-card-item :prepend-icon="mdiDelete">
 				<v-card-title>
-					Confirm remove
+					{{ $t('remove.confirm') }}
 				</v-card-title>
 			</v-card-item> <v-divider></v-divider>
 			<v-card-text>
-				Are you sure you want to remove {{ thingRemove }}?
+				{{ $t('remove.sure', [$t(`remove.${thingRemove}`, thingRemove)]) }}
 			</v-card-text>
 			<v-card-actions>
-				<v-btn text="No" @click="cancel()"></v-btn>
-				<v-btn text="Yes" @click="submit()" type="submit" color="error"></v-btn>
+				<v-btn :text="$t('remove.no')" @click="cancel()"></v-btn>
+				<v-btn :text="$t('remove.yes')" @click="submit()" type="submit" color="error"></v-btn>
 			</v-card-actions>
 		</v-card>
 	</v-dialog>

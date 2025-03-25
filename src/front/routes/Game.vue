@@ -48,7 +48,7 @@ function relaod() {
 
 const removeModel = useTemplateRef('remove');
 function delet(launch_id: number) {
-	removeModel.value?.open()
+	removeModel.value?.open('launch')
 		.then(async e => {
 			if (!e) return;
 			await launchStore.remove(launch_id);
@@ -70,12 +70,14 @@ function delet(launch_id: number) {
 				</template>
 
 				<v-btn :prepend-icon="mdiPlay" tile color="success" size="large" :class="$style.play"
-					:href="`steam://rungameid/${game.id}`">Launch</v-btn>
+					:href="`steam://rungameid/${game.id}`" v-if="game.installed">
+					{{ $t('game.launch') }}
+				</v-btn>
 
 				<div v-if="game.configured" :class="$style.add">
-					<v-btn :icon="mdiClose" color="error" v-tooltip:start="'Reset configuration'"
+					<v-btn :icon="mdiClose" color="error" v-tooltip:start="$t('game.reset_configure')"
 						@click="resetConfigure" />
-					<v-btn :icon="mdiPlus" color="success" v-tooltip:start="'Add variant launch'"
+					<v-btn :icon="mdiPlus" color="success" v-tooltip:start="$t('game.add_launch')"
 						@click="editor?.create(game.id)" />
 				</div>
 
@@ -83,15 +85,19 @@ function delet(launch_id: number) {
 		</template>
 
 		<div v-if="!hasLaucnhs" :class="$style.center">
-			<v-btn v-if="!game.configured" tile size="x-large" color="success" @click="gameConfigure">Configure</v-btn>
-			<span v-else class="text-h6">No Launchs</span>
+			<v-btn v-if="!game.configured" tile size="x-large" color="success" @click="gameConfigure">
+				{{ $t('game.configure') }}
+			</v-btn>
+			<span v-else class="text-h6">
+				{{ $t('game.not_have_launchs') }}
+			</span>
 		</div>
 
 		<LaunchList v-else :launchs="launchs" detail>
 			<template v-slot:append="{ launch }">
-				<v-btn :icon="mdiPencil" variant="text" v-tooltip="'Edit launch setting'"
+				<v-btn :icon="mdiPencil" variant="text" v-tooltip="$t('game.edit_launch')"
 					@click="editor?.edit(launch.id)" />
-				<v-btn color="error" :icon="mdiTrashCan" variant="text" v-tooltip="'Remove launch setting'"
+				<v-btn color="error" :icon="mdiTrashCan" variant="text" v-tooltip="$t('game.remove_launch')"
 					@click="delet(launch.id)" />
 			</template>
 		</LaunchList>

@@ -5,5 +5,7 @@ declare global {
 	const Game: typeof import('D:/dev/electron/steam-launch-custom/src/electron-preload/Game').default;
 	const Launch: typeof import('D:/dev/electron/steam-launch-custom/src/electron-preload/Launch').default;
 	const Updater: typeof import('D:/dev/electron/steam-launch-custom/src/electron-preload/Updater').default;
+	const Steam: typeof import('D:/dev/electron/steam-launch-custom/src/electron-preload/Steam').default;
+	const Logger: typeof import('D:/dev/electron/steam-launch-custom/src/electron-preload/Logger').default;
 }
 export {};

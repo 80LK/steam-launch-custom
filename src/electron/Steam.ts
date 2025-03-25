@@ -9,17 +9,27 @@ import ObjectProxy from "../utils/ObjectProxy";
 import { spawn } from "child_process";
 import { app } from "electron";
 import Database from "./Database/Database";
+import BaseWindow from "./Window/BaseWindow";
+import { IPCTunnel } from "./IPCTunnel";
+import { Messages } from "@shared/Steam";
+import Logger from "./Logger";
 
-interface SteamUserInfo extends VDF.VDFObject {
+interface AuthorizedDevice extends VDF.VDFObject {
 	timeused: string;
 }
 
 interface SteamConfig extends VDF.VDFObject {
 	InstallConfigStore: {
-		AuthorizedDevice: Record<string, SteamUserInfo>
+		AuthorizedDevice: Record<string, AuthorizedDevice>
 	}
 }
 
+interface SteamUserInfo extends VDF.VDFObject {
+	Timestamp: string;
+}
+interface LoginUsers extends VDF.VDFObject {
+	users: Record<string, SteamUserInfo>
+}
 interface Manifest extends VDF.VDFObject {
 	AppState: {
 		appId: string;
@@ -93,7 +103,8 @@ class Steam implements IInitialable {
 		return manifest;
 	}
 
-	public async getLastUserId(): Promise<number | null> {
+	// @ts-ignore Old method
+	private async _getLastUserId(): Promise<number | null> {
 		const cfg_path = resolve(this.path, "config/config.vdf");
 		if (!exsist(cfg_path)) return null;
 
@@ -111,7 +122,45 @@ class Steam implements IInitialable {
 			}
 		}
 
+		Logger.log(`Last User ID: ${rawUserId}`, { prefix: "Steam" });
 		return parseInt(rawUserId);
+	}
+
+	public async getLastUserId(): Promise<number | null> {
+		const cfg_path = resolve(this.path, "config/loginusers.vdf");
+		if (!exsist(cfg_path)) return null;
+
+		const raw_cfg = await readFile(cfg_path, "utf-8");
+		const users = new ObjectProxy<LoginUsers>(VDF.parse<any>(raw_cfg)).get("users");
+
+		let time: number = 0;
+		let rawUserId64: string = '';
+		for (const userId64 in users.object) {
+			const user = users.get(userId64);
+			const uTime = parseInt(user.get('Timestamp'));
+			if (uTime > time) {
+				rawUserId64 = userId64;
+				time = uTime
+			}
+		}
+		const userId = Steam.convertSteam64IDtoAccountID(rawUserId64);
+		Logger.log(`Last User ID: ${rawUserId64} | ${userId}`, { prefix: "Steam" });
+		return userId;
+	}
+
+	public async getLocalConfigPath() {
+		if (!this.path) return null;
+		const lastId = await this.getLastUserId();
+		if (!lastId) return null;
+
+		const cfg_path = resolve(
+			this.path,
+			"userdata",
+			lastId.toString(),
+			"config/localconfig.vdf"
+		);
+		Logger.log(`Steam local config path: ${cfg_path}`, { prefix: 'Steam' });
+		return cfg_path;
 	}
 
 	private async getPIDFromRegistry() {
@@ -142,16 +191,8 @@ class Steam implements IInitialable {
 	}
 
 	public async getLaunchOptions(id: number): Promise<string | null> {
-		if (!this.path) return null;
-		const lastId = await this.getLastUserId();
-		if (!lastId) return null;
-
-		const cfg_path = resolve(
-			this.path,
-			"userdata",
-			lastId.toString(),
-			"config/localconfig.vdf"
-		);
+		const cfg_path = await this.getLocalConfigPath();
+		if (!cfg_path) return null;
 		const cfg_raw = await readFile(cfg_path, "utf-8");
 		const cfg = new ObjectProxy<LocalConfig>(VDF.parse<any>(cfg_raw));
 		const apps_dict = cfg.get("UserLocalConfigStore").get('Software').get('Valve').get('Steam').get('apps')
@@ -161,63 +202,54 @@ class Steam implements IInitialable {
 		return game_cfg.get('LaunchOptions')
 	}
 	public async setLaunchOptions(ids: number[]): Promise<number[]> {
-		if (!this.path) return [];
-		const lastId = await this.getLastUserId();
-		if (!lastId) return [];
-
-		const cfg_path = resolve(
-			this.path,
-			"userdata",
-			lastId.toString(),
-			"config/localconfig.vdf"
-		);
+		const cfg_path = await this.getLocalConfigPath();
+		if (!cfg_path) return [];
 		const cfg_raw = await readFile(cfg_path, "utf-8");
 		const cfg = new ObjectProxy(VDF.parse<LocalConfig>(cfg_raw));
 		const apps_dict = cfg.get("UserLocalConfigStore").get('Software').get('Valve').get('Steam').get('apps');
 		const editIds: number[] = [];
 		for (const id of ids) {
 			const gameCfg = apps_dict.get(id.toString())
+			Logger.log(`Game cfg is ${gameCfg ? '' : 'not '}found`, { prefix: `Steam][Game ${id}` })
 			if (!gameCfg) continue;
 			gameCfg.set("LaunchOptions", this.getLaunchPath(id));
 			editIds.push(id);
 		}
 
 		await writeFile(cfg_path, VDF.strigify(cfg.object))
+		Logger.log(`write games ${JSON.stringify(editIds)}`, { prefix: `Steam` })
 		return editIds;
 	}
 	public async resetLaunchOptions(ids: number[]): Promise<number[]> {
-		if (!this.path) return [];
-		const lastId = await this.getLastUserId();
-		if (!lastId) return [];
-
-		const cfg_path = resolve(
-			this.path,
-			"userdata",
-			lastId.toString(),
-			"config/localconfig.vdf"
-		);
+		const cfg_path = await this.getLocalConfigPath();
+		if (!cfg_path) return [];
 		const cfg_raw = await readFile(cfg_path, "utf-8");
 		const cfg = new ObjectProxy(VDF.parse<LocalConfig>(cfg_raw));
 		const apps_dict = cfg.get("UserLocalConfigStore").get('Software').get('Valve').get('Steam').get('apps');
 		const editIds: number[] = [];
 		for (const id of ids) {
 			const gameCfg = apps_dict.get(id.toString())
+			Logger.log(`Game cfg is ${gameCfg ? '' : 'not '}found`, { prefix: `Steam][Game ${id}` })
 			if (!gameCfg) continue;
 			gameCfg.set("LaunchOptions", "");
 			editIds.push(id);
 		}
 
 		await writeFile(cfg_path, VDF.strigify(cfg.object))
+		Logger.log(`reset games ${JSON.stringify(editIds)}`, { prefix: `Steam` })
 		return editIds;
 	}
 
 	public async testLaunchPath(id: number): Promise<TestLaunch> {
 		const path = await this.getLaunchOptions(id);
+		Logger.log(`Current path: ${path}`, { prefix: 'Steam] [Game ' + id })
 		if (!path) return TestLaunch.NO;
 		// /".*\/electron.exe" ".*" --launch=\d+ %command%/
 
 		if (!/".*\/(?:steam-launch-custom.exe|electron.exe" ".*)" --launch=\d+ %command%/.test(path))
 			return TestLaunch.NO;
+
+		Logger.log(`Need set path: ${this.getLaunchPath(id)}`, { prefix: 'Steam] [Game ' + id })
 		return path == this.getLaunchPath(id) ? TestLaunch.CURRENT : TestLaunch.NOT_CURRENT;
 	}
 	public getLaunchPath(id: number) {
@@ -229,12 +261,12 @@ class Steam implements IInitialable {
 
 	public async init(message: (msg: string) => void): Promise<void> {
 		await Database.get().awaitModel(Settings);
-		message("Init Steam");
+		message("init.steam");
 
 		let path = await Settings.get(Steam.SETTINGS_KEY) || await this.getPathFromRegistry();
 
 		if (!path || !await exsist(path, 'dir'))
-			throw new Error("Steam not found");
+			throw new Error("error.steam_not_found");
 
 		this._path = path;
 		Settings.set(Steam.SETTINGS_KEY, this._path);
@@ -242,7 +274,7 @@ class Steam implements IInitialable {
 		const libraryPath = resolve(this._path, 'steamapps/libraryfolders.vdf');
 
 		if (!exsist(libraryPath))
-			throw new Error("Steam library not found");
+			throw new Error("error.steam_library_not_found");
 
 		this.library = libraryPath;
 	}
@@ -275,6 +307,17 @@ class Steam implements IInitialable {
 	public static get() {
 		if (!this._instance) this._instance = new Steam();
 		return this._instance;
+	}
+
+	public static IPC(_: BaseWindow, ipc: IPCTunnel) {
+		ipc.handle(Messages.getPath, () => Steam.get().path);
+	}
+
+	// https://developer.valvesoftware.com/wiki/SteamID
+	private static convertSteam64IDtoAccountID(id: bigint | string): number {
+		if (typeof id == "string") id = BigInt(id);
+		if ((id & 0b1n) == 0n) return 0;
+		return Number(id - 0x0110000100000000n);
 	}
 }
 

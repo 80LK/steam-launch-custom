@@ -11,6 +11,12 @@ import Launch from './Database/Launch';
 import Updater from './Updater';
 import LaunchWindow from './Window/LaunchWindow';
 import Spawn from './Spawn';
+import { DEV } from './consts';
+import Logger from './Logger';
+
+if (DEV)
+	Database.debug({ logSql: true })
+
 
 const appId = App.getLaunchApp();
 const isLaunch = appId !== 0;
@@ -18,6 +24,7 @@ const image = ImageProtocol.get();
 const app = App.create(isLaunch ? LaunchWindow : MainWindow)
 	.setPath(isLaunch ? `game/${appId}` : 'main')
 	.init(
+		Logger.get(),
 		Steam.get(),
 		Database.get().register(Settings, Game, Launch),
 	)
@@ -38,12 +45,14 @@ if (isLaunch) {
 	app.useIPC(
 		SystemBar,
 		Settings.IPC,
+		Steam.IPC,
 		Game.IPC,
 		Launch.IPC,
 		Updater.IPC
 	)
 		.open(async (setmessage) => {
-			setmessage("Scanning game")
+
+			setmessage("init.scan")
 			const FIRST_LAUNCH_KEY = 'firstLaunch';
 			const firstLaunch = await Settings.getBoolean(FIRST_LAUNCH_KEY, false);
 			if (!firstLaunch) {
@@ -56,3 +65,12 @@ if (isLaunch) {
 			if (scanLaunch) await Game.scan();
 		});
 }
+
+process.on('uncaughtException', (err) => {
+	Logger.error(err.message, { prefix: 'MAIN' });
+});
+
+// Отлов необработанных отклонений промисов
+process.on('unhandledRejection', (reason, promise) => {
+	Logger.error(<any>reason, { prefix: 'MAIN' });
+});

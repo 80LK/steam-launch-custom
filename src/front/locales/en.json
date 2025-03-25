@@ -1,0 +1,82 @@
+{
+	"$lang": "English",
+	"update": {
+		"checking": "Checking updates",
+		"available": "Update {0} is available",
+		"install": "Install",
+		"download": "Download",
+		"hide": "Hide"
+	},
+	"configure": {
+		"need_write": "You need close Steam and rewrite launch options",
+		"now": "Now"
+	},
+	"main": {
+		"search": "Search",
+		"scan": "Scan games",
+		"installed": "Installed",
+		"configured": "Configured",
+		"favourites": "Favourites"
+	},
+	"game": {
+		"installed": "@:main.installed",
+		"not_installed": "Not installed",
+		"configured": "@:main.configured",
+		"need_write": "@:configure.need_write",
+		"not_configured": "Not configured",
+		"favourites": "@:main.favourites",
+		"launch": "Launch",
+		"cancel": "Cancel",
+		"configure": "Configure",
+		"not_have_launchs": "No Launchs",
+		"reset_configure": "Reset configuration",
+		"add_launch": "Add variant launch",
+		"edit_launch": "Edit launch setting",
+		"remove_launch": "Remove launch setting"
+	},
+	"launch": {
+		"edit": "Edit laucnh \"{0}\"",
+		"new": "New launch",
+		"title": "Title",
+		"execute": "Executable file",
+		"options": "Launch options",
+		"options_hint": "Press enter for add parameter",
+		"work": "Work Directory",
+		"cancel": "Cancel",
+		"save": "Save",
+		"must_set": "{0} must be set"
+	},
+	"remove": {
+		"confirm": "Confirm remove",
+		"sure": "Are you sure you want to remove {0}?",
+		"yes": "Yes",
+		"no": "No",
+		"this": "this",
+		"launch": "launch"
+	},
+	"init": {
+		"init": "Initialization",
+		"steam": "Initialization Steam",
+		"database": "Initialization Database",
+		"ready": "Ready",
+		"scan": "Scanning games"
+	},
+	"error": {
+		"steam_not_found": "Steam not found",
+		"steam_library_not_found": "Steam library not found"
+	},
+	"settings": {
+		"title": "Settings",
+		"theme": "Theme",
+		"scan_every_launch": "Scan games every time launch program",
+		"appdata": "AppData",
+		"steam": "Steam",
+		"open": "Open",
+		"close": "Close",
+		"language": "Language"
+	},
+	"theme": {
+		"dark": "Dark",
+		"light": "Light"
+	}
+}

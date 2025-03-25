@@ -23,6 +23,9 @@
 			"@store/*": [
 				"./store/*"
 			],
+			"@locales/*": [
+				"./locales/*"
+			]
 		}
 	},
 	"include": [

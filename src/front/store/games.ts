@@ -1,4 +1,4 @@
-import { IGame } from "@shared/Game";
+import { GameFilter, IGame } from "@shared/Game";
 import { defineStore } from "pinia";
 import { ref } from "vue";
 
@@ -13,8 +13,8 @@ const useGamesStore = defineStore('games', () => {
 	Game.needWrite().then(e => needWrite.value = e);
 	const gamesStorage = ref({} as GamesStorage);
 
-	async function getAll(offset: number, limit: number, search: string | null) {
-		const games = await Game.getAll(offset, limit, search);
+	async function getAll(offset: number, limit: number, search: string | null, filter: GameFilter) {
+		const games = await Game.getAll(offset, limit, search, filter);
 		games.forEach(game => gamesStorage.value[game.id] = game);
 		return games;
 	}

@@ -46,7 +46,7 @@ function start(id: number) {
 						<Header :game="game" height="170px">
 							<v-btn :prepend-icon="mdiStop" tile color="error" size="large" :class="$style.play"
 								@click="cancel">
-								Cancel
+								{{ $t('game.cancel') }}
 							</v-btn>
 						</Header>
 					</template>
@@ -54,7 +54,7 @@ function start(id: number) {
 					<LaunchList :launchs="launchs" v-if="game">
 						<template v-slot:append="{ launch }">
 							<v-btn :prepend-icon="mdiPlay" tile color="success" size="large"
-								@click="start(launch.id)">Launch</v-btn>
+								@click="start(launch.id)">{{ $t('game.launch') }}</v-btn>
 						</template>
 					</LaunchList>
 				</Container>

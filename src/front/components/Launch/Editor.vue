@@ -5,7 +5,8 @@ import useLaunchStore from '@store/launch';
 import FilePicker from '@components/FilePicker.vue';
 import { computed, ref, toRaw, unref } from 'vue';
 import { SubmitEventPromise } from 'vuetify';
-
+import { useI18n } from 'vue-i18n';
+const { t } = useI18n()
 const emit = defineEmits(['create']);
 
 function edit(launchID: number) {
@@ -64,9 +65,20 @@ const defaultPathForWorkDir = computed(() => {
 
 function blockNullRule(thing: string) {
 	return (value: string) => {
-		if (value.length == 0) return `${thing} must be set`;
+		if (value.length == 0) return t('launch.must_set', [thing]);
 		return true;
 	}
+}
+
+function pasteArgs(event: ClipboardEvent) {
+	event.preventDefault();
+
+	if (!launch.value || !event.clipboardData) return;
+	let paste = event.clipboardData.getData("text");
+	let args = paste.match(/(?:[^\s"]+|"(?:\\.|[^"\\])*")+/g);
+	if (!args) return;
+
+	launch.value.launch.push(...args.map(arg => arg.replace(/^"|"$/g, '')))
 }
 </script>
 
@@ -76,35 +88,36 @@ function blockNullRule(thing: string) {
 			<v-card>
 				<v-card-item :prepend-icon="mdiPencil">
 					<v-card-title>
-						{{ isEdit ? `Edit laucnh "${store.get(launch.id).name}"` : 'New router' }}
+						{{ $t(isEdit ? `launch.edit` : 'launch.new', [store.get(launch.id)?.name]) }}
 					</v-card-title>
 				</v-card-item>
 				<v-divider />
 				<v-card-text>
-					<v-text-field label="Title" variant="outlined" v-model="launch.name"
-						:rules="[blockNullRule('Title')]" />
+					<v-text-field :label="$t('launch.title')" variant="outlined" v-model="launch.name"
+						:rules="[blockNullRule($t('launch.title'))]" />
 
 					<FilePicker v-model="launch.execute" :default-path="defaultPathForExe"
 						:type="{ name: 'Application', extensions: ['exe'] }" v-slot="{ value, selectFile }">
-						<v-text-field label="Executable file" variant="outlined" clearable
-							:prepend-inner-icon="mdiApplicationOutline" :rules="[blockNullRule('Executable file')]"
+						<v-text-field :label="$t('launch.execute')" variant="outlined" clearable
+							:prepend-inner-icon="mdiApplicationOutline" :rules="[blockNullRule($t('launch.execute'))]"
 							:model-value="value" @click:clear="launch.execute = ''" @click:control="selectFile" />
 					</FilePicker>
 
-					<v-combobox :prepend-inner-icon="mdiCog" label="Launch options" variant="outlined" clearable chips
-						multiple closable-chips hint="Press enter for add parameter" v-model="launch.launch" />
+					<v-combobox :prepend-inner-icon="mdiCog" :label="$t('launch.options')" variant="outlined" clearable
+						chips multiple closable-chips :hint="$t('launch.options_hint')" v-model="launch.launch"
+						@paste="pasteArgs" />
 
 					<FilePicker v-model="launch.workdir" :default-path="defaultPathForWorkDir" type="directory"
 						v-slot="{ value, selectFile }">
-						<v-text-field label="Work Directory" variant="outlined" clearable
+						<v-text-field :label="$t('launch.work')" variant="outlined" clearable
 							:prepend-inner-icon="mdiFolder" :model-value="value" @click:clear="launch.workdir = ''"
 							@click:control="selectFile" />
 					</FilePicker>
 				</v-card-text>
 				<v-divider />
 				<v-card-actions>
-					<v-btn color="error" @click="close()">Cancel</v-btn>
-					<v-btn color="success" type="submit">Save</v-btn>
+					<v-btn color="error" @click="close()">{{ $t('launch.cancel') }}</v-btn>
+					<v-btn color="success" type="submit">{{ $t('launch.save') }}</v-btn>
 				</v-card-actions>
 			</v-card>
 		</v-form>
