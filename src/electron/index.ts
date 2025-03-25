@@ -11,6 +11,10 @@ import Launch from './Database/Launch';
 import Updater from './Updater';
 import LaunchWindow from './Window/LaunchWindow';
 import Spawn from './Spawn';
+import { DEV } from './consts';
+
+if (DEV)
+	Database.debug({ logSql: true })
 
 const appId = App.getLaunchApp();
 const isLaunch = appId !== 0;
