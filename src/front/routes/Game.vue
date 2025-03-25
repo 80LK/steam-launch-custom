@@ -70,7 +70,7 @@ function delet(launch_id: number) {
 				</template>
 
 				<v-btn :prepend-icon="mdiPlay" tile color="success" size="large" :class="$style.play"
-					:href="`steam://rungameid/${game.id}`">Launch</v-btn>
+					:href="`steam://rungameid/${game.id}`" v-if="game.installed">Launch</v-btn>
 
 				<div v-if="game.configured" :class="$style.add">
 					<v-btn :icon="mdiClose" color="error" v-tooltip:start="'Reset configuration'"
