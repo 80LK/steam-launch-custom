@@ -1,6 +1,6 @@
 import Database from "./Database";
 import Settings from "./Settings";
-import { IGame, Messages } from "@shared/Game";
+import { GameFilter, IGame, Messages } from "@shared/Game";
 import parseBoolean from "@utils/parseBoolean";
 import Steam, { TestLaunch } from "../Steam";
 import { IPCTunnel } from "../IPCTunnel";
@@ -94,10 +94,18 @@ class Game extends Database.Model implements IGame {
 
 		return this.createFromSql(sql_data);
 	};
-	public static async getAll(offset: number = 0, limit: number = 10, search: string | null = null): Promise<Game[]> {
-		let sql = `SELECT * FROM ${Game.DB_NAME} `;
-		if (search) sql += 'WHERE name LIKE $search ';
-		sql += 'ORDER BY stared DESC, installed DESC, configured DESC, addTimestamp DESC, name ASC LIMIT $limit OFFSET $offset;';
+	public static async getAll(offset: number = 0, limit: number = 10, search: string | null = null, filters: GameFilter = {}): Promise<Game[]> {
+		let sql = `SELECT * FROM ${Game.DB_NAME}`;
+		const where = [] as string[];
+
+
+		if (search) where.push('name LIKE $search');
+		if (filters.installed) where.push("installed IS 'true'");
+		if (filters.configured) where.push("configured IS 'true'");
+		if (filters.stared) where.push("stared IS 'true'");
+
+		if (where.length) sql += ` WHERE ${where.join(' AND ')}`;
+		sql += ' ORDER BY stared DESC, installed DESC, configured DESC, addTimestamp DESC, name ASC LIMIT $limit OFFSET $offset;';
 
 		const sql_data = await this.prepare<SQLGame>(sql).getAll({
 			offset,
@@ -253,8 +261,8 @@ class Game extends Database.Model implements IGame {
 	}
 
 	public static IPC(_: any, ipc: IPCTunnel) {
-		ipc.handle(Messages.getAll, async (offset: number, limit: number, search: string | null) => {
-			const games = await Game.getAll(offset, limit, search);
+		ipc.handle(Messages.getAll, async (offset: number, limit: number, search: string | null, filter: GameFilter) => {
+			const games = await Game.getAll(offset, limit, search, filter);
 			return games.map(game => game.toJSON());
 		})
 		ipc.handle(Messages.stared, async (id: number, stared: boolean) => {

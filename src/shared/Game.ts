@@ -14,6 +14,12 @@ interface IGame {
 	image: string;
 }
 
+interface GameFilter {
+	installed?: boolean | null;
+	stared?: boolean | null;
+	configured?: boolean | null;
+}
+
 enum Messages {
 	getAll = 'game.getAll',
 	stared = 'game.stared',
@@ -28,5 +34,6 @@ enum Messages {
 export {
 	type IGame,
 	Messages,
+	type GameFilter,
 	SCAN_GAME_IN_LAUNCH_KEY
 }
