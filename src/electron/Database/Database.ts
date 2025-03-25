@@ -2,6 +2,7 @@ import { getAppDataFilePath, require } from "../consts";
 import { IInitialable } from "../App";
 import { default as sqlite3, Database as SQLite, Statement as SQLStatement, RunResult as SQLRunResult } from "sqlite3";
 import EventEmitter from "events";
+import Logger from "../Logger";
 const sqlite = require('sqlite3') as typeof sqlite3;
 
 interface DatabaseDebug {
@@ -19,7 +20,7 @@ class Database implements IInitialable {
 	private _emmiter = new EventEmitter();
 	private constructor(readonly: boolean = false) {
 		this._db = new sqlite.Database(Database._debug.memory ? ":memory:" : Database.DATABASE_PATH, readonly ? sqlite.OPEN_READONLY : undefined);
-		Database._debug.logSql && this._db.on('trace', (sql) => console.log("[SQL]:", sql));
+		Database._debug.logSql && this._db.on('trace', (sql) => Logger.log(sql, { prefix: "SQL" }));
 	}
 
 	private _models = new Set<typeof Database.Model>();
@@ -58,7 +59,7 @@ class Database implements IInitialable {
 
 	// IInitialable	
 	public async init(state: (msg: string) => void): Promise<void> {
-		state('Initialization Database');
+		state('init.database');
 		for (const model of this._models) {
 			await model.init()
 			this._emmiter.emit('init', model);

@@ -54,7 +54,15 @@
 		"launch": "вариант запуска"
 	},
 	"init": {
-		"init": "Инициализация"
+		"init": "Инициализация",
+		"steam": "Инициализация Steam",
+		"database": "Инициализация базы данных",
+		"ready": "Готово",
+		"scan": "Сканирование игр"
+	},
+	"error": {
+		"steam_not_found": "Steam не найден",
+		"steam_library_not_found": "Библиотека Steam не найдена"
 	},
 	"settings": {
 		"title": "Настройки",

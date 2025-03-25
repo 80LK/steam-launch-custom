@@ -24,7 +24,6 @@ const useSettings = defineStore('settings', () => {
 	init();
 
 	function setTheme(nameTheme: string) {
-		console.log('Try set theme ', nameTheme)
 		theme.global.name.value = nameTheme;
 		localStorage.setItem(STORE_KEY, nameTheme);
 		Settings.set(STORE_KEY, nameTheme);

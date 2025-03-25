@@ -54,7 +54,15 @@
 		"launch": "launch"
 	},
 	"init": {
-		"init": "Initialization"
+		"init": "Initialization",
+		"steam": "Initialization Steam",
+		"database": "Initialization Database",
+		"ready": "Ready",
+		"scan": "Scanning games"
+	},
+	"error": {
+		"steam_not_found": "Steam not found",
+		"steam_library_not_found": "Steam library not found"
 	},
 	"settings": {
 		"title": "Settings",

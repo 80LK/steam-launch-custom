@@ -7,6 +7,7 @@ import router from "./routes";
 import i18n from "./plugins/i18n";
 
 import "./style.css";
+import "./error";
 
 createApp(Index)
 	.use(i18n)

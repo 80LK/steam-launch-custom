@@ -6,6 +6,7 @@ import pinia from "./plugins/pinia";
 import i18n from "./plugins/i18n";
 
 import "./style.css";
+import "./error";
 
 createApp(Launch)
 	.use(i18n)

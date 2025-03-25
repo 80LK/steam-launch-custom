@@ -6,6 +6,7 @@ import { FileType, Messages, State, StateMessage } from "@shared/App";
 import { getAppDataFilePath } from "./consts";
 import Protocol from "./Protocol/Protocol";
 import { spawn } from "child_process";
+import Logger from "./Logger";
 
 
 interface IInitialable {
@@ -18,13 +19,14 @@ class App {
 	private constructor(private _windowConstructor: BaseWindowConstructor) { };
 	private _window?: BaseWindow;
 
-	private _message: StateMessage = { message: "Initialization", state: State.INIT };
+	private _message: StateMessage = { message: "init.init", state: State.INIT };
 	public get message() {
 		return this._message;
 	}
-	public set message(value: StateMessage) {
-		this._message = value;
-		this._window && getIPCTunnel(this._window).send(Messages.changeInitState, value);
+	public setMessage(msg: StateMessage['message'], state: StateMessage['state'] = this._message.state) {
+		this._message.message = msg;
+		this._message.state = state;
+		this._window && getIPCTunnel(this._window).send(Messages.changeInitState, this._message);
 	}
 
 	private useIPCList = new Set<UseIPC>();
@@ -92,12 +94,17 @@ class App {
 			}
 
 			const win = this._window;
+			// win.webContents.ipc.
 			const ipc = getIPCTunnel(win);
 			this.AppIPC(win, ipc);
 			this.useIPCList.forEach(useIPC => useIPC(win, ipc));
 
 			win.open();
-			const setmessage = (msg: string) => this.message.message = msg;
+			const setmessage = (msg: string) => {
+				Logger.log(`Set message: ${msg}`);
+				this.message.message = msg;
+				getIPCTunnel(win).send(Messages.changeInitState, this.message)
+			};
 			const inits = [];
 			for (const init of this.initsList) {
 				inits.push(init.init(setmessage));
@@ -107,16 +114,16 @@ class App {
 				await Promise.all(inits);
 			} catch (err) {
 				if (err instanceof Error)
-					this.message = { state: State.ERROR, message: err.message + err.stack }
+					this.setMessage(err.message, State.ERROR);
 				else if (typeof err == "string")
-					this.message = { state: State.ERROR, message: err }
+					this.setMessage(err, State.ERROR);
 				else
-					this.message = { state: State.ERROR, message: (<any>err).toString() }
+					this.setMessage((<any>err).toString(), State.ERROR);
 				return;
 			}
 
 			ready && await ready(setmessage);
-			this.message = { state: State.READY, message: "Ready" };
+			this.setMessage("init.ready", State.READY);
 		})
 
 		electron.on('window-all-closed', () => {
