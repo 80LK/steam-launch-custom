@@ -26,7 +26,8 @@ const message = computed(() => t(isCheck.value ? 'update.checking' : `update.ava
 		</template>
 		{{ message }}
 		<template v-slot:close v-if="!isCheck">
-			<v-btn color="success" class="mr-2" size="small" variant="flat" :icon="false" v-if="isDownloaded">
+			<v-btn color="success" class="mr-2" size="small" variant="flat" :icon="false" v-if="isDownloaded"
+				@click="store.install()">
 				{{ $t('update.install') }}
 			</v-btn>
 
