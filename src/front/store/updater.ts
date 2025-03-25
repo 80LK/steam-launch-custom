@@ -23,8 +23,12 @@ const useUpdaterStore = defineStore('updater', () => {
 		state.value = await Updater.download() ? UpdateState.DOWNLOADED : UpdateState.HAVE;
 	}
 
+	function install() {
+		Updater.install()
+	}
+
 	return {
-		state, version, check, download
+		state, version, check, download, install
 	};
 });
 
