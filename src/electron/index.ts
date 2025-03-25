@@ -16,6 +16,7 @@ import { DEV } from './consts';
 if (DEV)
 	Database.debug({ logSql: true })
 
+
 const appId = App.getLaunchApp();
 const isLaunch = appId !== 0;
 const image = ImageProtocol.get();
@@ -42,6 +43,7 @@ if (isLaunch) {
 	app.useIPC(
 		SystemBar,
 		Settings.IPC,
+		Steam.IPC,
 		Game.IPC,
 		Launch.IPC,
 		Updater.IPC

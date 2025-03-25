@@ -9,6 +9,9 @@ import ObjectProxy from "../utils/ObjectProxy";
 import { spawn } from "child_process";
 import { app } from "electron";
 import Database from "./Database/Database";
+import BaseWindow from "./Window/BaseWindow";
+import { IPCTunnel } from "./IPCTunnel";
+import { Messages } from "@shared/Steam";
 
 interface SteamUserInfo extends VDF.VDFObject {
 	timeused: string;
@@ -114,6 +117,20 @@ class Steam implements IInitialable {
 		return parseInt(rawUserId);
 	}
 
+	public async getLocalConfigPath() {
+		if (!this.path) return null;
+		const lastId = await this.getLastUserId();
+		if (!lastId) return null;
+
+		const cfg_path = resolve(
+			this.path,
+			"userdata",
+			lastId.toString(),
+			"config/localconfig.vdf"
+		);
+		return cfg_path;
+	}
+
 	private async getPIDFromRegistry() {
 		const keys = process.arch == "x64" ? [Steam.RegisterKey64, Steam.RegisterKey32] : [Steam.RegisterKey32, Steam.RegisterKey64];
 
@@ -142,16 +159,8 @@ class Steam implements IInitialable {
 	}
 
 	public async getLaunchOptions(id: number): Promise<string | null> {
-		if (!this.path) return null;
-		const lastId = await this.getLastUserId();
-		if (!lastId) return null;
-
-		const cfg_path = resolve(
-			this.path,
-			"userdata",
-			lastId.toString(),
-			"config/localconfig.vdf"
-		);
+		const cfg_path = await this.getLocalConfigPath();
+		if (!cfg_path) return null;
 		const cfg_raw = await readFile(cfg_path, "utf-8");
 		const cfg = new ObjectProxy<LocalConfig>(VDF.parse<any>(cfg_raw));
 		const apps_dict = cfg.get("UserLocalConfigStore").get('Software').get('Valve').get('Steam').get('apps')
@@ -161,16 +170,8 @@ class Steam implements IInitialable {
 		return game_cfg.get('LaunchOptions')
 	}
 	public async setLaunchOptions(ids: number[]): Promise<number[]> {
-		if (!this.path) return [];
-		const lastId = await this.getLastUserId();
-		if (!lastId) return [];
-
-		const cfg_path = resolve(
-			this.path,
-			"userdata",
-			lastId.toString(),
-			"config/localconfig.vdf"
-		);
+		const cfg_path = await this.getLocalConfigPath();
+		if (!cfg_path) return [];
 		const cfg_raw = await readFile(cfg_path, "utf-8");
 		const cfg = new ObjectProxy(VDF.parse<LocalConfig>(cfg_raw));
 		const apps_dict = cfg.get("UserLocalConfigStore").get('Software').get('Valve').get('Steam').get('apps');
@@ -186,16 +187,8 @@ class Steam implements IInitialable {
 		return editIds;
 	}
 	public async resetLaunchOptions(ids: number[]): Promise<number[]> {
-		if (!this.path) return [];
-		const lastId = await this.getLastUserId();
-		if (!lastId) return [];
-
-		const cfg_path = resolve(
-			this.path,
-			"userdata",
-			lastId.toString(),
-			"config/localconfig.vdf"
-		);
+		const cfg_path = await this.getLocalConfigPath();
+		if (!cfg_path) return [];
 		const cfg_raw = await readFile(cfg_path, "utf-8");
 		const cfg = new ObjectProxy(VDF.parse<LocalConfig>(cfg_raw));
 		const apps_dict = cfg.get("UserLocalConfigStore").get('Software').get('Valve').get('Steam').get('apps');
@@ -218,6 +211,7 @@ class Steam implements IInitialable {
 
 		if (!/".*\/(?:steam-launch-custom.exe|electron.exe" ".*)" --launch=\d+ %command%/.test(path))
 			return TestLaunch.NO;
+
 		return path == this.getLaunchPath(id) ? TestLaunch.CURRENT : TestLaunch.NOT_CURRENT;
 	}
 	public getLaunchPath(id: number) {
@@ -275,6 +269,10 @@ class Steam implements IInitialable {
 	public static get() {
 		if (!this._instance) this._instance = new Steam();
 		return this._instance;
+	}
+
+	public static IPC(_: BaseWindow, ipc: IPCTunnel) {
+		ipc.handle(Messages.getPath, () => Steam.get().path);
 	}
 }
 
