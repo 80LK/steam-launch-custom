@@ -1,0 +1,72 @@
+{
+	"update": {
+		"checking": "Проверка обновлений",
+		"available": "Обновление {0} доступно",
+		"install": "Установить",
+		"download": "Загрузить",
+		"hide": "Скрыть"
+	},
+	"configure": {
+		"need_write": "Нужно закрыть Steam и перезаписать параметры запуска",
+		"now": "Перезаписать"
+	},
+	"main": {
+		"search": "Поиск",
+		"scan": "Сканировать",
+		"installed": "Установлено",
+		"configured": "Сконфигурировано",
+		"favourites": "Ибранное"
+	},
+	"game": {
+		"installed": "@:main.installed",
+		"not_installed": "Не установлено",
+		"configured": "@:main.configured",
+		"need_write": "@:configure.need_write",
+		"not_configured": "Не сконфигурировано",
+		"favourites": "@:main.favourites",
+		"launch": "Запустить",
+		"cancel": "отмена",
+		"configure": "Сконфигурировать",
+		"not_have_launchs": "Нет вариантов запуска",
+		"reset_configure": "Сбросить конфигурацию",
+		"add_launch": "Добавить вариант запуска",
+		"edit_launch": "Изменить вариант запуска",
+		"remove_launch": "Удалить вариант запуска"
+	},
+	"launch": {
+		"edit": "Редактирование варианта \"{0}\"",
+		"new": "Новый вариант запуска",
+		"title": "Название",
+		"execute": "Исполняемый файл",
+		"options": "Параметры запуска",
+		"options_hint": "Нажмите Enter чтобы добавить параметр",
+		"work": "Рабочая папка",
+		"cancel": "Отмена",
+		"save": "Сохранить",
+		"must_set": "{0} не указано"
+	},
+	"remove": {
+		"confirm": "Удаление",
+		"sure": "Вы уверены что хотите удалить {0}?",
+		"yes": "Да",
+		"no": "Нет",
+		"this": "это",
+		"launch": "вариант запуска"
+	},
+	"init": {
+		"init": "Инициализация"
+	},
+	"settings": {
+		"title": "Настройки",
+		"theme": "Тема",
+		"scan_every_launch": "Сканировать игры при каждом запуске программы",
+		"appdata": "Данные приложения",
+		"steam": "Steam",
+		"open": "Открыть",
+		"close": "Закрыть"
+	},
+	"theme": {
+		"dark": "Темная",
+		"light": "Светлая"
+	}
+}

@@ -2,8 +2,10 @@
 import { onMounted, onUnmounted, ref } from "vue"
 import { type StateMessage, State } from "@shared/App";
 import { mdiAlertOutline } from "@mdi/js";
+import { useI18n } from "vue-i18n";
+const { t } = useI18n();
 
-const statusMessage = ref({ state: State.INIT, message: "Initialization" } as StateMessage);
+const statusMessage = ref({ state: State.INIT, message: t("init.init") } as StateMessage);
 
 function changeState(m: StateMessage) {
 	statusMessage.value = m;

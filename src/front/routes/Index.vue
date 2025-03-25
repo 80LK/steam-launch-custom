@@ -61,7 +61,6 @@ async function scan() {
 	isScaning = false;
 	onScaned();
 }
-
 </script>
 
 <template>
@@ -71,7 +70,7 @@ async function scan() {
 
 			<NeedConfigure class="mb-4" />
 
-			<v-text-field label="Search" clearable variant="outlined" hide-details="auto" v-model="search"
+			<v-text-field :label="$t('main.search')" clearable variant="outlined" hide-details="auto" v-model="search"
 				@update:modelValue="searching" density="compact" class="mb-4">
 				<template v-slot:label="{ label }">
 					<v-icon :icon="mdiMagnify" /> {{ label }}
@@ -79,21 +78,21 @@ async function scan() {
 
 				<template v-slot:append>
 					<v-btn height="40px" color="green" :prepend-icon="mdiCached" @click="scan">
-						Scan games
+						{{ $t('main.scan') }}
 					</v-btn>
 				</template>
 			</v-text-field>
 
 			<div :class="$style.filterPanel">
 				<ToggleBtn :icon="mdiDownload" v-model="filterInstalled" @update:model-value="searching">
-					Installed
+					{{ $t('main.installed') }}
 				</ToggleBtn>
 				<ToggleBtn :icon="mdiStar" v-model="filterFavourites" @update:model-value="searching"
 					active-color="#c16100">
-					Favourites
+					{{ $t('main.favourites') }}
 				</ToggleBtn>
 				<ToggleBtn :icon="mdiCog" v-model="filterConfigured" @update:model-value="searching">
-					Configured
+					{{ $t('main.configured') }}
 				</ToggleBtn>
 			</div>
 		</template>

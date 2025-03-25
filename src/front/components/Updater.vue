@@ -2,6 +2,8 @@
 import { UpdateState } from '@shared/Updater';
 import useUpdaterStore from '@store/updater';
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+const { t } = useI18n();
 
 const showen = ref(true);
 
@@ -14,7 +16,7 @@ const isAvailable = computed(() => store.state == UpdateState.HAVE || store.stat
 const isDownloading = computed(() => store.state == UpdateState.DOWNLOADING);
 const isDownloaded = computed(() => store.state == UpdateState.DOWNLOADED);
 const color = computed(() => isCheck.value ? undefined : 'success')
-const message = computed(() => isCheck.value ? 'Checking updates' : `Update ${store.version} is available`);
+const message = computed(() => t(isCheck.value ? 'update.checking' : `update.available`, [store.version]));
 </script>
 
 <template>
@@ -24,13 +26,18 @@ const message = computed(() => isCheck.value ? 'Checking updates' : `Update ${st
 		</template>
 		{{ message }}
 		<template v-slot:close v-if="!isCheck">
-			<v-btn color="success" class="mr-2" size="small" variant="flat" :icon="false"
-				v-if="isDownloaded">Install</v-btn>
+			<v-btn color="success" class="mr-2" size="small" variant="flat" :icon="false" v-if="isDownloaded">
+				{{ $t('update.install') }}
+			</v-btn>
 
 			<v-btn color="success" class="mr-2" size="small" variant="flat" :icon="false" v-if="isAvailable"
-				:loading="isDownloading" @click="store.download()">Download</v-btn>
+				:loading="isDownloading" @click="store.download()">
+				{{ $t('update.download') }}
+			</v-btn>
 
-			<v-btn color="error" size="small" variant="flat" :icon="false" @click="showen = false">Hide</v-btn>
+			<v-btn color="error" size="small" variant="flat" :icon="false" @click="showen = false">
+				{{ $t('update.hide') }}
+			</v-btn>
 		</template>
 	</v-alert>
 </template>

@@ -3,12 +3,14 @@ import { mdiCog, mdiDownload, mdiDownloadOff, mdiStar, mdiStarOutline } from '@m
 import { IGame } from "@shared/Game";
 import useGamesStore from '@store/games';
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 const { game } = defineProps<{ game: IGame }>()
 const store = useGamesStore();
+const { t } = useI18n();
 
 const installedIcon = computed(() => game.installed ? mdiDownload : mdiDownloadOff);
 const installedColor = computed(() => game.installed ? 'success' : 'grey');
-const installedTooltip = computed(() => game.installed ? 'Game installed' : 'Game not installed');
+const installedTooltip = computed(() => t(game.installed ? 'game.installed' : 'game.not_installed'));
 
 const configuredColor = computed(() => {
 	if (!game.installed) return 'grey';
@@ -16,9 +18,9 @@ const configuredColor = computed(() => {
 	return game.configured ? 'success' : 'grey';
 })
 const configuredTooltip = computed(() => {
-	if (!game.installed) return 'Not configured';
-	if (game.needWrite) return 'You need close steam and write configure';
-	return game.configured ? 'Configured' : 'Not configured';
+	if (!game.installed) return t('game.not_configured');
+	if (game.needWrite) return t('game.need_write');
+	return t(game.configured ? 'game.configured' : 'game.not_configured');
 })
 
 const isFavoriteIcon = computed(() => game.stared ? mdiStar : mdiStarOutline);
@@ -34,6 +36,6 @@ function star(event: PointerEvent) {
 	<div>
 		<v-icon :icon="installedIcon" :color="installedColor" v-tooltip="installedTooltip" />
 		<v-icon :icon="mdiCog" :color="configuredColor" v-tooltip="configuredTooltip" />
-		<v-icon :icon="isFavoriteIcon" :color="isFavoriteColor" v-tooltip="'Favourites'" @click="star" />
+		<v-icon :icon="isFavoriteIcon" :color="isFavoriteColor" v-tooltip="$t('game.favourites')" @click="star" />
 	</div>
 </template>
