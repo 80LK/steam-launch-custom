@@ -68,6 +68,17 @@ function blockNullRule(thing: string) {
 		return true;
 	}
 }
+
+function pasteArgs(event: ClipboardEvent) {
+	event.preventDefault();
+
+	if (!launch.value || !event.clipboardData) return;
+	let paste = event.clipboardData.getData("text");
+	let args = paste.match(/(?:[^\s"]+|"(?:\\.|[^"\\])*")+/g);
+	if (!args) return;
+
+	launch.value.launch.push(...args.map(arg => arg.replace(/^"|"$/g, '')))
+}
 </script>
 
 <template>
@@ -92,7 +103,8 @@ function blockNullRule(thing: string) {
 					</FilePicker>
 
 					<v-combobox :prepend-inner-icon="mdiCog" label="Launch options" variant="outlined" clearable chips
-						multiple closable-chips hint="Press enter for add parameter" v-model="launch.launch" />
+						multiple closable-chips hint="Press enter for add parameter" v-model="launch.launch"
+						@paste="pasteArgs" />
 
 					<FilePicker v-model="launch.workdir" :default-path="defaultPathForWorkDir" type="directory"
 						v-slot="{ value, selectFile }">
