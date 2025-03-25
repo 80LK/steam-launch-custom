@@ -87,7 +87,7 @@ function pasteArgs(event: ClipboardEvent) {
 			<v-card>
 				<v-card-item :prepend-icon="mdiPencil">
 					<v-card-title>
-						{{ isEdit ? `Edit laucnh "${store.get(launch.id).name}"` : 'New router' }}
+						{{ isEdit ? `Edit laucnh "${store.get(launch.id).name}"` : 'New launch' }}
 					</v-card-title>
 				</v-card-item>
 				<v-divider />
