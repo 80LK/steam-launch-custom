@@ -3,15 +3,24 @@ import { defineStore } from "pinia";
 import { useI18n } from "vue-i18n";
 import { useTheme } from "vuetify";
 import { SCAN_GAME_IN_LAUNCH_KEY } from '@shared/Game';
-import { ref } from "vue";
+import { ref, watch } from "vue";
+
+const THEME_OLD_STORE_KEY = 'isDark';
+const LOCALE_OLD_STORE_KEY = 'en';
 
 const THEME_STORE_KEY = 'theme';
-const THEME_OLD_STORE_KEY = 'isDark';
-const LOCALE_STORE_KEY = 'en';
+const LOCALE_STORE_KEY = 'lang';
 
 const useSettings = defineStore('settings', () => {
 	const theme = useTheme();
 	const { t, locale, messages } = useI18n();
+	const availableThemes = ref(Object.keys(theme.themes.value).map(theme => ({
+		value: theme, title: t(`theme.${theme}`, theme)
+	})));
+	watch(locale, () => {
+		console.log('switch locale');
+		availableThemes.value.forEach(item => item.title = t(`theme.${item.value}`, item.value))
+	});
 
 	const scanGameLaunch = ref(false);
 	const appDataPath = ref('');
@@ -26,7 +35,10 @@ const useSettings = defineStore('settings', () => {
 		setTheme(theme || 'light');
 
 		let locale: string | null = localStorage.getItem(LOCALE_STORE_KEY);
+		if (locale == null) {
+			locale = localStorage.getItem(LOCALE_OLD_STORE_KEY);
 		if (locale == null) locale = 'en';
+		}
 		setLocale(locale);
 
 		Settings.getBoolean(SCAN_GAME_IN_LAUNCH_KEY, false).then(v => scanGameLaunch.value = v);
@@ -36,12 +48,14 @@ const useSettings = defineStore('settings', () => {
 	init();
 
 	function setTheme(nameTheme: string) {
+		if (theme.global.name.value != nameTheme)
 		theme.global.name.value = nameTheme;
 		localStorage.setItem(THEME_STORE_KEY, nameTheme);
 		Settings.set(THEME_STORE_KEY, nameTheme);
 	}
 
 	function setLocale(codeLocale: string) {
+		if (locale.value != codeLocale)
 		locale.value = codeLocale;
 		localStorage.setItem(LOCALE_STORE_KEY, codeLocale);
 		Settings.set(LOCALE_STORE_KEY, codeLocale);
@@ -70,7 +84,7 @@ const useSettings = defineStore('settings', () => {
 
 	return {
 		theme: {
-			available: Object.keys(theme.themes.value).map(theme => ({ value: theme, title: t(`theme.${theme}`, theme) })),
+			available: availableThemes,
 			current: theme.global.name,
 			set: setTheme
 		},

@@ -6,7 +6,7 @@ import ru from "@locales/ru.json";
 
 const i18n = createI18n({
 	legacy: false,
-	locale: 'ru',
+	locale: 'en',
 	fallbackLocale: 'en',
 	messages: {
 		en: { $vuetify: vuetify_en, ...en },
