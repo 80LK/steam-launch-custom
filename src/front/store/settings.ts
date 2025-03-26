@@ -23,39 +23,38 @@ const useSettings = defineStore('settings', () => {
 	});
 
 	const scanGameLaunch = ref(false);
-	const appDataPath = ref('');
-	const steamPath = ref('');
 
 	function init() {
-		let theme: string | null = localStorage.getItem(THEME_STORE_KEY);
-		if (theme == null) {
-			theme = localStorage.getItem(THEME_OLD_STORE_KEY);
-			if (theme != null) theme = parseBoolean(theme) ? 'dark' : 'light';
+		let cachedTheme: string | null = localStorage.getItem(THEME_STORE_KEY);
+		if (cachedTheme == null) {
+			cachedTheme = localStorage.getItem(THEME_OLD_STORE_KEY);
+			if (cachedTheme != null) cachedTheme = parseBoolean(cachedTheme) ? 'dark' : 'light';
 		}
-		setTheme(theme || 'light');
+		theme.global.name.value = cachedTheme || 'light';
 
-		let locale: string | null = localStorage.getItem(LOCALE_STORE_KEY);
-		if (locale == null) {
-			locale = localStorage.getItem(LOCALE_OLD_STORE_KEY);
-			if (locale == null) locale = 'en';
+		let cachedLocale: string | null = localStorage.getItem(LOCALE_STORE_KEY);
+		if (cachedLocale == null) {
+			cachedLocale = localStorage.getItem(LOCALE_OLD_STORE_KEY);
 		}
-		setLocale(locale);
+		locale.value = cachedLocale || 'en';
 
 		Settings.getBoolean(SCAN_GAME_IN_LAUNCH_KEY, false).then(v => scanGameLaunch.value = v);
-		App.getAppData().then(value => appDataPath.value = value);
-		Steam.getPath().then(value => steamPath.value = value);
+		Settings.get(THEME_STORE_KEY, 'light').then(value => setTheme(value));
+		Settings.get(LOCALE_STORE_KEY, 'en').then(value => setLocale(value));
 	}
 
 	function setTheme(nameTheme: string) {
-		if (theme.global.name.value != nameTheme)
-			theme.global.name.value = nameTheme;
+		Logger.log(`setTheme: ${nameTheme}`);
+		if (theme.global.name.value == nameTheme) return;
+		theme.global.name.value = nameTheme;
 		localStorage.setItem(THEME_STORE_KEY, nameTheme);
 		Settings.set(THEME_STORE_KEY, nameTheme);
 	}
 
 	function setLocale(codeLocale: string) {
-		if (locale.value != codeLocale)
-			locale.value = codeLocale;
+		Logger.log(`setLocale: ${codeLocale}`);
+		if (locale.value == codeLocale) return;
+		locale.value = codeLocale;
 		localStorage.setItem(LOCALE_STORE_KEY, codeLocale);
 		Settings.set(LOCALE_STORE_KEY, codeLocale);
 	}
@@ -95,8 +94,6 @@ const useSettings = defineStore('settings', () => {
 				edit(SCAN_GAME_IN_LAUNCH_KEY, scanGameLaunch.value)
 			}
 		},
-		appDataPath,
-		steamPath,
 		locale: {
 			current: locale,
 			available: Object.keys(messages.value).map(code => ({ value: code, title: messages.value[code]['$lang'] || code })),

@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import { mdiCog, mdiContentCopy } from "@mdi/js";
 import useSettings from '@store/settings';
+import { ref } from "vue";
 
 const settings = useSettings();
-
+const appDataPath = ref('');
+const steamPath = ref('');
+App.getAppData().then(value => appDataPath.value = value);
+Steam.getPath().then(value => steamPath.value = value);
 function copyPath(path: string) {
 	navigator.clipboard.writeText(path);
 }
@@ -34,25 +38,25 @@ function openPath(path: string) {
 						@update:model-value="settings.locale.set" />
 					<v-switch :label="$t('settings.scan_every_launch')" :model-value="settings.scanGameLaunch.value"
 						color="success" @update:model-value="settings.scanGameLaunch.set" />
-					<v-text-field readonly :label="$t('settings.appdata')" v-model="settings.appDataPath"
-						variant="outlined" density="compact">
+					<v-text-field readonly :label="$t('settings.appdata')" v-model="appDataPath" variant="outlined"
+						density="compact">
 						<template v-slot:append-inner>
-							<v-icon :icon="mdiContentCopy" @click="copyPath(settings.appDataPath)" />
+							<v-icon :icon="mdiContentCopy" @click="copyPath(appDataPath)" />
 						</template>
 						<template v-slot:append>
-							<v-btn height="40px" @click="openPath(settings.appDataPath)" color="success">
+							<v-btn height="40px" @click="openPath(appDataPath)" color="success">
 								{{ $t('settings.open') }}
 							</v-btn>
 						</template>
 					</v-text-field>
 
-					<v-text-field readonly :label="$t('settings.steam')" v-model="settings.steamPath" variant="outlined"
+					<v-text-field readonly :label="$t('settings.steam')" v-model="steamPath" variant="outlined"
 						density="compact">
 						<template v-slot:append-inner>
-							<v-icon :icon="mdiContentCopy" @click="copyPath(settings.steamPath)" />
+							<v-icon :icon="mdiContentCopy" @click="copyPath(steamPath)" />
 						</template>
 						<template v-slot:append>
-							<v-btn height="40px" @click="openPath(settings.steamPath)" color="success">
+							<v-btn height="40px" @click="openPath(steamPath)" color="success">
 								{{ $t('settings.open') }}
 							</v-btn>
 						</template>
