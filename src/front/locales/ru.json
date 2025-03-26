@@ -16,7 +16,7 @@
 		"scan": "Сканировать",
 		"installed": "Установлено",
 		"configured": "Сконфигурировано",
-		"favourites": "Ибранное"
+		"favourites": "Избранное"
 	},
 	"game": {
 		"installed": "@:main.installed",
@@ -26,7 +26,7 @@
 		"not_configured": "Не сконфигурировано",
 		"favourites": "@:main.favourites",
 		"launch": "Запустить",
-		"cancel": "отмена",
+		"cancel": "Отмена",
 		"configure": "Сконфигурировать",
 		"not_have_launchs": "Нет вариантов запуска",
 		"reset_configure": "Сбросить конфигурацию",
@@ -48,7 +48,7 @@
 	},
 	"remove": {
 		"confirm": "Удаление",
-		"sure": "Вы уверены что хотите удалить {0}?",
+		"sure": "Вы уверены, что хотите удалить {0}?",
 		"yes": "Да",
 		"no": "Нет",
 		"this": "это",
