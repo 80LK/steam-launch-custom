@@ -7,6 +7,7 @@ import { CheckResult, Messages, UpdateState } from "@shared/Updater";
 import { createWriteStream } from "fs";
 import { spawn } from "child_process";
 import exsist from "@utils/exists";
+import Logger from "./Logger";
 
 interface GitHubAsset {
 	browser_download_url: string;
@@ -78,10 +79,12 @@ class Updater {
 			await new Promise<void>(r => update_file.write(value, () => r()));
 		}
 		await Settings.set(Updater.SETTINGS_KEY, this.version);
+		this.set(UpdateState.DOWNLOADED);
 		return true;
 	}
 
 	private install() {
+		Logger.log(`Try install, status: ${this.state}`)
 		if (this.state != UpdateState.DOWNLOADED) return;
 		try {
 			spawn(Updater.PATH, { detached: true });
