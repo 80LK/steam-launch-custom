@@ -71,6 +71,6 @@ process.on('uncaughtException', (err) => {
 });
 
 // Отлов необработанных отклонений промисов
-process.on('unhandledRejection', (reason, promise) => {
+process.on('unhandledRejection', (reason) => {
 	Logger.error(<any>reason, { prefix: 'MAIN' });
 });

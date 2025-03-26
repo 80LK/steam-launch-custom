@@ -3,7 +3,11 @@ import { onMounted, onUnmounted, ref } from "vue"
 import { type StateMessage, State } from "@shared/App";
 import { mdiAlertOutline } from "@mdi/js";
 import { useI18n } from "vue-i18n";
+import useSettings from "../store/settings"
 const { t } = useI18n();
+const { init } = useSettings();
+init();
+
 
 const statusMessage = ref({ state: State.INIT, message: t("init.init") } as StateMessage);
 

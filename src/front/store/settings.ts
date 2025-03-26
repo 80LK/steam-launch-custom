@@ -37,7 +37,7 @@ const useSettings = defineStore('settings', () => {
 		let locale: string | null = localStorage.getItem(LOCALE_STORE_KEY);
 		if (locale == null) {
 			locale = localStorage.getItem(LOCALE_OLD_STORE_KEY);
-		if (locale == null) locale = 'en';
+			if (locale == null) locale = 'en';
 		}
 		setLocale(locale);
 
@@ -45,18 +45,17 @@ const useSettings = defineStore('settings', () => {
 		App.getAppData().then(value => appDataPath.value = value);
 		Steam.getPath().then(value => steamPath.value = value);
 	}
-	init();
 
 	function setTheme(nameTheme: string) {
 		if (theme.global.name.value != nameTheme)
-		theme.global.name.value = nameTheme;
+			theme.global.name.value = nameTheme;
 		localStorage.setItem(THEME_STORE_KEY, nameTheme);
 		Settings.set(THEME_STORE_KEY, nameTheme);
 	}
 
 	function setLocale(codeLocale: string) {
 		if (locale.value != codeLocale)
-		locale.value = codeLocale;
+			locale.value = codeLocale;
 		localStorage.setItem(LOCALE_STORE_KEY, codeLocale);
 		Settings.set(LOCALE_STORE_KEY, codeLocale);
 	}
@@ -83,6 +82,7 @@ const useSettings = defineStore('settings', () => {
 	}
 
 	return {
+		init,
 		theme: {
 			available: availableThemes,
 			current: theme.global.name,
