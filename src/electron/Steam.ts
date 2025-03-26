@@ -316,7 +316,6 @@ class Steam implements IInitialable {
 	// https://developer.valvesoftware.com/wiki/SteamID
 	private static convertSteam64IDtoAccountID(id: bigint | string): number {
 		if (typeof id == "string") id = BigInt(id);
-		if ((id & 0b1n) == 0n) return 0;
 		return Number(id - 0x0110000100000000n);
 	}
 }
