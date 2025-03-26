@@ -28,26 +28,23 @@ const app = App.create(isLaunch ? LaunchWindow : MainWindow)
 		Steam.get(),
 		Database.get().register(Settings, Game, Launch),
 	)
+	.useIPC(
+		SystemBar,
+		Settings.IPC,
+		Logger.IPC,
+		Game.IPC,
+		Launch.IPC
+	)
 	.addProtocols(image);
 
 if (isLaunch) {
 	const spawn = Spawn.get();
 	spawn.onClose(() => app.quit());
-	app.useIPC(
-		SystemBar,
-		Settings.IPC,
-		Game.IPC,
-		Launch.IPC,
-	)
-		.setCloseCondition(() => !spawn.hasRunning)
+	app.setCloseCondition(() => !spawn.hasRunning)
 		.open();
 } else {
 	app.useIPC(
-		SystemBar,
-		Settings.IPC,
 		Steam.IPC,
-		Game.IPC,
-		Launch.IPC,
 		Updater.IPC
 	)
 		.open(async (setmessage) => {
@@ -67,7 +64,7 @@ if (isLaunch) {
 }
 
 process.on('uncaughtException', (err) => {
-	Logger.error(err.message, { prefix: 'MAIN' });
+	Logger.error(err.message + '\n' + err.stack, { prefix: 'MAIN' });
 });
 
 // Отлов необработанных отклонений промисов

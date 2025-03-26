@@ -56,8 +56,8 @@ class Logger implements IInitialable {
 	}
 
 	public static IPC(_: any, ipc: IPCTunnel) {
-		ipc.on(Messages.log, (message: string) => this.get().log(message, { prefix: "RENDERER" }));
-		ipc.on(Messages.error, (message: string) => this.get().error(message, { prefix: "RENDERER" }));
+		ipc.on(Messages.log, (message: string) => Logger.log(message, { prefix: "RENDERER" }));
+		ipc.on(Messages.error, (message: string) => Logger.error(message, { prefix: "RENDERER" }));
 	}
 }
 
