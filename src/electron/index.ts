@@ -11,13 +11,11 @@ import Launch from './Database/Launch';
 import Updater from './Updater';
 import LaunchWindow from './Window/LaunchWindow';
 import Spawn from './Spawn';
-import { DEV } from './consts';
 import Logger from './Logger';
 
 // process.argv.push('--launch=41700');
 
-if (DEV)
-	Database.debug({ logSql: true })
+Database.debug({ logSql: true })
 
 
 const appId = App.getLaunchApp();
