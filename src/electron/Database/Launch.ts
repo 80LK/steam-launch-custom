@@ -12,6 +12,7 @@ import Game from "./Game";
 import Spawn from "../Spawn";
 import BaseWindow from "../Window/BaseWindow";
 import Logger from "../Logger";
+import { dirname } from "path";
 
 type SQLLaunch = Omit<ILaunch, 'launch'> & { launch: string };
 
@@ -200,7 +201,7 @@ class Launch extends Database.Model implements ILaunch {
 			const launch = await (id == -1 ? Launch.getCurrentLaunch() : Launch.get(id));
 			Logger.log(`Try launch ${id}. ${launch ? JSON.stringify(launch) : false}`);
 			if (!launch) return false;
-			Spawn.get().start(launch.execute, launch.launch, launch.workdir);
+			Spawn.get().start(launch.execute, launch.launch, launch.workdir || dirname(launch.execute));
 			win.webContents.close();
 			return true;
 		});
