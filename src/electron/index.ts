@@ -14,6 +14,8 @@ import Spawn from './Spawn';
 import { DEV } from './consts';
 import Logger from './Logger';
 
+// process.argv.push('--launch=41700');
+
 if (DEV)
 	Database.debug({ logSql: true })
 

@@ -11,6 +11,7 @@ import App from "../App";
 import Game from "./Game";
 import Spawn from "../Spawn";
 import BaseWindow from "../Window/BaseWindow";
+import Logger from "../Logger";
 
 type SQLLaunch = Omit<ILaunch, 'launch'> & { launch: string };
 
@@ -197,6 +198,7 @@ class Launch extends Database.Model implements ILaunch {
 		ipc.handle(Messages.getCurrentLaunch, () => Launch.getCurrentLaunch());
 		ipc.on(Messages.start, async (id: number) => {
 			const launch = await (id == -1 ? Launch.getCurrentLaunch() : Launch.get(id));
+			Logger.log(`Try launch ${id}. ${launch ? JSON.stringify(launch) : false}`);
 			if (!launch) return false;
 			Spawn.get().start(launch.execute, launch.launch, launch.workdir);
 			win.webContents.close();
