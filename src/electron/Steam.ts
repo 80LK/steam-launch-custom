@@ -125,8 +125,10 @@ class Steam implements IInitialable {
 		Logger.log(`Last User ID: ${rawUserId}`, { prefix: "Steam" });
 		return parseInt(rawUserId);
 	}
-
+	private lastUserId: number | null = null;
 	public async getLastUserId(): Promise<number | null> {
+		if (this.lastUserId) return this.lastUserId;
+
 		const cfg_path = resolve(this.path, "config/loginusers.vdf");
 		if (!exsist(cfg_path)) return null;
 
@@ -145,10 +147,14 @@ class Steam implements IInitialable {
 		}
 		const userId = Steam.convertSteam64IDtoAccountID(rawUserId64);
 		Logger.log(`Last User ID: ${rawUserId64} | ${userId}`, { prefix: "Steam" });
+		this.lastUserId = userId;
 		return userId;
 	}
 
-	public async getLocalConfigPath() {
+	private localConfigPath: string | null = null;
+	public async getLocalConfigPath(): Promise<string | null> {
+		if (this.localConfigPath) return this.localConfigPath;
+
 		if (!this.path) return null;
 		const lastId = await this.getLastUserId();
 		if (!lastId) return null;
@@ -159,7 +165,9 @@ class Steam implements IInitialable {
 			lastId.toString(),
 			"config/localconfig.vdf"
 		);
+
 		Logger.log(`Steam local config path: ${cfg_path}`, { prefix: 'Steam' });
+		this.localConfigPath = cfg_path;
 		return cfg_path;
 	}
 
