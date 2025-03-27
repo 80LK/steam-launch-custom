@@ -26,7 +26,7 @@ const image = ImageProtocol.get();
 const app = App.create(isLaunch ? LaunchWindow : MainWindow)
 	.setPath(isLaunch ? `game/${appId}` : 'main')
 	.init(
-		Logger.get(),
+		Logger.get(isLaunch ? `log.${appId}.txt` : 'log.txt'),
 		Steam.get(),
 		Database.get().register(Settings, Game, Launch),
 	)
