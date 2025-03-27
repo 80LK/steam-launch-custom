@@ -1,4 +1,5 @@
 import { spawn } from "child_process";
+import Logger from "./Logger";
 
 class Spawn {
 	private processes: Set<number> = new Set();
@@ -19,11 +20,19 @@ class Spawn {
 
 	public start(exe: string, args: string[], cwd: string) {
 		const proc = spawn(exe, args, { cwd });
-		if (!proc) return;
+		if (!proc) {
+			Logger.error(`Failed start ${exe}`, { prefix: 'SPAWN' })
+			return;
+		}
+		Logger.log(`Start ${exe} with PID: ${proc.pid}, CWD: ${cwd}, ARGS: [${args.join(', ')}]`, { prefix: 'SPAWN' });
 		const pid = proc.pid;
 		if (!pid) return;
+
 		this.processes.add(pid);
-		proc.on('close', () => this.exit(pid));
+		proc.on('close', (code, signal) => {
+			Logger.log(`Exit ${exe} with code ${code} and signal ${signal}`, { prefix: 'SPAWN' })
+			this.exit(pid)
+		});
 	}
 
 

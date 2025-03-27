@@ -24,6 +24,10 @@ class App {
 		return this._message;
 	}
 	public setMessage(msg: StateMessage['message'], state: StateMessage['state'] = this._message.state) {
+		Logger.log(`Try set message "${msg}", state "${state}"`);
+
+		if (this._message.state == State.ERROR)
+			Logger.log('Last message was been error, set message cancaled');
 		this._message.message = msg;
 		this._message.state = state;
 		this._window && getIPCTunnel(this._window).send(Messages.changeInitState, this._message);
@@ -101,8 +105,7 @@ class App {
 
 			win.open();
 			const setmessage = (msg: string) => {
-				Logger.log(`Set message: ${msg}`);
-				this.message.message = msg;
+				this.setMessage(msg, State.INIT);
 				getIPCTunnel(win).send(Messages.changeInitState, this.message)
 			};
 			const inits = [];

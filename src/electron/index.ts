@@ -14,6 +14,8 @@ import Spawn from './Spawn';
 import { DEV } from './consts';
 import Logger from './Logger';
 
+// process.argv.push('--launch=41700');
+
 if (DEV)
 	Database.debug({ logSql: true })
 
@@ -24,7 +26,7 @@ const image = ImageProtocol.get();
 const app = App.create(isLaunch ? LaunchWindow : MainWindow)
 	.setPath(isLaunch ? `game/${appId}` : 'main')
 	.init(
-		Logger.get(),
+		Logger.get(isLaunch ? `log.${appId}.txt` : 'log.txt'),
 		Steam.get(),
 		Database.get().register(Settings, Game, Launch),
 	)
