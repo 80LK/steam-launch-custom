@@ -37,14 +37,14 @@ function openPath(path: string) {
 						:model-value="settings.locale.current" variant="outlined" density="compact"
 						@update:model-value="settings.locale.set" />
 					<v-switch :label="$t('settings.scan_every_launch')" :model-value="settings.scanGameLaunch.value"
-						color="success" @update:model-value="settings.scanGameLaunch.set" />
+						color="primary" @update:model-value="settings.scanGameLaunch.set" />
 					<v-text-field readonly :label="$t('settings.appdata')" v-model="appDataPath" variant="outlined"
 						density="compact">
 						<template v-slot:append-inner>
 							<v-icon :icon="mdiContentCopy" @click="copyPath(appDataPath)" />
 						</template>
 						<template v-slot:append>
-							<v-btn height="40px" @click="openPath(appDataPath)" color="success">
+							<v-btn height="40px" @click="openPath(appDataPath)" color="primary">
 								{{ $t('settings.open') }}
 							</v-btn>
 						</template>
@@ -56,7 +56,7 @@ function openPath(path: string) {
 							<v-icon :icon="mdiContentCopy" @click="copyPath(steamPath)" />
 						</template>
 						<template v-slot:append>
-							<v-btn height="40px" @click="openPath(steamPath)" color="success">
+							<v-btn height="40px" @click="openPath(steamPath)" color="primary">
 								{{ $t('settings.open') }}
 							</v-btn>
 						</template>

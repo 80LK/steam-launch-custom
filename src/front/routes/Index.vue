@@ -77,7 +77,7 @@ async function scan() {
 				</template>
 
 				<template v-slot:append>
-					<v-btn height="40px" color="green" :prepend-icon="mdiCached" @click="scan">
+					<v-btn height="40px" color="primary" :prepend-icon="mdiCached" @click="scan">
 						{{ $t('main.scan') }}
 					</v-btn>
 				</template>
