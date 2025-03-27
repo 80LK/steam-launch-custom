@@ -11,6 +11,7 @@ import App from "../App";
 import Game from "./Game";
 import Spawn from "../Spawn";
 import BaseWindow from "../Window/BaseWindow";
+import { dirname } from "path";
 
 type SQLLaunch = Omit<ILaunch, 'launch'> & { launch: string };
 
@@ -198,7 +199,7 @@ class Launch extends Database.Model implements ILaunch {
 		ipc.on(Messages.start, async (id: number) => {
 			const launch = await (id == -1 ? Launch.getCurrentLaunch() : Launch.get(id));
 			if (!launch) return false;
-			Spawn.get().start(launch.execute, launch.launch, launch.workdir);
+			Spawn.get().start(launch.execute, launch.launch, launch.workdir || dirname(launch.execute));
 			win.webContents.close();
 			return true;
 		});
