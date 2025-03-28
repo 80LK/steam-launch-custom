@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { mdiCog, mdiContentCopy } from "@mdi/js";
 import useSettings from '@store/settings';
+import TextField from '@components/Input/TextField.vue';
+import Select from '@components/Input/Select.vue';
+import Switch from '@components/Input/Switch.vue';
 import { ref } from "vue";
 
 const settings = useSettings();
@@ -30,16 +33,19 @@ function openPath(path: string) {
 				</v-card-item>
 				<v-divider />
 				<v-card-text>
-					<v-select :label="$t('settings.theme')" :items="settings.theme.available"
-						:model-value="settings.theme.current" variant="outlined" density="compact"
-						@update:model-value="settings.theme.set" />
-					<v-select :label="$t('settings.language')" :items="settings.locale.available"
-						:model-value="settings.locale.current" variant="outlined" density="compact"
-						@update:model-value="settings.locale.set" />
-					<v-switch :label="$t('settings.scan_every_launch')" :model-value="settings.scanGameLaunch.value"
+					<Select :label="$t('settings.theme')" :items="settings.theme.available"
+						:model-value="settings.theme.current" density="compact" @update:model-value="settings.theme.set"
+						force-label />
+
+					<Select :label="$t('settings.language')" :items="settings.locale.available"
+						:model-value="settings.locale.current" density="compact"
+						@update:model-value="settings.locale.set" force-label />
+
+					<Switch :label="$t('settings.scan_every_launch')" :model-value="settings.scanGameLaunch.value"
 						color="primary" @update:model-value="settings.scanGameLaunch.set" />
-					<v-text-field readonly :label="$t('settings.appdata')" v-model="appDataPath" variant="outlined"
-						density="compact">
+
+					<TextField readonly :label="$t('settings.appdata')" v-model="appDataPath" density="compact"
+						forceLabel>
 						<template v-slot:append-inner>
 							<v-icon :icon="mdiContentCopy" @click="copyPath(appDataPath)" />
 						</template>
@@ -48,10 +54,9 @@ function openPath(path: string) {
 								{{ $t('settings.open') }}
 							</v-btn>
 						</template>
-					</v-text-field>
+					</TextField>
 
-					<v-text-field readonly :label="$t('settings.steam')" v-model="steamPath" variant="outlined"
-						density="compact">
+					<TextField readonly :label="$t('settings.steam')" v-model="steamPath" forceLabel density="compact">
 						<template v-slot:append-inner>
 							<v-icon :icon="mdiContentCopy" @click="copyPath(steamPath)" />
 						</template>
@@ -60,7 +65,7 @@ function openPath(path: string) {
 								{{ $t('settings.open') }}
 							</v-btn>
 						</template>
-					</v-text-field>
+					</TextField>
 				</v-card-text>
 				<v-divider />
 				<v-card-actions>

@@ -5,6 +5,7 @@ import Updater from '@components/Updater.vue';
 import NeedConfigure from '@components/Game/NeedConfigure.vue';
 import Container, { Done } from '@components/Container.vue';
 import GameCard from "@components/Game/Card.vue";
+import TextField from "@components/Input/TextField.vue";
 import { ref, useTemplateRef } from "vue";
 import { IGame } from "@shared/Game";
 import useGamesStore from "@store/games";
@@ -70,18 +71,15 @@ async function scan() {
 
 			<NeedConfigure class="mb-4" />
 
-			<v-text-field :label="$t('main.search')" clearable variant="outlined" hide-details="auto" v-model="search"
-				@update:modelValue="searching" density="compact" class="mb-4">
-				<template v-slot:label="{ label }">
-					<v-icon :icon="mdiMagnify" /> {{ label }}
-				</template>
+			<TextField :label="$t('main.search')" clearable hide-details="auto" v-model="search"
+				@update:modelValue="searching" density="compact" class="mb-4" :prepend-inner-icon="mdiMagnify">
 
 				<template v-slot:append>
 					<v-btn height="40px" color="primary" :prepend-icon="mdiCached" @click="scan">
 						{{ $t('main.scan') }}
 					</v-btn>
 				</template>
-			</v-text-field>
+			</TextField>
 
 			<div :class="$style.filterPanel">
 				<ToggleBtn :icon="mdiDownload" v-model="filterInstalled" @update:model-value="searching">

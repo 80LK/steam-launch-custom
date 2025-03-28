@@ -11,8 +11,17 @@ const steamTheme = {
 		surface: '#171D25',
 		'surface-light': '#171D25',
 
+		'surface-bright': '#FFFFFF',
+		'surface-variant': '#171D25',
+
 		primary: '#2DA1D6',
 	},
+	variables: {
+		'button-border-radius': 0,
+		'card-border-radius': 0,
+		'input-variant': 'solo',
+		'switch-inset': 'true'
+	}
 }
 
 const vuetify = createVuetify({
@@ -27,13 +36,16 @@ const vuetify = createVuetify({
 	icons: {
 		defaultSet: 'mdi',
 		aliases,
-		sets: {
-			mdi
-		},
+		sets: { mdi },
+	},
+	defaults: {
+		VTextField: { variant: 'outlined' },
+		VSelect: { variant: 'outlined' },
+		VCombobox: { variant: 'outlined' },
 	},
 	locale: {
 		adapter: createVueI18nAdapter({ useI18n, i18n })
-	}
+	},
 });
 
 export default vuetify;
