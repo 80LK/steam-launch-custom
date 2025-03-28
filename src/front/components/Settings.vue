@@ -34,18 +34,15 @@ function openPath(path: string) {
 				<v-divider />
 				<v-card-text>
 					<Select :label="$t('settings.theme')" :items="settings.theme.available"
-						:model-value="settings.theme.current" density="compact" @update:model-value="settings.theme.set"
-						force-label />
+						:model-value="settings.theme.current" @update:model-value="settings.theme.set" force-label />
 
 					<Select :label="$t('settings.language')" :items="settings.locale.available"
-						:model-value="settings.locale.current" density="compact"
-						@update:model-value="settings.locale.set" force-label />
+						:model-value="settings.locale.current" @update:model-value="settings.locale.set" force-label />
 
 					<Switch :label="$t('settings.scan_every_launch')" :model-value="settings.scanGameLaunch.value"
 						color="primary" @update:model-value="settings.scanGameLaunch.set" />
 
-					<TextField readonly :label="$t('settings.appdata')" v-model="appDataPath" density="compact"
-						forceLabel>
+					<TextField readonly :label="$t('settings.appdata')" v-model="appDataPath" forceLabel>
 						<template v-slot:append-inner>
 							<v-icon :icon="mdiContentCopy" @click="copyPath(appDataPath)" />
 						</template>
@@ -56,7 +53,7 @@ function openPath(path: string) {
 						</template>
 					</TextField>
 
-					<TextField readonly :label="$t('settings.steam')" v-model="steamPath" forceLabel density="compact">
+					<TextField readonly :label="$t('settings.steam')" v-model="steamPath" forceLabel>
 						<template v-slot:append-inner>
 							<v-icon :icon="mdiContentCopy" @click="copyPath(steamPath)" />
 						</template>

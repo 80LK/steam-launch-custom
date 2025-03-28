@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useTheme } from 'vuetify';
-import {FieldProps, Variant} from "./Input";
+import { FieldProps, Variant } from "./Input";
 
 const {
 	readonly,
@@ -18,7 +18,8 @@ const { global } = useTheme()
 const c_variant = computed(() => variant || global.current.value.variables['input-variant'] as Variant || undefined);
 const c_label = computed(() => c_variant.value != 'solo' || forceLabel ? label : undefined);
 const c_placeholder = computed(() => c_variant.value == 'solo' && !forceLabel ? label : undefined);
-
+const c_density = computed(() => density || (c_variant.value == 'solo' && forceLabel ? 'comfortable' : undefined));
+console.log(density, c_variant.value, forceLabel, c_density.value);
 const model = defineModel();
 
 const emit = defineEmits([
@@ -29,9 +30,10 @@ const emit = defineEmits([
 </script>
 
 <template>
-	<v-text-field :label="c_label" :placeholder="c_placeholder" :readonly="readonly" :density="density" v-model="model"
-		:rules="rules" :variant="c_variant" :clearable="clearable" :prepend-inner-icon="prependInnerIcon"
-		v-bind="$attrs" @update:modelValue="(...args) => emit('update:modelValue', ...args)"
+	<v-text-field :label="c_label" :placeholder="c_placeholder" :readonly="readonly" :density="c_density"
+		v-model="model" :rules="rules" :variant="c_variant" :clearable="clearable"
+		:prepend-inner-icon="prependInnerIcon" v-bind="$attrs"
+		@update:modelValue="(...args) => emit('update:modelValue', ...args)"
 		@click:clear="(...args) => emit('click:clear', ...args)"
 		@click:control="(...args) => emit('click:control', ...args)">
 		<template v-slot:label="binding" v-if="$slots['label']">

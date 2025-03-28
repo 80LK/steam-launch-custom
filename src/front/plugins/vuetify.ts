@@ -39,9 +39,9 @@ const vuetify = createVuetify({
 		sets: { mdi },
 	},
 	defaults: {
-		VTextField: { variant: 'outlined' },
-		VSelect: { variant: 'outlined' },
-		VCombobox: { variant: 'outlined' },
+		VTextField: { variant: 'outlined', density: "compact" },
+		VSelect: { variant: 'outlined', density: "compact" },
+		VCombobox: { variant: 'outlined', density: "compact" },
 	},
 	locale: {
 		adapter: createVueI18nAdapter({ useI18n, i18n })

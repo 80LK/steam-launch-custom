@@ -72,7 +72,7 @@ async function scan() {
 			<NeedConfigure class="mb-4" />
 
 			<TextField :label="$t('main.search')" clearable hide-details="auto" v-model="search"
-				@update:modelValue="searching" density="compact" class="mb-4" :prepend-inner-icon="mdiMagnify">
+				@update:modelValue="searching" class="mb-4" :prepend-inner-icon="mdiMagnify">
 
 				<template v-slot:append>
 					<v-btn height="40px" color="primary" :prepend-icon="mdiCached" @click="scan">
