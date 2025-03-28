@@ -19,7 +19,6 @@ const c_variant = computed(() => variant || global.current.value.variables['inpu
 const c_label = computed(() => c_variant.value != 'solo' || forceLabel ? label : undefined);
 const c_placeholder = computed(() => c_variant.value == 'solo' && !forceLabel ? label : undefined);
 const c_density = computed(() => density || (c_variant.value == 'solo' && forceLabel ? 'comfortable' : undefined));
-console.log(density, c_variant.value, forceLabel, c_density.value);
 const model = defineModel();
 
 const emit = defineEmits([
