@@ -108,13 +108,11 @@ class App {
 				this.setMessage(msg, State.INIT);
 				getIPCTunnel(win).send(Messages.changeInitState, this.message)
 			};
-			const inits = [];
-			for (const init of this.initsList) {
-				inits.push(init.init(setmessage));
-			}
 
 			try {
-				await Promise.all(inits);
+				for (const init of this.initsList) {
+					await init.init(setmessage)
+				}
 			} catch (err) {
 				if (err instanceof Error)
 					this.setMessage(err.message, State.ERROR);

@@ -1,6 +1,5 @@
 import App, { IInitialable } from "./App";
 import Registry from "winreg";
-import Settings from "./Database/Settings";
 import { resolve } from "path";
 import { readFile, writeFile } from "fs/promises";
 import exsist from "@utils/exists";
@@ -8,7 +7,6 @@ import VDF from "valve-key-values";
 import ObjectProxy from "../utils/ObjectProxy";
 import { spawn } from "child_process";
 import { app } from "electron";
-import Database from "./Database/Database";
 import BaseWindow from "./Window/BaseWindow";
 import { IPCTunnel } from "./IPCTunnel";
 import { Messages } from "@shared/Steam";
@@ -76,8 +74,6 @@ class Steam implements IInitialable {
 			register.set(item.name, item.type, value, _ => r())
 		}));
 	}
-
-	private static readonly SETTINGS_KEY = 'steamPath';
 
 	private constructor() { }
 	private _path: string = "";
@@ -268,16 +264,14 @@ class Steam implements IInitialable {
 	}
 
 	public async init(message: (msg: string) => void): Promise<void> {
-		await Database.get().awaitModel(Settings);
 		message("init.steam");
 
-		let path = await Settings.get(Steam.SETTINGS_KEY) || await this.getPathFromRegistry();
+		let path = await this.getPathFromRegistry();
 
 		if (!path || !await exsist(path, 'dir'))
 			throw new Error("error.steam_not_found");
 
 		this._path = path;
-		Settings.set(Steam.SETTINGS_KEY, this._path);
 
 		const libraryPath = resolve(this._path, 'steamapps/libraryfolders.vdf');
 
