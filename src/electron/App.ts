@@ -1,4 +1,4 @@
-import { app as electron, dialog, protocol } from "electron";
+import { app as electron, dialog, protocol, shell } from "electron";
 import getIPCTunnel, { IPCTunnel } from "./IPCTunnel";
 import BaseWindow from "./Window/BaseWindow";
 import { resolve, join } from 'path';
@@ -58,6 +58,9 @@ class App {
 		ipc.handle(Messages.getAppData, () => getAppDataFilePath())
 		ipc.on(Messages.openExplorer, (dir: string) => {
 			spawn('explorer', [resolve(dir)], { detached: true })
+		})
+		ipc.on(Messages.openUrl, (url: string) => {
+			shell.openExternal(url);
 		})
 	}
 
