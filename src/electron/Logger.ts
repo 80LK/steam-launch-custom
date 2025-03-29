@@ -11,7 +11,7 @@ interface LogOption {
 
 class Logger implements IInitialable {
 	private static readonly DEFAULT_FILE = 'log.txt';
-	private static readonly DIR = getAppDataFilePath('logs');
+	private static readonly DIR = getAppDataFilePath('logs', true);
 	private static readonly BCK_EXT = '.bck';
 	private stream?: WriteStream;
 
