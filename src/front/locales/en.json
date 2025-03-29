@@ -79,5 +79,10 @@
 		"dark": "Dark",
 		"light": "Light",
 		"steam": "Steam"
+	},
+	"about": {
+		"title": "About Steam-Launch-Custom",
+		"text": "Add your own launch options for your steam games. <br> Developed by 80LK",
+		"links": "Links"
 	}
 }

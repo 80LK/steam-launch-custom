@@ -4,6 +4,7 @@ enum Messages {
 	selectFile = 'app.selectFile',
 	getAppData = 'app.getAppData',
 	openExplorer = 'app.openExplorer',
+	openUrl = 'app.openUrl'
 }
 
 export { Messages };

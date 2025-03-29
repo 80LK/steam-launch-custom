@@ -30,6 +30,10 @@ namespace App {
 		ipcRenderer.send(Messages.openExplorer, dir);
 	}
 
+	export function openUrl(url: string) {
+		ipcRenderer.send(Messages.openUrl, url);
+	}
+
 	export const versions = {
 		get [name]() {
 			return version
