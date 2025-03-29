@@ -4,36 +4,12 @@ import { aliases, mdi } from 'vuetify/iconsets/mdi-svg';
 import { createVueI18nAdapter } from 'vuetify/locale/adapters/vue-i18n'
 import { useI18n } from 'vue-i18n';
 import i18n from './i18n';
-const steamTheme = {
-	dark: true,
-	colors: {
-		background: '#2C323B',
-		surface: '#171D25',
-		'surface-light': '#171D25',
-		'on-surface-variant': "#fff",
-
-		'surface-bright': '#FFFFFF',
-		'surface-variant': '#171D25',
-
-		primary: '#2DA1D6',
-	},
-	variables: {
-		'border-color': '#171D25',
-		'button-border-radius': 0,
-		'card-border-radius': 0,
-		'input-variant': 'solo',
-		'switch-inset': 'true'
-	}
-}
+import themes from '../themes';
 
 const vuetify = createVuetify({
 	theme: {
 		defaultTheme: 'light',
-		themes: {
-			steam: steamTheme,
-			light: { colors: { primary: '#4caf50' } },
-			dark: { colors: { primary: '#4caf50' } }
-		}
+		themes
 	},
 	icons: {
 		defaultSet: 'mdi',
