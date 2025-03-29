@@ -216,6 +216,7 @@ class Steam implements IInitialable {
 			const gameCfg = apps_dict.get(id.toString())
 			Logger.log(`Game cfg is ${gameCfg ? '' : 'not '}found`, { prefix: `Steam][Game ${id}` })
 			if (!gameCfg) continue;
+			Logger.log(`Write launchOptions ${this.getLaunchPath(id)}`, { prefix: `Steam][Game ${id}` })
 			gameCfg.set("LaunchOptions", this.getLaunchPath(id));
 			editIds.push(id);
 		}
@@ -257,8 +258,8 @@ class Steam implements IInitialable {
 		return path == this.getLaunchPath(id) ? TestLaunch.CURRENT : TestLaunch.NOT_CURRENT;
 	}
 	public getLaunchPath(id: number) {
-		const args = [`\"${App.getExecutable()}\"`];
-		if (!app.isPackaged) args.push(`\"${process.argv[1].replace(/\\/g, "/")}\"`);
+		const args = [`\\"${App.getExecutable()}\\"`];
+		if (!app.isPackaged) args.push(`\\"${process.argv[1].replace(/\\/g, "/")}\\"`);
 		args.push(`--launch=${id}`, "%command%")
 		return args.join(' ')
 	}
