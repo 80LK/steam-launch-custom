@@ -21,8 +21,10 @@ class BaseWindow extends BrowserWindow {
 
 	public open() {
 		if (DEV) {
-			this.loadURL(VITE_DEV_SERVER_URL + this._page);
-			this.webContents.openDevTools({ mode: 'undocked' });
+			this.loadURL(VITE_DEV_SERVER_URL + this._page)
+			this.webContents.on('did-finish-load', () =>
+				this.webContents.openDevTools({ mode: 'undocked' })
+			);
 		} else {
 			this.loadFile(join(RENDERER_DIST, this._page));
 		}

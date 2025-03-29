@@ -7,3 +7,7 @@ html {
 	-ms-user-select: none;
 	user-select: none;
 }
+
+.v-card-text {
+	background-color: rgb(var(--v-theme-background));
+}

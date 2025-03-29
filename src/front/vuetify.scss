@@ -1,0 +1,11 @@
+@use "vuetify/settings" as *; // with ($button-border-radius: var(--v-button-border-radius, $border-radius-root));
+
+$button-border-radius: var(--v-button-border-radius, $border-radius-root);
+$card-border-radius: var(--v-card-border-radius, $border-radius-root);
+$switch-inset-track-height: 22px;
+$switch-inset-track-width: 38px;
+$switch-inset-thumb-height: $switch-inset-track-height;
+$switch-inset-thumb-off-height: $switch-inset-track-height;
+$switch-inset-thumb-width: $switch-inset-track-height;
+$switch-inset-thumb-off-width: $switch-inset-track-height;
+$switch-thumb-offset: 0

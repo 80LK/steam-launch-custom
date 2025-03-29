@@ -1,14 +1,20 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useTheme } from 'vuetify';
+import { Variant } from "./Input/Input";
 
 type IconValue = string | (string | [path: string, opacity: number])[];
 
-const { icon, activeColor = 'success', baseColor = 'grey' } = defineProps<{ icon?: IconValue, activeColor?: string, baseColor?: string }>();
+const { global } = useTheme();
+const is_solo = computed(() => global.current.value.variables['input-variant'] as Variant == 'solo');
+
+const { icon, activeColor = 'success', baseColor } = defineProps<{ icon?: IconValue, activeColor?: string, baseColor?: string }>();
+const c_baseColor = computed(() => baseColor ?? is_solo.value ? 'none' : 'grey');
 
 const value = defineModel<boolean>({ default: false });
 
-const variant = computed(() => value.value ? 'flat' : 'outlined');
-const color = computed(() => value.value ? activeColor : baseColor);
+const variant = computed(() => value.value || is_solo.value ? 'flat' : 'outlined');
+const color = computed(() => value.value ? activeColor : c_baseColor.value);
 </script>
 
 <template>

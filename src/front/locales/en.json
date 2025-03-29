@@ -77,7 +77,8 @@
 	},
 	"theme": {
 		"dark": "Dark",
-		"light": "Light"
+		"light": "Light",
+		"steam": "Steam"
 	},
 	"about": {
 		"title": "About Steam-Launch-Custom",

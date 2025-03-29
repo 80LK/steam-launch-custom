@@ -77,7 +77,7 @@ function delet(launch_id: number) {
 				<div v-if="game.configured" :class="$style.add">
 					<v-btn :icon="mdiClose" color="error" v-tooltip:start="$t('game.reset_configure')"
 						@click="resetConfigure" />
-					<v-btn :icon="mdiPlus" color="success" v-tooltip:start="$t('game.add_launch')"
+					<v-btn :icon="mdiPlus" color="primary" v-tooltip:start="$t('game.add_launch')"
 						@click="editor?.create(game.id)" />
 				</div>
 

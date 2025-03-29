@@ -77,7 +77,8 @@
 	},
 	"theme": {
 		"dark": "Темная",
-		"light": "Светлая"
+		"light": "Светлая",
+		"steam": "Steam"
 	},
 	"about": {
 		"title": "О Steam-Launch-Custom",
