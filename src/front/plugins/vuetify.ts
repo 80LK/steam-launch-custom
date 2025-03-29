@@ -18,6 +18,7 @@ const steamTheme = {
 		primary: '#2DA1D6',
 	},
 	variables: {
+		'border-color': '#171D25',
 		'button-border-radius': 0,
 		'card-border-radius': 0,
 		'input-variant': 'solo',
