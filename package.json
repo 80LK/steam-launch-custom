@@ -28,6 +28,7 @@
     "electron": "^34.0.1",
     "electron-builder": "^25.1.8",
     "pinia": "^2.3.1",
+    "sass-embedded": "^1.86.0",
     "typescript": "^5.7.3",
     "vite": "^6.0.11",
     "vite-plugin-vue-devtools": "^7.7.1",
