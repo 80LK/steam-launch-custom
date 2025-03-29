@@ -251,7 +251,7 @@ class Steam implements IInitialable {
 		if (!path) return TestLaunch.NO;
 		// /".*\/electron.exe" ".*" --launch=\d+ %command%/
 
-		if (!/".*\/(?:steam-launch-custom.exe|electron.exe" ".*)" --launch=\d+ %command%/.test(path))
+		if (!/\\".*\/(?:steam-launch-custom.exe|electron.exe\\" \\".*)\\" --launch=\d+ %command%/.test(path))
 			return TestLaunch.NO;
 
 		Logger.log(`Need set path: ${this.getLaunchPath(id)}`, { prefix: 'Steam] [Game ' + id })
