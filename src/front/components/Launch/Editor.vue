@@ -1,8 +1,10 @@
 <script lang="ts" setup>
-import { mdiApplicationOutline, mdiCog, mdiFolder, mdiPencil } from '@mdi/js';
+import { mdiAlphabetical, mdiApplicationOutline, mdiCog, mdiFolder, mdiPencil } from '@mdi/js';
 import { ILaunch, INIT_LAUNCH } from '@shared/Launch';
 import useLaunchStore from '@store/launch';
 import FilePicker from '@components/FilePicker.vue';
+import TextField from '@components/Input/TextField.vue';
+import Combobox from '@components/Input/Combobox.vue';
 import { computed, ref, toRaw, unref } from 'vue';
 import { SubmitEventPromise } from 'vuetify';
 import { useI18n } from 'vue-i18n';
@@ -93,25 +95,23 @@ function pasteArgs(event: ClipboardEvent) {
 				</v-card-item>
 				<v-divider />
 				<v-card-text>
-					<v-text-field :label="$t('launch.title')" variant="outlined" v-model="launch.name"
-						:rules="[blockNullRule($t('launch.title'))]" />
+					<TextField :label="$t('launch.title')" v-model="launch.name"
+						:rules="[blockNullRule($t('launch.title'))]" :prepend-inner-icon="mdiAlphabetical" />
 
 					<FilePicker v-model="launch.execute" :default-path="defaultPathForExe"
 						:type="{ name: 'Application', extensions: ['exe'] }" v-slot="{ value, selectFile }">
-						<v-text-field :label="$t('launch.execute')" variant="outlined" clearable
-							:prepend-inner-icon="mdiApplicationOutline" :rules="[blockNullRule($t('launch.execute'))]"
-							:model-value="value" @click:clear="launch.execute = ''" @click:control="selectFile" />
+						<TextField :label="$t('launch.execute')" clearable :prepend-inner-icon="mdiApplicationOutline"
+							:rules="[blockNullRule($t('launch.execute'))]" :model-value="value"
+							@click:clear="launch.execute = ''" @click:control="selectFile" />
 					</FilePicker>
 
-					<v-combobox :prepend-inner-icon="mdiCog" :label="$t('launch.options')" variant="outlined" clearable
-						chips multiple closable-chips :hint="$t('launch.options_hint')" v-model="launch.launch"
-						@paste="pasteArgs" />
+					<Combobox :prepend-inner-icon="mdiCog" :label="$t('launch.options')" clearable chips multiple
+						closable-chips :hint="$t('launch.options_hint')" v-model="launch.launch" @paste="pasteArgs" />
 
 					<FilePicker v-model="launch.workdir" :default-path="defaultPathForWorkDir" type="directory"
 						v-slot="{ value, selectFile }">
-						<v-text-field :label="$t('launch.work')" variant="outlined" clearable
-							:prepend-inner-icon="mdiFolder" :model-value="value" @click:clear="launch.workdir = ''"
-							@click:control="selectFile" />
+						<TextField :label="$t('launch.work')" clearable :prepend-inner-icon="mdiFolder"
+							:model-value="value" @click:clear="launch.workdir = ''" @click:control="selectFile" />
 					</FilePicker>
 				</v-card-text>
 				<v-divider />

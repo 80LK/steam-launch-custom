@@ -70,7 +70,11 @@ export default defineElectronConfig(
 		},
 		plugins: [
 			vue(),
-			vuetify(),
+			vuetify({
+				styles: {
+					configFile: resolve(front, "vuetify.scss")
+				}
+			}),
 			vueDevTools(),
 			VueI18nPlugin()
 		],

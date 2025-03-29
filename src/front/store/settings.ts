@@ -18,7 +18,6 @@ const useSettings = defineStore('settings', () => {
 		value: theme, title: t(`theme.${theme}`, theme)
 	})));
 	watch(locale, () => {
-		console.log('switch locale');
 		availableThemes.value.forEach(item => item.title = t(`theme.${item.value}`, item.value))
 	});
 
