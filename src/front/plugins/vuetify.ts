@@ -10,6 +10,7 @@ const steamTheme = {
 		background: '#2C323B',
 		surface: '#171D25',
 		'surface-light': '#171D25',
+		'on-surface-variant': "#fff",
 
 		'surface-bright': '#FFFFFF',
 		'surface-variant': '#171D25',
