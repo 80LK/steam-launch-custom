@@ -257,8 +257,8 @@ class Steam implements IInitialable {
 		return path == this.getLaunchPath(id) ? TestLaunch.CURRENT : TestLaunch.NOT_CURRENT;
 	}
 	public getLaunchPath(id: number) {
-		const args = [`"${App.getExecutable()}"`];
-		if (!app.isPackaged) args.push(`"${process.argv[1].replace(/\\/g, "/")}"`);
+		const args = [`\"${App.getExecutable()}\"`];
+		if (!app.isPackaged) args.push(`\"${process.argv[1].replace(/\\/g, "/")}\"`);
 		args.push(`--launch=${id}`, "%command%")
 		return args.join(' ')
 	}
