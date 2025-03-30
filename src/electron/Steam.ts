@@ -4,7 +4,6 @@ import { resolve } from "path";
 import { readFile, writeFile } from "fs/promises";
 import exsist from "@utils/exists";
 import VDF from "valve-key-values";
-import ObjectProxy from "../utils/ObjectProxy";
 import { spawn } from "child_process";
 import { app } from "electron";
 import BaseWindow from "./Window/BaseWindow";
@@ -23,7 +22,7 @@ interface SteamConfig extends VDF.VDFObject {
 }
 
 interface SteamUserInfo extends VDF.VDFObject {
-	Timestamp: string;
+	timestamp: string;
 }
 interface LoginUsers extends VDF.VDFObject {
 	users: Record<string, SteamUserInfo>
@@ -129,18 +128,19 @@ class Steam implements IInitialable {
 		if (!exsist(cfg_path)) return null;
 
 		const raw_cfg = await readFile(cfg_path, "utf-8");
-		const users = new ObjectProxy<LoginUsers>(VDF.parse<any>(raw_cfg)).get("users");
+		const users = VDF.parse<LoginUsers>(raw_cfg).users;
 
 		let time: number = 0;
 		let rawUserId64: string = '';
-		for (const userId64 in users.object) {
-			const user = users.get(userId64);
-			const uTime = parseInt(user.get('Timestamp'));
+		for (const userId64 in users) {
+			const user = users[userId64];
+			const uTime = parseInt(user.timestamp);
 			if (uTime > time) {
 				rawUserId64 = userId64;
 				time = uTime
 			}
 		}
+		if (!rawUserId64) return null;
 		const userId = Steam.convertSteam64IDtoAccountID(rawUserId64);
 		Logger.log(`Last User ID: ${rawUserId64} | ${userId}`, { prefix: "Steam" });
 		this.lastUserId = userId;
@@ -194,54 +194,79 @@ class Steam implements IInitialable {
 		}
 	}
 
-	public async getLaunchOptions(id: number): Promise<string | null> {
+	private localConfig: LocalConfig | null = null;
+	private get appsConfig(): AppsConfig | null {
+		return this.localConfig?.userlocalconfigstore.software.valve.steam.apps || null;
+	};
+	public async getAppsConfig(): Promise<AppsConfig | null> {
+		if (this.appsConfig) return this.appsConfig;
+
 		const cfg_path = await this.getLocalConfigPath();
 		if (!cfg_path) return null;
-		const cfg_raw = await readFile(cfg_path, "utf-8");
-		const cfg = new ObjectProxy<LocalConfig>(VDF.parse<any>(cfg_raw));
-		const apps_dict = cfg.get("UserLocalConfigStore").get('Software').get('Valve').get('Steam').get('apps')
-		const game_cfg = apps_dict.get(id.toString());
-		if (!game_cfg) return null;
 
-		return game_cfg.get('LaunchOptions')
+		const cfg_raw = await readFile(cfg_path, "utf-8");
+		const cfg = VDF.parse<LocalConfig>(cfg_raw);
+		this.localConfig = cfg;
+		return this.appsConfig;
+	}
+	public async writeLocalConfig(): Promise<boolean> {
+		Logger.log(`Try write localconfig`, { prefix: `Steam` })
+		if (!this.localConfig) return false;
+
+		const cfg_path = await this.getLocalConfigPath();
+		if (!cfg_path) return false;
+
+		try {
+			await writeFile(cfg_path, VDF.strigify(this.localConfig))
+			Logger.log(`Write localconfig`, { prefix: `Steam` })
+			return true;
+		} catch (e) {
+			Logger.error(`Wrong write localconfig: ${JSON.stringify(e)}`, { prefix: `Steam` })
+			return false;
+		}
+	}
+
+	public async getLaunchOptions(id: number): Promise<string | null> {
+		const games = await this.getAppsConfig();
+		if (!games) return null;
+		const game = games[id];
+		if (!game) return null;
+		return game.launchoptions;
 	}
 	public async setLaunchOptions(ids: number[]): Promise<number[]> {
-		const cfg_path = await this.getLocalConfigPath();
-		if (!cfg_path) return [];
-		const cfg_raw = await readFile(cfg_path, "utf-8");
-		const cfg = new ObjectProxy(VDF.parse<LocalConfig>(cfg_raw));
-		const apps_dict = cfg.get("UserLocalConfigStore").get('Software').get('Valve').get('Steam').get('apps');
 		const editIds: number[] = [];
+
+		const games = await this.getAppsConfig();
+		if (!games) return [];
+
+
 		for (const id of ids) {
-			const gameCfg = apps_dict.get(id.toString())
-			Logger.log(`Game cfg is ${gameCfg ? '' : 'not '}found`, { prefix: `Steam][Game ${id}` })
-			if (!gameCfg) continue;
+			const game = games[id];
+			Logger.log(`Game cfg is ${game ? '' : 'not '}found`, { prefix: `Steam][Game ${id}` })
+			if (!game) continue;
 			Logger.log(`Write launchOptions ${this.getLaunchPath(id)}`, { prefix: `Steam][Game ${id}` })
-			gameCfg.set("LaunchOptions", this.getLaunchPath(id));
+			game.launchoptions = this.getLaunchPath(id);
 			editIds.push(id);
 		}
 
-		await writeFile(cfg_path, VDF.strigify(cfg.object))
-		Logger.log(`write games ${JSON.stringify(editIds)}`, { prefix: `Steam` })
 		return editIds;
 	}
 	public async resetLaunchOptions(ids: number[]): Promise<number[]> {
-		const cfg_path = await this.getLocalConfigPath();
-		if (!cfg_path) return [];
-		const cfg_raw = await readFile(cfg_path, "utf-8");
-		const cfg = new ObjectProxy(VDF.parse<LocalConfig>(cfg_raw));
-		const apps_dict = cfg.get("UserLocalConfigStore").get('Software').get('Valve').get('Steam').get('apps');
 		const editIds: number[] = [];
+
+		const games = await this.getAppsConfig();
+		if (!games) return [];
+
+
 		for (const id of ids) {
-			const gameCfg = apps_dict.get(id.toString())
-			Logger.log(`Game cfg is ${gameCfg ? '' : 'not '}found`, { prefix: `Steam][Game ${id}` })
-			if (!gameCfg) continue;
-			gameCfg.set("LaunchOptions", "");
+			const game = games[id];
+			Logger.log(`Game cfg is ${game ? '' : 'not '}found`, { prefix: `Steam][Game ${id}` })
+			if (!game) continue;
+			Logger.log(`Write launchOptions NULL`, { prefix: `Steam][Game ${id}` })
+			game.launchoptions = "";
 			editIds.push(id);
 		}
 
-		await writeFile(cfg_path, VDF.strigify(cfg.object))
-		Logger.log(`reset games ${JSON.stringify(editIds)}`, { prefix: `Steam` })
 		return editIds;
 	}
 
@@ -286,6 +311,8 @@ class Steam implements IInitialable {
 		const pid = await this.getPIDFromRegistry();
 		if (pid == 0) return;
 
+		this.localConfig = null;
+
 		const proc = spawn('powershell', ['-Command', `&{$process = Get-Process -Id ${pid};Stop-Process $process;$process.WaitForExit();$process.Close()}`]);
 		await new Promise<void>(r => proc.on('close', () => r()))
 		await this.resetPIDFromRegistry();
@@ -324,19 +351,21 @@ class Steam implements IInitialable {
 }
 
 interface LocalConfig extends VDF.VDFObject {
-	UserLocalConfigStore: {
-		Software: {
-			Valve: {
-				Steam: {
-					apps: {
-						[id: string]: {
-							LaunchOptions: string;
-						}
-					}
+	userlocalconfigstore: {
+		software: {
+			valve: {
+				steam: {
+					apps: AppsConfig
 				}
 			}
 		}
 	};
+}
+interface AppsConfig extends VDF.VDFObject {
+	[id: string]: AppConfig | undefined;
+}
+interface AppConfig extends VDF.VDFObject {
+	launchoptions: string;
 }
 
 export default Steam;

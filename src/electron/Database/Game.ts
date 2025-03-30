@@ -242,14 +242,14 @@ class Game extends Database.Model implements IGame {
 		const editedIds = [
 			...await steam.setLaunchOptions(configured),
 			...await steam.resetLaunchOptions(reset),
-
 		];
 
-		await Promise.all(games.map(game => {
-			if (editedIds.indexOf(game.id) == -1) return;
-			game.needWrite = false;
-			return game.save()
-		}));
+		if (await steam.writeLocalConfig())
+			await Promise.all(games.map(game => {
+				if (editedIds.indexOf(game.id) == -1) return;
+				game.needWrite = false;
+				return game.save()
+			}));
 
 		steamWasBeenRun && await steam.start()
 		return editedIds;
