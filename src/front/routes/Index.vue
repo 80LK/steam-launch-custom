@@ -75,7 +75,8 @@ async function scan() {
 				@update:modelValue="searching" class="mb-4" :prepend-inner-icon="mdiMagnify">
 
 				<template v-slot:append>
-					<v-btn height="40px" color="primary" :prepend-icon="mdiCached" @click="scan">
+					<v-btn height="40px" color="primary" :prepend-icon="mdiCached" @click="scan"
+						v-tooltip:bottom-end="$t('main.scan-hint')">
 						{{ $t('main.scan') }}
 					</v-btn>
 				</template>

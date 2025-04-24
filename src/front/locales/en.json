@@ -14,6 +14,7 @@
 	"main": {
 		"search": "Search",
 		"scan": "Scan games",
+		"scan-hint": "If the game does not appear, try closing Steam before scanning.",
 		"installed": "Installed",
 		"configured": "Configured",
 		"favourites": "Favourites"
