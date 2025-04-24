@@ -16,8 +16,8 @@ interface AuthorizedDevice extends VDF.VDFObject {
 }
 
 interface SteamConfig extends VDF.VDFObject {
-	InstallConfigStore: {
-		AuthorizedDevice: Record<string, AuthorizedDevice>
+	installconfigstore: {
+		authorizeddevice: Record<string, AuthorizedDevice>
 	}
 }
 
@@ -28,7 +28,7 @@ interface LoginUsers extends VDF.VDFObject {
 	users: Record<string, SteamUserInfo>
 }
 interface Manifest extends VDF.VDFObject {
-	AppState: {
+	appstate: {
 		appId: string;
 		name: string;
 		installdir: string;
@@ -104,7 +104,7 @@ class Steam implements IInitialable {
 		if (!exsist(cfg_path)) return null;
 
 		const raw_cfg = await readFile(cfg_path, "utf-8");
-		const users = VDF.parse<SteamConfig>(raw_cfg).InstallConfigStore.AuthorizedDevice;
+		const users = VDF.parse<SteamConfig>(raw_cfg).installconfigstore.authorizeddevice;
 
 		let time: number = 0;
 		let rawUserId: string = '';

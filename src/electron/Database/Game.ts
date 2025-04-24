@@ -215,7 +215,7 @@ class Game extends Database.Model implements IGame {
 				if (!app_manifest) continue;
 
 				if (await Game.get(appId)) continue;
-				const { name } = app_manifest.AppState;
+				const { name } = app_manifest.appstate;
 				const game = await Game.create(appId, name, library.path);
 				game.addTimestamp = scan_time;
 				game.save();
