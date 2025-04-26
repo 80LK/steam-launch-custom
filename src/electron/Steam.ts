@@ -68,11 +68,6 @@ class Steam implements IInitialable {
 		}
 		return "";
 	}
-	private static setKey(register: Registry.Registry, key: string, value: string) {
-		return new Promise<void>(r => register.get(key, (_, item) => {
-			register.set(item.name, item.type, value, _ => r())
-		}));
-	}
 
 	private constructor() { }
 	private _path: string = "";
@@ -180,18 +175,6 @@ class Steam implements IInitialable {
 		}
 
 		return 0;
-	}
-
-	private async resetPIDFromRegistry() {
-		const keys = process.arch == "x64" ? [Steam.RegisterKey64, Steam.RegisterKey32] : [Steam.RegisterKey32, Steam.RegisterKey64];
-
-		for (const key of keys) {
-			if (!await Steam.existKey(key, Steam.RegisterPIDKey)) continue;
-
-			let pid = await Steam.getKey(key, Steam.RegisterPIDKey);
-			if (pid == "0") return;
-			return Steam.setKey(key, Steam.RegisterPIDKey, "0")
-		}
 	}
 
 	private localConfig: LocalConfig | null = null;
@@ -313,9 +296,8 @@ class Steam implements IInitialable {
 
 		this.localConfig = null;
 
-		const proc = spawn('powershell', ['-Command', `&{$process = Get-Process -Id ${pid};Stop-Process $process;$process.WaitForExit();$process.Close()}`]);
+		const proc = spawn('powershell', ['-Command', `&{$process = Get-Process -Id ${pid};start steam://exit;$process.WaitForExit();$process.Close()}`]);
 		await new Promise<void>(r => proc.on('close', () => r()))
-		await this.resetPIDFromRegistry();
 	}
 
 	public async isRunning() {
