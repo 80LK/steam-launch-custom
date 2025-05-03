@@ -12,6 +12,7 @@ import Updater from './Updater';
 import LaunchWindow from './Window/LaunchWindow';
 import Spawn from './Spawn';
 import Logger from './Logger';
+import Configure from './Configure';
 
 // process.argv.push('--launch=41700');
 
@@ -33,7 +34,8 @@ const app = App.create(isLaunch ? LaunchWindow : MainWindow)
 		Settings.IPC,
 		Logger.IPC,
 		Game.IPC,
-		Launch.IPC
+		Launch.IPC,
+		Configure.IPC
 	)
 	.addProtocols(image);
 
@@ -48,18 +50,21 @@ if (isLaunch) {
 		Updater.IPC
 	)
 		.open(async (setmessage) => {
-
 			setmessage("init.scan")
 			const FIRST_LAUNCH_KEY = 'firstLaunch';
 			const firstLaunch = await Settings.getBoolean(FIRST_LAUNCH_KEY, false);
 			if (!firstLaunch) {
 				await Game.scan()
 				Settings.setBoolean(FIRST_LAUNCH_KEY, true);
-				return;
+			} else {
+				const scanLaunch = await Settings.getBoolean(SCAN_GAME_IN_LAUNCH_KEY, false);
+				if (scanLaunch) await Game.scan();
 			}
 
-			const scanLaunch = await Settings.getBoolean(SCAN_GAME_IN_LAUNCH_KEY, false);
-			if (scanLaunch) await Game.scan();
+			Configure.init();
+
+			const games = await Game.needWrite();
+			Configure.editGames(games);
 		});
 }
 

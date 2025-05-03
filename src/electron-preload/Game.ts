@@ -14,10 +14,10 @@ namespace Game {
 		return ipcRenderer.invoke(Messages.scan);
 	}
 
-	export function configure(id: number): Promise<boolean> {
+	export function configure(id: number): Promise<IGame> {
 		return ipcRenderer.invoke(Messages.configure, id);
 	}
-	export function resetConfigure(id: number): Promise<boolean> {
+	export function resetConfigure(id: number): Promise<IGame> {
 		return ipcRenderer.invoke(Messages.resetConfigure, id);
 	}
 

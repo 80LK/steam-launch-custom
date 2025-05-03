@@ -4,7 +4,7 @@ import { useI18n } from "vue-i18n";
 import { useTheme } from "vuetify";
 import { SCAN_GAME_IN_LAUNCH_KEY } from '@shared/Game';
 import { ref, watch } from "vue";
-import { USE_APPINFO } from "@shared/Steam";
+import { USE_APPINFO } from "@shared/Configure";
 
 const THEME_OLD_STORE_KEY = 'isDark';
 const LOCALE_OLD_STORE_KEY = 'en';
@@ -91,7 +91,7 @@ const useSettings = defineStore('settings', () => {
 		},
 		useAppInfo: {
 			value: useAppInfo,
-			set: (value: boolean | null) => {
+			set(value: boolean | null) {
 				useAppInfo.value = value || false;
 				edit(USE_APPINFO, useAppInfo.value)
 			}

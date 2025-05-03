@@ -7,11 +7,11 @@ import Container, { Done } from '@components/Container.vue';
 import GameCard from "@components/Game/Card.vue";
 import TextField from "@components/Input/TextField.vue";
 import { ref, useTemplateRef } from "vue";
-import { IGame } from "@shared/Game";
 import useGamesStore from "@store/games";
+import useSettings from "@store/settings";
 
 const store = useGamesStore();
-const games = ref([] as IGame[]);
+const { useAppInfo } = useSettings();
 
 const search = ref(null as string | null);
 const filterInstalled = ref(false);
@@ -19,25 +19,22 @@ const filterFavourites = ref(false);
 const filterConfigured = ref(false);
 
 const container = useTemplateRef('container');
-let total = 0;
 const limit = 12;
 
 async function loadGames(done: Done) {
 	await scaned();
-	const items = await store.getAll(total, limit, search.value, {
+	const loaded = await store.load(limit, {
+		search: search.value,
 		stared: filterFavourites.value,
 		installed: filterInstalled.value,
 		configured: filterConfigured.value
 	});
-	games.value = games.value.concat(items);
-	total += items.length;
-	done(items.length < limit ? 'empty' : 'ok');
+	done(loaded < limit ? 'empty' : 'ok');
 }
 
 function resetGames() {
-	games.value = [];
-	total = 0;
 	container.value?.reset();
+	store.reset();
 }
 
 function searching() {
@@ -90,14 +87,15 @@ async function scan() {
 					active-color="#c16100">
 					{{ $t('main.favourites') }}
 				</ToggleBtn>
-				<ToggleBtn :icon="mdiCog" v-model="filterConfigured" @update:model-value="searching">
+				<ToggleBtn :icon="mdiCog" v-model="filterConfigured" @update:model-value="searching"
+					v-if="!useAppInfo.value">
 					{{ $t('main.configured') }}
 				</ToggleBtn>
 			</div>
 		</template>
 
 		<div :class="$style.grid">
-			<GameCard v-for="i in games" :game="i" :key="i.id" />
+			<GameCard v-for="i in store.feed" :game="i" :key="i.id" />
 		</div>
 	</Container>
 </template>
