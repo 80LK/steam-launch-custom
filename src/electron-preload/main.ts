@@ -7,6 +7,7 @@ import Launch from './Launch';
 import Updater from './Updater';
 import Steam from './Steam';
 import Logger from './Logger';
+import Configure from './Configure';
 
 contextBridge.exposeInMainWorld('App', App);
 contextBridge.exposeInMainWorld('SystemBar', SystemBar);
@@ -16,3 +17,4 @@ contextBridge.exposeInMainWorld('Launch', Launch);
 contextBridge.exposeInMainWorld('Updater', Updater);
 contextBridge.exposeInMainWorld('Steam', Steam);
 contextBridge.exposeInMainWorld('Logger', Logger);
+contextBridge.exposeInMainWorld('Configure', Configure);

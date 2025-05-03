@@ -24,8 +24,10 @@ class Settings extends Database.Model {
 		if (!result) return defaultValue ?? null;
 		return result.value;
 	};
-	public static set(name: string, value: string) {
-		return this.prepare(`INSERT OR REPLACE INTO ${this.DB_NAME} (name, value) values ($name, $value);`).run({ name, value });
+	public static async set(name: string, value: string) {
+		const result = await this.prepare(`INSERT OR REPLACE INTO ${this.DB_NAME} (name, value) values ($name, $value);`).run({ name, value });
+		if (result.changes) this.handleEvent(name, value);
+		return result;
 	};
 
 	//Number
@@ -68,8 +70,33 @@ class Settings extends Database.Model {
 		ipc.handle(Messages.getBoolean, (name: string) => Settings.getBoolean(name));
 		ipc.on(Messages.setBoolean, (name: string, value: boolean) => Settings.setBoolean(name, value));
 	}
-}
 
+	private static events: Map<string, Set<SettingsEventHandler>> = new Map();
+	public static readonly ALL_FIELDS = "*";
+	public static on(field: string, handler: SettingsEventHandler) {
+		const set = this.events.has(field) ? this.events.get(field)! : (() => { const set = new Set<SettingsEventHandler>(); this.events.set(field, set); return set; })();
+		set.add(handler);
+	}
+	public static off(field: string, handle: SettingsEventHandler) {
+		if (!this.events.has(field)) return;
+		this.events.get(field)?.delete(handle);
+	}
+
+	private static handleEvent(field: string, value: string) {
+		let set = this.events.get(field);
+
+		if (set) for (const handler of set.values())
+			handler(field, value);
+
+		set = this.events.get(this.ALL_FIELDS);
+		if (set) for (const handler of set.values())
+			handler(field, value);
+
+	}
+}
+interface SettingsEventHandler {
+	(field: string, value: string): void;
+}
 
 
 export default Settings;

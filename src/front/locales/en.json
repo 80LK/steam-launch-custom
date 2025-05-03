@@ -74,7 +74,9 @@
 		"steam": "Steam",
 		"open": "Open",
 		"close": "Close",
-		"language": "Language"
+		"language": "Language",
+		"use_appinfo": "Use AppInfo.vdf for creating launch options",
+		"use_appinfo_tooltip": "Using AppInfo.vdf requires overwriting the Steam files every time you change the launch options."
 	},
 	"theme": {
 		"dark": "Dark",

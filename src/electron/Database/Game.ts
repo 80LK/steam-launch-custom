@@ -6,6 +6,7 @@ import Steam, { TestLaunch } from "../Steam";
 import { IPCTunnel } from "../IPCTunnel";
 import ImageProtocol from "../Protocol/ImgaeProtocol";
 import App from "../App";
+import Configure from "../Configure";
 
 const steam = Steam.get();
 
@@ -94,7 +95,7 @@ class Game extends Database.Model implements IGame {
 
 		return this.createFromSql(sql_data);
 	};
-	public static async getAll(offset: number = 0, limit: number = 10, search: string | null = null, filters: GameFilter = {}): Promise<Game[]> {
+	public static async getAll(offset: number | undefined = 0, limit: number | undefined = 10, search: string | null = null, filters: GameFilter = {}): Promise<Game[]> {
 		let sql = `SELECT * FROM ${Game.DB_NAME}`;
 		const where = [] as string[];
 
@@ -105,7 +106,10 @@ class Game extends Database.Model implements IGame {
 		if (filters.stared) where.push("stared IS 'true'");
 
 		if (where.length) sql += ` WHERE ${where.join(' AND ')}`;
-		sql += ' ORDER BY stared DESC, installed DESC, configured DESC, addTimestamp DESC, name ASC LIMIT $limit OFFSET $offset;';
+		sql += ' ORDER BY stared DESC, installed DESC, configured DESC, addTimestamp DESC, name ASC';
+		if (limit != null) sql += ' LIMIT $limit';
+		if (offset != null) sql += ' OFFSET $offset';
+		sql += ';';
 
 		const sql_data = await this.prepare<SQLGame>(sql).getAll({
 			offset,
@@ -155,24 +159,29 @@ class Game extends Database.Model implements IGame {
 		await this.save();
 	}
 
-	private async checkConfigured() {
-		if (!this.installed) return;
+	private async checkNeedWrite() {
 		const test = await steam.testLaunchPath(this.id);
 
-		const old_configured = this.configured;
-		const old_needWrite = this.needWrite;
-
 		if (this.configured && this.needWrite && test == TestLaunch.CURRENT) {
-			this.needWrite = false;
+			return false;
 		} else if (this.configured && !this.needWrite && test != TestLaunch.CURRENT) {
-			this.needWrite = true;
+			return true;
 		} else if (!this.configured && this.needWrite && test == TestLaunch.NO) {
-			this.needWrite = false;
+			return false;
 		} else if (!this.configured && !this.needWrite && test != TestLaunch.NO) {
-			this.needWrite = true;
+			return true;
 		}
 
-		if (old_configured != this.configured || old_needWrite != this.needWrite)
+		return this.needWrite;
+	}
+
+	private async checkConfigured() {
+		if (!this.installed) return;
+		const old_needWrite = this.needWrite;
+
+		this.needWrite = await this.checkNeedWrite();
+
+		if (old_needWrite != this.needWrite)
 			await this.save();
 	}
 
@@ -189,7 +198,8 @@ class Game extends Database.Model implements IGame {
 		}
 	}
 
-	private async save() {
+	public async save() {
+		Configure.editGame(this);
 		await Game.prepare(
 			`INSERT OR REPLACE INTO ${Game.DB_NAME} (id, name, stared, addTimestamp, library, installed, configured, needWrite) values ($id, $name, $stared, $addTimestamp, $library, $installed, $configured, $needWrite);`
 		).run({
@@ -224,15 +234,14 @@ class Game extends Database.Model implements IGame {
 	};
 
 	public static async needWrite() {
-		const { c } = await this.prepare<{ c: number }>(`SELECT COUNT(id) as c FROM ${this.DB_NAME} WHERE needWrite = 'true'`).get() || { c: 0 };
-		return c > 0;
+		return await this.prepare<SQLGame>(`SELECT * FROM ${this.DB_NAME} WHERE needWrite = 'true';`).getAll().then(e => Promise.all(e.map(e => this.createFromSql(e))));
 	};
 
 	public static async write() {
 		const steamWasBeenRun = await steam.isRunning();
 		await steam.stop();
 
-		const all_games = await this.prepare<SQLGame>(`SELECT * FROM ${this.DB_NAME} WHERE needWrite = 'true';`).getAll().then(e => Promise.all(e.map(e => this.createFromSql(e))));
+		const all_games = await this.needWrite();
 		const games = all_games.filter(game => game.installed && game.needWrite);
 		const { configured, reset } = all_games.reduce((r, game) => {
 			r[game.configured ? 'configured' : 'reset'].push(game.id);
@@ -277,20 +286,22 @@ class Game extends Database.Model implements IGame {
 		ipc.handle(Messages.scan, () => Game.scan());
 		ipc.handle(Messages.configure, async (id: number) => {
 			const game = await Game.get(id);
-			if (!game) return false;
+			if (!game) return null;
+
 			game.configured = true;
-			game.needWrite = !game.needWrite;
+			game.needWrite = await game.checkNeedWrite();
 			await game.save();
 
-			return game.configured;
+			return game.toJSON();
 		})
 		ipc.handle(Messages.resetConfigure, async (id: number) => {
 			const game = await Game.get(id);
-			if (!game) return false;
+			if (!game) return null;
+
 			game.configured = false;
-			game.needWrite = !game.needWrite;
+			game.needWrite = await game.checkNeedWrite();
 			await game.save();
-			return !game.configured;
+			return game.toJSON();
 		})
 
 		ipc.handle(Messages.needWrite, () => Game.needWrite());

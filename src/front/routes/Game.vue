@@ -11,11 +11,13 @@ import useGamesStore from '@store/games';
 import useLaunchStore from '@store/launch';
 import { computed, ref, useTemplateRef } from 'vue';
 import { useRoute } from 'vue-router';
+import useSettings from '@store/settings';
 
 const rawGameId = useRoute().params.gameId;
 const gameId = parseInt(Array.isArray(rawGameId) ? rawGameId[0] : rawGameId)
 
 const gameStore = useGamesStore();
+const settings = useSettings();
 const game = gameStore.get(gameId);
 function gameConfigure() {
 	gameStore.configure(game.id);
@@ -24,9 +26,11 @@ function resetConfigure() {
 	gameStore.resetConfigure(game.id);
 }
 
+const configured = computed(() => settings.useAppInfo.value ? true : game.configured);
+
 const launchStore = useLaunchStore();
 const launchs = ref([] as ILaunch[]);
-const hasLaucnhs = computed(() => game.configured && launchs.value.length > 0)
+const hasLaucnhs = computed(() => configured && launchs.value.length > 0)
 
 let total = 0;
 const limit = 2;
@@ -59,7 +63,7 @@ function delet(launch_id: number) {
 </script>
 
 <template>
-	<Container padding="0" @load="loadLaunchs" ref="container" :is-infinite-scroll="game.configured">
+	<Container padding="0" @load="loadLaunchs" ref="container" :is-infinite-scroll="configured">
 		<template v-slot:header>
 			<Header :game="game">
 				<template v-slot:toolbar-prepare>
@@ -74,9 +78,9 @@ function delet(launch_id: number) {
 					{{ $t('game.launch') }}
 				</v-btn>
 
-				<div v-if="game.configured" :class="$style.add">
+				<div v-if="configured" :class="$style.add">
 					<v-btn :icon="mdiClose" color="error" v-tooltip:start="$t('game.reset_configure')"
-						@click="resetConfigure" />
+						@click="resetConfigure" v-if="!settings.useAppInfo.value" />
 					<v-btn :icon="mdiPlus" color="primary" v-tooltip:start="$t('game.add_launch')"
 						@click="editor?.create(game.id)" />
 				</div>
@@ -85,7 +89,7 @@ function delet(launch_id: number) {
 		</template>
 
 		<div v-if="!hasLaucnhs" :class="$style.center">
-			<v-btn v-if="!game.configured" tile size="x-large" color="success" @click="gameConfigure">
+			<v-btn v-if="!configured" tile size="x-large" color="success" @click="gameConfigure">
 				{{ $t('game.configure') }}
 			</v-btn>
 			<span v-else class="text-h6">

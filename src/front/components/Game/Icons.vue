@@ -2,10 +2,12 @@
 import { mdiCog, mdiDownload, mdiDownloadOff, mdiStar, mdiStarOutline } from '@mdi/js';
 import { IGame } from "@shared/Game";
 import useGamesStore from '@store/games';
+import useSettings from '@store/settings';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 const { game } = defineProps<{ game: IGame }>()
 const store = useGamesStore();
+const { useAppInfo } = useSettings()
 const { t } = useI18n();
 
 const installedIcon = computed(() => game.installed ? mdiDownload : mdiDownloadOff);
@@ -35,7 +37,7 @@ function star(event: PointerEvent) {
 <template>
 	<div>
 		<v-icon :icon="installedIcon" :color="installedColor" v-tooltip="installedTooltip" />
-		<v-icon :icon="mdiCog" :color="configuredColor" v-tooltip="configuredTooltip" />
+		<v-icon :icon="mdiCog" :color="configuredColor" v-tooltip="configuredTooltip" v-if="!useAppInfo.value" />
 		<v-icon :icon="isFavoriteIcon" :color="isFavoriteColor" v-tooltip="$t('game.favourites')" @click="star" />
 	</div>
 </template>

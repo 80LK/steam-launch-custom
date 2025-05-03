@@ -12,6 +12,7 @@ import Updater from './Updater';
 import LaunchWindow from './Window/LaunchWindow';
 import Spawn from './Spawn';
 import Logger from './Logger';
+import Configure from './Configure';
 
 // process.argv.push('--launch=41700');
 
@@ -45,21 +46,22 @@ if (isLaunch) {
 } else {
 	app.useIPC(
 		Steam.IPC,
-		Updater.IPC
+		Updater.IPC,
+		Configure.IPC
 	)
 		.open(async (setmessage) => {
-
 			setmessage("init.scan")
 			const FIRST_LAUNCH_KEY = 'firstLaunch';
 			const firstLaunch = await Settings.getBoolean(FIRST_LAUNCH_KEY, false);
 			if (!firstLaunch) {
 				await Game.scan()
 				Settings.setBoolean(FIRST_LAUNCH_KEY, true);
-				return;
+			} else {
+				const scanLaunch = await Settings.getBoolean(SCAN_GAME_IN_LAUNCH_KEY, false);
+				if (scanLaunch) await Game.scan();
 			}
 
-			const scanLaunch = await Settings.getBoolean(SCAN_GAME_IN_LAUNCH_KEY, false);
-			if (scanLaunch) await Game.scan();
+			Configure.init();
 		});
 }
 

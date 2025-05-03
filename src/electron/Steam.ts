@@ -74,6 +74,9 @@ class Steam implements IInitialable {
 	public get path() {
 		return this._path;
 	}
+	public get pathToAppInfo() {
+		return resolve(this._path, "appcache/appinfo.vdf")
+	}
 
 	private library: string = "";
 	public async getLibraries() {

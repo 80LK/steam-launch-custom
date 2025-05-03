@@ -13,9 +13,11 @@ import Spawn from "../Spawn";
 import BaseWindow from "../Window/BaseWindow";
 import Logger from "../Logger";
 import { dirname } from "path";
+import Configure from "../Configure";
 
-type SQLLaunch = Omit<ILaunch, 'launch'> & { launch: string };
 
+
+type SQLLaunch = Omit<ILaunch, 'launch'> & { launch: string, state: Launch.SteamState };
 class Launch extends Database.Model implements ILaunch {
 	id: number = 0;
 	game_id: number = 0;
@@ -23,6 +25,7 @@ class Launch extends Database.Model implements ILaunch {
 	name: string = "";
 	launch: string[] = [];
 	workdir: string = "";
+	state: Launch.SteamState = Launch.SteamState.NEED_ADD;
 	public get image(): string {
 		return ImageProtocol.getIcon(this);
 	}
@@ -39,7 +42,7 @@ class Launch extends Database.Model implements ILaunch {
 
 	private static readonly DB_NAME: string = "launch";
 	private static readonly DB_VER_KEY: string = "launch-db-ver";
-	private static readonly DB_VER: number = 1;
+	private static readonly DB_VER: number = 2;
 
 	private static async createFromSQL(raw: SQLLaunch): Promise<Launch> {
 		const launch = new this();
@@ -49,6 +52,7 @@ class Launch extends Database.Model implements ILaunch {
 		launch.name = raw.name;
 		launch.launch = JSON.parse(raw.launch) || [];
 		launch.workdir = raw.workdir;
+		launch.state = raw.state;
 
 		if (!await exsist(ImageProtocol.getFileIcon(launch.game_id, launch.id)))
 			await launch.generateIcon();
@@ -57,35 +61,46 @@ class Launch extends Database.Model implements ILaunch {
 	}
 
 	public static async getForGame(game_id: number, offset: number = 0, limit: number = 10) {
-		const raw_games = await this.prepare<SQLLaunch>(`SELECT id, game_id, name, execute, launch, workdir FROM ${this.DB_NAME} WHERE game_id = $game_id LIMIT $limit OFFSET $offset;`).getAll({ game_id, offset, limit });
+		const raw_games = await this.prepare<SQLLaunch>(`SELECT * FROM ${this.DB_NAME} WHERE game_id = $game_id AND state != $state LIMIT $limit OFFSET $offset;`).getAll({ game_id, offset, limit, state: Launch.SteamState.NEED_DELETE });
 		return await Promise.all(raw_games.map(e => this.createFromSQL(e)));
 	}
 
+	public static async getGameIDs() {
+		return await this.prepare<Pick<SQLLaunch, 'game_id'>>(`SELECT DISTINCT game_id FROM ${this.DB_NAME}`).getAll().then(e => e.map(({ game_id }) => game_id));
+
+	}
+	public static async getAllForGame(game_id: number) {
+		return await this.prepare<SQLLaunch>(`SELECT * FROM ${this.DB_NAME} WHERE game_id = $game_id ORDER BY id ASC`).getAll({ game_id }).then(e => Promise.all(e.map(e => this.createFromSQL(e))));
+	}
+
 	public static async get(id: number) {
-		const raw_game = await this.prepare<SQLLaunch>(`SELECT id, game_id, name, execute, launch, workdir FROM ${this.DB_NAME} WHERE id = $id`).get({ id });
+		const raw_game = await this.prepare<SQLLaunch>(`SELECT * FROM ${this.DB_NAME} WHERE id = $id`).get({ id });
 		if (!raw_game) return null;
 		return await this.createFromSQL(raw_game);
 	}
+
 
 	public async save() {
 		const game_id = this.game_id,
 			name = this.name,
 			execute = this.execute,
 			workdir = this.workdir,
-			launch = JSON.stringify(this.launch);
+			launch = JSON.stringify(this.launch),
+			state = this.state;
 
 		if (this.id == 0) {
-			const res = await Launch.prepare(`INSERT INTO ${Launch.DB_NAME} (game_id, name, execute, launch, workdir) values ($game_id, $name, $execute, $launch, $workdir);`)
-				.run({ game_id, name, launch, execute, workdir });
+			const res = await Launch.prepare(`INSERT INTO ${Launch.DB_NAME} (game_id, name, execute, launch, workdir, state) values ($game_id, $name, $execute, $launch, $workdir, $state);`)
+				.run({ game_id, name, launch, execute, workdir, state });
 			this.id = res.lastID;
 		} else {
 			await Launch.prepare(
-				`UPDATE ${Launch.DB_NAME} SET name = $name, execute = $execute, workdir = $workdir, launch = $launch WHERE id = $id AND game_id = $game_id;`
+				`UPDATE ${Launch.DB_NAME} SET name = $name, execute = $execute, workdir = $workdir, launch = $launch WHERE id = $id AND game_id = $game_id AND state = $state;`
 			).run(
-				{ id: this.id, game_id, name, launch, execute, workdir }
+				{ id: this.id, game_id, name, launch, execute, workdir, state }
 			);
 		}
 
+		Configure.editLaunch(this);
 		await this.generateIcon();
 
 		return this;
@@ -93,6 +108,8 @@ class Launch extends Database.Model implements ILaunch {
 
 	public remove() {
 		rm(ImageProtocol.getFileIcon(this.game_id, this.id));
+		this.state = Launch.SteamState.READY;
+		Configure.editLaunch(this);
 		return Launch.prepare(`DELETE FROM ${Launch.DB_NAME} WHERE id = $id AND game_id = $game_id`)
 			.run({
 				id: this.id,
@@ -115,31 +132,41 @@ class Launch extends Database.Model implements ILaunch {
 	public static async init() {
 		const exsist = await Launch.prepare<{ name: string }>("SELECT name FROM sqlite_master WHERE type='table' AND name = $name LIMIT 1;").get({ name: Launch.DB_NAME });
 		if (exsist) {
-			const LEGACY_KEY = "launch_db_version";
 			const vers = await Settings.getNumber(Launch.DB_VER_KEY, 0);
 			if (vers == Launch.DB_VER) return;
 
-			const legacy_vers = await Settings.getNumber(LEGACY_KEY, 0);
-			if (legacy_vers) await Settings.delete(LEGACY_KEY);
-			switch (legacy_vers) {
-				case 0: {
-					const launchs = (await Launch.prepare<SQLLaunch>(`SELECT * FROM ${Launch.DB_NAME}`).getAll());
-					const state = this.prepare(`UPDATE ${this.DB_NAME} SET launch = $launch WHERE id = $id AND game_id = $game_id`);
-					await Promise.all(launchs.map(launch => {
-						if (launch.launch == '') launch.launch = '[]';
-						else launch.launch = JSON.stringify(launch.launch.split(' '));
-						return state.run({ launch: launch.launch, game_id: launch.game_id, id: launch.id });
-					}));
-				} break;
+			if (vers == 0) {
+				const LEGACY_KEY = "launch_db_version";
+				const legacy_vers = await Settings.getNumber(LEGACY_KEY, 0);
+				if (legacy_vers) await Settings.delete(LEGACY_KEY);
+				switch (legacy_vers) {
+					case 0: {
+						const launchs = (await Launch.prepare<SQLLaunch>(`SELECT * FROM ${Launch.DB_NAME}`).getAll());
+						const state = this.prepare(`UPDATE ${this.DB_NAME} SET launch = $launch WHERE id = $id AND game_id = $game_id`);
+						await Promise.all(launchs.map(launch => {
+							if (launch.launch == '') launch.launch = '[]';
+							else launch.launch = JSON.stringify(launch.launch.split(' '));
+							return state.run({ launch: launch.launch, game_id: launch.game_id, id: launch.id });
+						}));
+						await this.prepare(`ALTER TABLE ${this.DB_NAME} ADD COLUMN state INT;`).run()
+						await this.prepare(`UPDATE ${this.DB_NAME} SET state = $state`, { state: Launch.SteamState.NEED_ADD }).run();
+					} break;
 
-				case 1: {
-					const launchs = (await Launch.prepare<SQLLaunch>(`SELECT * FROM ${Launch.DB_NAME} WHERE launch NOT LIKE $launch`).getAll({ launch: '[%' }));
-					const state = this.prepare(`UPDATE ${this.DB_NAME} SET launch = $launch WHERE id = $id AND game_id = $game_id`);
-					await Promise.all(launchs.map(launch => {
-						launch.launch = JSON.stringify(launch.launch.split(' '));
-						return state.run({ launch: launch.launch, game_id: launch.game_id, id: launch.id });
-					}));
-				} break;
+					case 1: {
+						const launchs = (await Launch.prepare<SQLLaunch>(`SELECT * FROM ${Launch.DB_NAME} WHERE launch NOT LIKE $launch`).getAll({ launch: '[%' }));
+						const state = this.prepare(`UPDATE ${this.DB_NAME} SET launch = $launch WHERE id = $id AND game_id = $game_id`);
+						await Promise.all(launchs.map(launch => {
+							launch.launch = JSON.stringify(launch.launch.split(' '));
+							return state.run({ launch: launch.launch, game_id: launch.game_id, id: launch.id });
+						}));
+
+						await this.prepare(`ALTER TABLE ${this.DB_NAME} ADD COLUMN state INT;`).run()
+						await this.prepare(`UPDATE ${this.DB_NAME} SET state = $state`, { state: Launch.SteamState.NEED_ADD }).run();
+					} break;
+				}
+			} else if (vers == 1) {
+				await this.prepare(`ALTER TABLE ${this.DB_NAME} ADD COLUMN state INT;`).run()
+				await this.prepare(`UPDATE ${this.DB_NAME} SET state = $state`, { state: Launch.SteamState.NEED_ADD }).run();
 			}
 		} else {
 			await Launch.prepare(`CREATE TABLE ${Launch.DB_NAME} (
@@ -148,7 +175,8 @@ class Launch extends Database.Model implements ILaunch {
 				name VARCHAR(255),
 				execute TEXT,
 				launch TEXT,
-				workdir TEXT
+				workdir TEXT,
+				state INT 
 			);`).run();
 		}
 		await Settings.setNumber(Launch.DB_VER_KEY, Launch.DB_VER);
@@ -171,15 +199,15 @@ class Launch extends Database.Model implements ILaunch {
 
 	public static IPC(win: BaseWindow, ipc: IPCTunnel) {
 		ipc.handle(Messages.getForGame, async (game_id: number, offset: number, limit: number) => (await Launch.getForGame(game_id, offset, limit)).map(e => e.toJSON()))
-		ipc.handle(Messages.create, async (launch: ILaunch) => {
-			const new_launch = new Launch();
-			new_launch.game_id = launch.game_id;
-			new_launch.name = launch.name;
-			new_launch.execute = launch.execute;
-			new_launch.launch = launch.launch;
-			new_launch.workdir = launch.workdir;
-			await new_launch.save();
-			return new_launch.toJSON();
+		ipc.handle(Messages.create, async (ilaunch: ILaunch) => {
+			const launch = new Launch();
+			launch.game_id = ilaunch.game_id;
+			launch.name = ilaunch.name;
+			launch.execute = ilaunch.execute;
+			launch.launch = ilaunch.launch;
+			launch.workdir = ilaunch.workdir;
+			launch.state = Launch.SteamState.NEED_ADD;
+			return (await launch.save()).toJSON();
 		})
 		ipc.handle(Messages.edit, async (ilaunch: ILaunch) => {
 			const launch = await Launch.get(ilaunch.id);
@@ -188,12 +216,19 @@ class Launch extends Database.Model implements ILaunch {
 			launch.execute = ilaunch.execute;
 			launch.launch = ilaunch.launch;
 			launch.workdir = ilaunch.workdir;
+			launch.state = Launch.SteamState.NEED_EDIT;
 			return (await launch.save()).toJSON();
 		})
 		ipc.handle(Messages.remove, async (launch_id: number) => {
 			const launch = await Launch.get(launch_id);
 			if (!launch) return false;
-			await launch.remove();
+			if (launch.state == Launch.SteamState.NEED_ADD) {
+				launch.state = Launch.SteamState.READY;
+				await launch.remove()
+			} else {
+				launch.state = Launch.SteamState.NEED_DELETE;
+				await launch.save();
+			}
 			return true;
 		});
 		ipc.handle(Messages.getCurrentLaunch, () => Launch.getCurrentLaunch());
@@ -205,6 +240,14 @@ class Launch extends Database.Model implements ILaunch {
 			win.webContents.close();
 			return true;
 		});
+	}
+}
+namespace Launch {
+	export enum SteamState {
+		NEED_ADD = 0,
+		READY = 1,
+		NEED_EDIT = 2,
+		NEED_DELETE = 3
 	}
 }
 

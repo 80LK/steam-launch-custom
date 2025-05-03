@@ -9,8 +9,10 @@ import { ref } from "vue";
 const settings = useSettings();
 const appDataPath = ref('');
 const steamPath = ref('');
+const canUseAppInfo = ref(true);
 App.getAppData().then(value => appDataPath.value = value);
 Steam.getPath().then(value => steamPath.value = value);
+Configure.canUseAppInfo().then(value => canUseAppInfo.value = value)
 function copyPath(path: string) {
 	navigator.clipboard.writeText(path);
 }
@@ -37,10 +39,15 @@ function openPath(path: string) {
 						:model-value="settings.theme.current" @update:model-value="settings.theme.set" force-label />
 
 					<Select :label="$t('settings.language')" :items="settings.locale.available"
-						:model-value="settings.locale.current" @update:model-value="settings.locale.set" force-label />
+						:model-value="settings.locale.current" @update:model-value="settings.locale.set" force-label
+						hide-details />
 
 					<Switch :label="$t('settings.scan_every_launch')" :model-value="settings.scanGameLaunch.value"
-						color="primary" @update:model-value="settings.scanGameLaunch.set" />
+						color="primary" @update:model-value="settings.scanGameLaunch.set" hide-details />
+
+					<Switch :label="$t('settings.use_appinfo')" :model-value="settings.useAppInfo.value" color="primary"
+						@update:model-value="settings.useAppInfo.set"
+						v-tooltip:bottom-start="$t('settings.use_appinfo_tooltip')" v-if="canUseAppInfo" />
 
 					<TextField readonly :label="$t('settings.appdata')" v-model="appDataPath" forceLabel>
 						<template v-slot:append-inner>

@@ -4,6 +4,7 @@ import { useI18n } from "vue-i18n";
 import { useTheme } from "vuetify";
 import { SCAN_GAME_IN_LAUNCH_KEY } from '@shared/Game';
 import { ref, watch } from "vue";
+import { USE_APPINFO } from "@shared/Configure";
 
 const THEME_OLD_STORE_KEY = 'isDark';
 const LOCALE_OLD_STORE_KEY = 'en';
@@ -22,6 +23,7 @@ const useSettings = defineStore('settings', () => {
 	});
 
 	const scanGameLaunch = ref(false);
+	const useAppInfo = ref(false);
 
 	function init() {
 		let cachedTheme: string | null = localStorage.getItem(THEME_STORE_KEY);
@@ -38,6 +40,7 @@ const useSettings = defineStore('settings', () => {
 		locale.value = cachedLocale || 'en';
 
 		Settings.getBoolean(SCAN_GAME_IN_LAUNCH_KEY, false).then(v => scanGameLaunch.value = v);
+		Settings.getBoolean(USE_APPINFO, false).then(v => useAppInfo.value = v);
 		Settings.get(THEME_STORE_KEY, 'light').then(value => setTheme(value));
 		Settings.get(LOCALE_STORE_KEY, 'en').then(value => setLocale(value));
 	}
@@ -85,6 +88,13 @@ const useSettings = defineStore('settings', () => {
 			available: availableThemes,
 			current: theme.global.name,
 			set: setTheme
+		},
+		useAppInfo: {
+			value: useAppInfo,
+			set(value: boolean | null) {
+				useAppInfo.value = value || false;
+				edit(USE_APPINFO, useAppInfo.value)
+			}
 		},
 		scanGameLaunch: {
 			value: scanGameLaunch,
