@@ -37,10 +37,15 @@ function openPath(path: string) {
 						:model-value="settings.theme.current" @update:model-value="settings.theme.set" force-label />
 
 					<Select :label="$t('settings.language')" :items="settings.locale.available"
-						:model-value="settings.locale.current" @update:model-value="settings.locale.set" force-label />
+						:model-value="settings.locale.current" @update:model-value="settings.locale.set" force-label
+						hide-details />
 
 					<Switch :label="$t('settings.scan_every_launch')" :model-value="settings.scanGameLaunch.value"
-						color="primary" @update:model-value="settings.scanGameLaunch.set" />
+						color="primary" @update:model-value="settings.scanGameLaunch.set" hide-details />
+
+					<Switch :label="$t('settings.use_appinfo')" :model-value="settings.useAppInfo.value" color="primary"
+						@update:model-value="settings.useAppInfo.set"
+						v-tooltip:bottom-start="$t('settings.use_appinfo_tooltip')" />
 
 					<TextField readonly :label="$t('settings.appdata')" v-model="appDataPath" forceLabel>
 						<template v-slot:append-inner>

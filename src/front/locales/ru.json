@@ -74,7 +74,9 @@
 		"steam": "Steam",
 		"open": "Открыть",
 		"close": "Закрыть",
-		"language": "Язык"
+		"language": "Язык",
+		"use_appinfo": "Использовать AppInfo.vdf для создания вариантов запуска",
+		"use_appinfo_tooltip": "Использование AppInfo.vdf требует перезаписывания файлов Steam при каждом изменении вариантов запуска."
 	},
 	"theme": {
 		"dark": "Темная",
