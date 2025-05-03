@@ -3,37 +3,59 @@ import { IPCTunnel } from "./IPCTunnel";
 import { name, author, version as CURRENT_VERSION } from "../../package.json";
 import { app as electron } from "electron";
 import Settings from "./Database/Settings";
-import { CheckResult, Messages, UpdateState } from "@shared/Updater";
+import { CHECK_PRERELEASE_KEY, CheckResult, isCheckResult, Messages, UpdateState } from "@shared/Updater";
 import { createWriteStream } from "fs";
 import { spawn } from "child_process";
 import exsist from "@utils/exists";
 import Logger from "./Logger";
+import Version from "./Version";
 
 interface GitHubAsset {
 	browser_download_url: string;
 	name: string;
 }
 interface Release {
+	url: string;
 	tag_name: string;
 	assets: GitHubAsset[];
 }
 
 class Updater {
 	private static readonly PATH = getAppDataFilePath('update.exe');
-	private static readonly SETTINGS_KEY = "update_downloaded";
+	private static readonly DOWNLOADED_KEY = "update_downloaded";
 
 	private state: UpdateState = UpdateState.NO;
 	private asset: string | null = null;
-	private version: string = CURRENT_VERSION;
+	private current: Version = Version.createFromString(CURRENT_VERSION);
+	private available: Version = Version.createFromString(CURRENT_VERSION);
+
+	private async getLastRelease(): Promise<Release | CheckResult> {
+		const check_prerelease = await Settings.getBoolean(CHECK_PRERELEASE_KEY, false);
+		let request: Response;
+		if (!check_prerelease) {
+			request = await fetch(`https://api.github.com/repos/${author}/${name}/releases/latest`);
+		} else {
+			request = await fetch(`https://api.github.com/repos/${author}/${name}/releases`);;
+			if (request.status != 200) return this.set(UpdateState.NO)
+			const releases = await request.json() as Release[];
+			request = await fetch(releases[0].url);
+		}
+
+		if (request.status != 200) return this.set(UpdateState.NO)
+		return await request.json() as Release;
+	}
 
 	private async check(): Promise<CheckResult> {
 		if (DEV) return this.set(UpdateState.NO);
 
-		const request = await fetch(`https://api.github.com/repos/${author}/${name}/releases/latest`);
-		if (request.status != 200) return this.set(UpdateState.NO);
-		const release: Release = await request.json() as Release;
-		const version = release.tag_name;
-		if (version == CURRENT_VERSION)
+		const release = await this.getLastRelease();
+		if (isCheckResult(release)) return release;
+
+		console.log("Found version:", release.tag_name)
+		const version = Version.createFromString(release.tag_name);
+		console.log("Found version:", version)
+
+		if (this.current.compare(version) >= Version.Compare.EQUAL)
 			return this.set(UpdateState.NO);
 
 		if (await this.checkDownloaded(version))
@@ -47,18 +69,19 @@ class Updater {
 		return this.set(UpdateState.HAVE, version);
 	}
 
-	private async checkDownloaded(version: string) {
+	private async checkDownloaded(version: Version) {
 		if (!await exsist(Updater.PATH)) return false;
 
-		const downloaded = await Settings.get(Updater.SETTINGS_KEY);
-		return downloaded == version;
+		const downloaded = await Settings.get(Updater.DOWNLOADED_KEY);
+		return version.toString() == downloaded;
 	}
 
-	private set(state: UpdateState, version?: string): CheckResult {
-		if (version) this.version = version;
-		else version = this.version;
+	private set(state: UpdateState, version?: Version): CheckResult {
+		if (version) this.available = version;
+		else version = this.available;
+
 		this.state = state;
-		return { state, version }
+		return { state, version: version.toString() }
 	}
 
 	private async download(): Promise<boolean> {
@@ -78,7 +101,7 @@ class Updater {
 
 			await new Promise<void>(r => update_file.write(value, () => r()));
 		}
-		await Settings.set(Updater.SETTINGS_KEY, this.version);
+		await Settings.set(Updater.DOWNLOADED_KEY, this.available.toString());
 		this.set(UpdateState.DOWNLOADED);
 		return true;
 	}
