@@ -5,6 +5,7 @@ import { useTheme } from "vuetify";
 import { SCAN_GAME_IN_LAUNCH_KEY } from '@shared/Game';
 import { ref, watch } from "vue";
 import { USE_APPINFO } from "@shared/Configure";
+import { CHECK_PRERELEASE_KEY } from "@shared/Updater";
 
 const THEME_OLD_STORE_KEY = 'isDark';
 const LOCALE_OLD_STORE_KEY = 'en';
@@ -24,6 +25,7 @@ const useSettings = defineStore('settings', () => {
 
 	const scanGameLaunch = ref(false);
 	const useAppInfo = ref(false);
+	const checkPreRelease = ref(false);
 
 	function init() {
 		let cachedTheme: string | null = localStorage.getItem(THEME_STORE_KEY);
@@ -101,6 +103,13 @@ const useSettings = defineStore('settings', () => {
 			set: (value: boolean | null) => {
 				scanGameLaunch.value = value || false;
 				edit(SCAN_GAME_IN_LAUNCH_KEY, scanGameLaunch.value)
+			}
+		},
+		checkPreRelease: {
+			value: checkPreRelease,
+			set: (value: boolean | null) => {
+				checkPreRelease.value = value || false;
+				edit(CHECK_PRERELEASE_KEY, checkPreRelease.value)
 			}
 		},
 		locale: {

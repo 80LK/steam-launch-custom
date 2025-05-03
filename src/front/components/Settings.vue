@@ -46,8 +46,11 @@ function openPath(path: string) {
 						color="primary" @update:model-value="settings.scanGameLaunch.set" hide-details />
 
 					<Switch :label="$t('settings.use_appinfo')" :model-value="settings.useAppInfo.value" color="primary"
-						@update:model-value="settings.useAppInfo.set"
+						@update:model-value="settings.useAppInfo.set" hide-details
 						v-tooltip:bottom-start="$t('settings.use_appinfo_tooltip')" v-if="canUseAppInfo" />
+
+					<Switch :label="$t('settings.check_prerelease')" :model-value="settings.checkPreRelease.value"
+						color="primary" @update:model-value="settings.checkPreRelease.set" />
 
 					<TextField readonly :label="$t('settings.appdata')" v-model="appDataPath" forceLabel>
 						<template v-slot:append-inner>

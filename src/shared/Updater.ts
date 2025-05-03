@@ -6,6 +6,10 @@ enum Messages {
 
 type CheckResult = { state: UpdateState; version: string; }
 
+function isCheckResult(a: any): a is CheckResult {
+	return typeof a == "object" && a.hasOwnProperty('state') && a.hasOwnProperty('version');
+}
+
 enum UpdateState {
 	NO = 'no',
 	HAVE = 'have',
@@ -16,4 +20,6 @@ enum UpdateState {
 	DOWNLOADING = 'downloading'
 }
 
-export { Messages, UpdateState, type CheckResult };
+const CHECK_PRERELEASE_KEY = "check_prerelease";
+
+export { Messages, UpdateState, type CheckResult, isCheckResult, CHECK_PRERELEASE_KEY };
