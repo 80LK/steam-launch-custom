@@ -34,8 +34,7 @@ const app = App.create(isLaunch ? LaunchWindow : MainWindow)
 		Settings.IPC,
 		Logger.IPC,
 		Game.IPC,
-		Launch.IPC,
-		Configure.IPC
+		Launch.IPC
 	)
 	.addProtocols(image);
 
@@ -47,7 +46,8 @@ if (isLaunch) {
 } else {
 	app.useIPC(
 		Steam.IPC,
-		Updater.IPC
+		Updater.IPC,
+		Configure.IPC
 	)
 		.open(async (setmessage) => {
 			setmessage("init.scan")
@@ -62,9 +62,6 @@ if (isLaunch) {
 			}
 
 			Configure.init();
-
-			const games = await Game.needWrite();
-			Configure.editGames(games);
 		});
 }
 

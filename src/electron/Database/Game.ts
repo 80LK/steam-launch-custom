@@ -95,7 +95,7 @@ class Game extends Database.Model implements IGame {
 
 		return this.createFromSql(sql_data);
 	};
-	public static async getAll(offset: number = 0, limit: number = 10, search: string | null = null, filters: GameFilter = {}): Promise<Game[]> {
+	public static async getAll(offset: number | undefined = 0, limit: number | undefined = 10, search: string | null = null, filters: GameFilter = {}): Promise<Game[]> {
 		let sql = `SELECT * FROM ${Game.DB_NAME}`;
 		const where = [] as string[];
 
@@ -106,7 +106,10 @@ class Game extends Database.Model implements IGame {
 		if (filters.stared) where.push("stared IS 'true'");
 
 		if (where.length) sql += ` WHERE ${where.join(' AND ')}`;
-		sql += ' ORDER BY stared DESC, installed DESC, configured DESC, addTimestamp DESC, name ASC LIMIT $limit OFFSET $offset;';
+		sql += ' ORDER BY stared DESC, installed DESC, configured DESC, addTimestamp DESC, name ASC';
+		if (limit != null) sql += ' LIMIT $limit';
+		if (offset != null) sql += ' OFFSET $offset';
+		sql += ';';
 
 		const sql_data = await this.prepare<SQLGame>(sql).getAll({
 			offset,
@@ -196,7 +199,7 @@ class Game extends Database.Model implements IGame {
 	}
 
 	public async save() {
-		Configure.editGame(this.id, this.needWrite);
+		Configure.editGame(this);
 		await Game.prepare(
 			`INSERT OR REPLACE INTO ${Game.DB_NAME} (id, name, stared, addTimestamp, library, installed, configured, needWrite) values ($id, $name, $stared, $addTimestamp, $library, $installed, $configured, $needWrite);`
 		).run({
