@@ -94,7 +94,7 @@ class Launch extends Database.Model implements ILaunch {
 			this.id = res.lastID;
 		} else {
 			await Launch.prepare(
-				`UPDATE ${Launch.DB_NAME} SET name = $name, execute = $execute, workdir = $workdir, launch = $launch WHERE id = $id AND game_id = $game_id AND state = $state;`
+				`UPDATE ${Launch.DB_NAME} SET name = $name, execute = $execute, workdir = $workdir, launch = $launch, state = $state WHERE id = $id AND game_id = $game_id;`
 			).run(
 				{ id: this.id, game_id, name, launch, execute, workdir, state }
 			);
@@ -216,7 +216,9 @@ class Launch extends Database.Model implements ILaunch {
 			launch.execute = ilaunch.execute;
 			launch.launch = ilaunch.launch;
 			launch.workdir = ilaunch.workdir;
-			launch.state = Launch.SteamState.NEED_EDIT;
+			if (launch.state != Launch.SteamState.NEED_ADD) {
+				launch.state = Launch.SteamState.NEED_EDIT;
+			}
 			return (await launch.save()).toJSON();
 		})
 		ipc.handle(Messages.remove, async (launch_id: number) => {
