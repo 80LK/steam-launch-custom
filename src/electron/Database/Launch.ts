@@ -216,7 +216,9 @@ class Launch extends Database.Model implements ILaunch {
 			launch.execute = ilaunch.execute;
 			launch.launch = ilaunch.launch;
 			launch.workdir = ilaunch.workdir;
-			launch.state = Launch.SteamState.NEED_EDIT;
+			if (launch.state != Launch.SteamState.NEED_ADD) {
+				launch.state = Launch.SteamState.NEED_EDIT;
+			}
 			return (await launch.save()).toJSON();
 		})
 		ipc.handle(Messages.remove, async (launch_id: number) => {
