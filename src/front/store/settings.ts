@@ -43,6 +43,7 @@ const useSettings = defineStore('settings', () => {
 
 		Settings.getBoolean(SCAN_GAME_IN_LAUNCH_KEY, false).then(v => scanGameLaunch.value = v);
 		Settings.getBoolean(USE_APPINFO, false).then(v => useAppInfo.value = v);
+		Settings.getBoolean(CHECK_PRERELEASE_KEY, false).then(v => checkPreRelease.value = v);
 		Settings.get(THEME_STORE_KEY, 'light').then(value => setTheme(value));
 		Settings.get(LOCALE_STORE_KEY, 'en').then(value => setLocale(value));
 	}
