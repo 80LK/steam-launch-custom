@@ -228,7 +228,13 @@ namespace Configure {
 					ai_launch.setInt('slc_id', launch.id);
 					ai_launch.setMap('config', new Map<VDFBLaunch['config']>().setString('oslist', 'windows'))
 					const launchs = getLaunchsFromAppInfo(launch.game_id)!;
-					launchs.setMap(launchs.getKeys().length, ai_launch);
+					const keys = launchs.getKeys().map(key => parseInt(key as string)).sort();
+					let key = 0;
+					for (const i of keys) {
+						if (i == key) key++;
+						else break;
+					}
+					launchs.setMap(key, ai_launch);
 
 					launch.state = Launch.SteamState.READY;
 					launch.save();
