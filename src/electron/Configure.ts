@@ -50,19 +50,7 @@ namespace Configure {
 	type VDFBLaunchs = VDFBLaunch[];
 
 	async function compareLaunchs(db_launch: Launch, ai_launch: VDFBLaunch, game: Game): Promise<boolean> {
-		console.log("compare", ai_launch, db_launch);
-
-		let execute = relative(game.path, db_launch.execute);
-		let workdir = relative(game.path, db_launch.workdir || dirname(db_launch.execute));
-		let args = db_launch.launch.join(' ');
-
-		if (/^[A-Z]:/.test(execute) || /^[A-Z]:/.test(workdir)) {
-			Logger.log(`Can't get relative path for launch ${db_launch.id}. Game path: ${game.path}. Executable: ${db_launch.execute}. Workdir:  ${db_launch.workdir}`);
-			args = `"${execute}" --wd="${workdir}" ` + args;
-			execute = relative(game.path, await getSLCWPath(game.library));
-			workdir = dirname(execute);
-		}
-
+		const { execute, workdir, args } = await getLuanchOptions(game, db_launch);
 
 		if (ai_launch.description != db_launch.name) return false;
 		if (ai_launch.executable != execute) return false;
@@ -205,6 +193,23 @@ namespace Configure {
 		return slcw_executable;
 	}
 
+	async function getLuanchOptions(game: Game, launch: Launch) {
+		let execute = relative(game.path, launch.execute);
+		let workdir = relative(game.path, launch.workdir || dirname(launch.execute));
+		let args = launch.launch.length ? `"${launch.launch.join('" "')}"` : "";
+		if (/^[A-Z]:/.test(execute) || /^[A-Z]:/.test(workdir)) {
+			Logger.log(`Can't get relative path for launch ${launch.id}. Game path: ${game.path}. Executable: ${launch.execute}. Workdir:  ${launch.workdir}`);
+			args = `"${execute}" --wd="${workdir}" ` + args;
+			execute = relative(game.path, await getSLCWPath(game.library));
+			workdir = dirname(execute);
+		}
+
+		console.log("[getLuanchOptions]", game.id, args);
+		return {
+			execute, workdir, args
+		}
+	}
+
 	async function writeAppInfo() {
 		if (!appinfo) return;
 		const all_launchs = Object.values(storeLaunchs);
@@ -215,16 +220,7 @@ namespace Configure {
 					const ai_launch = new Map<VDFBLaunch>();
 					ai_launch.setString('description', launch.name);
 
-					let execute = relative(game.path, launch.execute);
-					let workdir = relative(game.path, launch.workdir || dirname(launch.execute));
-					let args = launch.launch.join(' ');
-
-					if (/^[A-Z]:/.test(execute) || /^[A-Z]:/.test(workdir)) {
-						Logger.log(`Can't get relative path for launch ${launch.id}. Game path: ${game.path}. Executable: ${launch.execute}. Workdir:  ${launch.workdir}`);
-						args = `"${execute}" --wd="${workdir}" ` + args;
-						execute = relative(game.path, await getSLCWPath(game.library));
-						workdir = dirname(execute);
-					}
+					const { execute, workdir, args } = await getLuanchOptions(game, launch);
 
 					ai_launch.setString('executable', execute);
 					ai_launch.setString('workingdir', workdir);
@@ -241,16 +237,8 @@ namespace Configure {
 					const ai_launch = getLaunch(launch.game_id, launch.id)!;
 					ai_launch.setString('description', launch.name);
 
-					let execute = relative(game.path, launch.execute);
-					let workdir = relative(game.path, launch.workdir || dirname(launch.execute));
-					let args = launch.launch.join(' ');
+					const { execute, workdir, args } = await getLuanchOptions(game, launch);
 
-					if (/^[A-Z]:/.test(execute) || /^[A-Z]:/.test(workdir)) {
-						Logger.log(`Can't get relative path for launch ${launch.id}. Game path: ${game.path}. Executable: ${launch.execute}. Workdir:  ${launch.workdir}`);
-						args = `"${execute}" --wd="${workdir}" ` + args;
-						execute = relative(game.path, await getSLCWPath(game.library));
-						workdir = dirname(execute);
-					}
 					ai_launch.setString('executable', execute);
 					ai_launch.setString('workingdir', workdir);
 					ai_launch.setString('arguments', args);
