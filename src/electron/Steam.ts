@@ -43,6 +43,24 @@ interface Libraries extends VDF.VDFObject {
 	libraryfolders: Record<string, Library>;
 }
 
+interface LocalConfig extends VDF.VDFObject {
+	userlocalconfigstore: {
+		software: {
+			valve: {
+				steam: {
+					apps: AppsConfig
+				}
+			}
+		}
+	};
+}
+interface AppsConfig extends VDF.VDFObject {
+	[id: string]: AppConfig | undefined;
+}
+interface AppConfig extends VDF.VDFObject {
+	launchoptions: string;
+}
+
 enum TestLaunch {
 	NO = 'no',
 	CURRENT = 'current',
@@ -326,24 +344,6 @@ class Steam implements IInitialable {
 		if (typeof id == "string") id = BigInt(id);
 		return Number(id - 0x0110000100000000n);
 	}
-}
-
-interface LocalConfig extends VDF.VDFObject {
-	userlocalconfigstore: {
-		software: {
-			valve: {
-				steam: {
-					apps: AppsConfig
-				}
-			}
-		}
-	};
-}
-interface AppsConfig extends VDF.VDFObject {
-	[id: string]: AppConfig | undefined;
-}
-interface AppConfig extends VDF.VDFObject {
-	launchoptions: string;
 }
 
 export default Steam;

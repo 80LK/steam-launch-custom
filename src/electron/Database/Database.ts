@@ -142,6 +142,9 @@ namespace Database {
 	}
 
 	export class Model {
+		public static run<T>(sql: string, params?: ParamsBinding) {
+			return Database.get().prepare<T>(sql).run(params)
+		}
 
 		public static prepare<T>(sql: string, params?: ParamsBinding) {
 			return Database.get().prepare<T>(sql, params);

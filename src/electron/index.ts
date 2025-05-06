@@ -18,7 +18,6 @@ import Configure from './Configure';
 
 Database.debug({ logSql: true })
 
-
 const appId = App.getLaunchApp();
 const isLaunch = appId !== 0;
 const image = ImageProtocol.get();

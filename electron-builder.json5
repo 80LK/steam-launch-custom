@@ -8,7 +8,12 @@
   },
   "files": [
     "dist",
-    "dist-electron"
+    "dist-electron",
+    {
+      "from": "steam-launch-custom-wrapper/dist",
+      "to": "",
+      "filter": "*.exe"
+    }
   ],
   "mac": {
     "target": [
