@@ -7,13 +7,18 @@ import { IPCTunnel } from "../IPCTunnel";
 import ImageProtocol from "../Protocol/ImgaeProtocol";
 import App from "../App";
 import Configure from "../Configure";
+import { basename, resolve } from "path";
 
 const steam = Steam.get();
 
-type SQLGame = Pick<IGame, 'id' | 'name' | 'addTimestamp'> & { stared: string, installed: boolean, configured: string, library: string, needWrite: string };
+type SQLGame = Pick<IGame, 'id' | 'name'> & { addTimestamp: string; stared: string, installed: boolean, configured: string, library: string, installDir: string, needWrite: string };
 
 class Game extends Database.Model implements IGame {
-	private library: string = '';
+	public library: string = '';
+	private installDir: string = '';
+	public get path() {
+		return resolve(this.library, "steamapps/common", this.installDir)
+	}
 
 	id: number = 0;
 	name: string = "";
@@ -29,7 +34,67 @@ class Game extends Database.Model implements IGame {
 
 	private static readonly DB_NAME: string = "game";
 	private static readonly DB_VER_KEY: string = "game-db-ver";
-	private static readonly DB_VER: number = 1;
+	private static readonly DB_VER: number = 2;
+
+	private static createTable() {
+		return this.prepare(`CREATE TABLE ${this.DB_NAME} (
+			id INT PRIMARY KEY,
+			name VARCHAR(255),
+			library TEXT,
+			installDir TEXT,
+			stared BOOLEAN DEFAULT 0,
+			installed BOOLEAN DEFAULT 0,
+			configured BOOLEAN DEFAULT 0,
+			needWrite BOOLEAN DEFAULT 0,
+			addTimestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+		);`).run();
+	}
+	private static async migrateFromV0() {
+		const queries = [
+			`ALTER TABLE ${this.DB_NAME} ADD COLUMN stared BOOLEAN DEFAULT 0;`,
+			`ALTER TABLE ${this.DB_NAME} ADD COLUMN addTimestamp DATETIME;`,
+			`ALTER TABLE ${this.DB_NAME} ADD COLUMN library TEXT;`,
+			`ALTER TABLE ${this.DB_NAME} ADD COLUMN installed BOOLEAN DEFAULT 0;`,
+			`ALTER TABLE ${this.DB_NAME} ADD COLUMN configured BOOLEAN DEFAULT 0;`,
+			`ALTER TABLE ${this.DB_NAME} ADD COLUMN needWrite BOOLEAN DEFAULT 0;`,
+		];
+
+		await Promise.all(queries.map(e => this.prepare(e).run()));
+
+		await this.prepare(`UPDATE ${this.DB_NAME} SET addTimestamp = CURRENT_TIMESTAMP;`).run();
+
+		const sql_games = await this.prepare<SQLGame & { state: number }>(`SELECT * FROM ${this.DB_NAME}`).getAll();
+		const libraries = await Steam.get().getLibraries();
+		function findLibrary(id: string) {
+			for (const i in libraries) {
+				const library = libraries[i];
+				const _id = Object.keys(library.apps).find(e => e == id);
+				if (_id == id) return library.path;
+			}
+			return '';
+		}
+
+		await Promise.all(sql_games.map(async game => {
+			game.library = findLibrary(game.id.toString());
+			game.installDir = basename(game.installDir);
+			game.configured = (game.state & 0b100).toString();
+			game.needWrite = (game.state & 0b010).toString();
+			return (await Game.createFromSql(game)).save()
+		}))
+
+		await this.prepare(`ALTER TABLE ${this.DB_NAME} DROP COLUMN state;`).run();
+	}
+	private static async migrateFromV1() {
+		this.run(`ALTER TABLE ${this.DB_NAME} ADD COLUMN installDir TEXT DEFAULT '';`);
+		this.run(`UPDATE ${this.DB_NAME} SET addTimestamp = DATETIME(addTimestamp/1000, 'unixepoch') WHERE DATETIME(addTimestamp) IS NULL`);
+
+		const sql_games = await this.prepare<SQLGame & { state: number }>(`SELECT * FROM ${this.DB_NAME} WHERE installed = 'true'`).getAll();
+		await Promise.all(sql_games.map(async game => {
+			const manifest = await Steam.get().getAppManifest(game.library, game.id);
+			if (!manifest) return await this.run(`UPDATE ${this.DB_NAME} SET installed = 'false' WHERE id = $game_id;`, { game_id: game.id });
+			return await this.run(`UPDATE ${this.DB_NAME} SET installDir = $installdir WHERE id = $game_id;`, { game_id: game.id, installdir: manifest.appstate.installdir });
+		}))
+	}
 
 	public static async init() {
 		const exsist = await this.prepare<{ name: string }>("SELECT name FROM sqlite_master WHERE type='table' AND name = $name LIMIT 1;").get({ name: this.DB_NAME });
@@ -38,50 +103,16 @@ class Game extends Database.Model implements IGame {
 			const db_ver = await Settings.getNumber(Game.DB_VER_KEY, 0);
 			if (db_ver == Game.DB_VER) return;
 
-			const queries = [
-				`ALTER TABLE ${this.DB_NAME} DROP COLUMN installDir;`,
-				`ALTER TABLE ${this.DB_NAME} ADD COLUMN stared BOOLEAN DEFAULT 0;`,
-				`ALTER TABLE ${this.DB_NAME} ADD COLUMN addTimestamp DATETIME;`,
-				`ALTER TABLE ${this.DB_NAME} ADD COLUMN library TEXT;`,
-				`ALTER TABLE ${this.DB_NAME} ADD COLUMN installed BOOLEAN DEFAULT 0;`,
-				`ALTER TABLE ${this.DB_NAME} ADD COLUMN configured BOOLEAN DEFAULT 0;`,
-				`ALTER TABLE ${this.DB_NAME} ADD COLUMN needWrite BOOLEAN DEFAULT 0;`,
-			];
-
-			await Promise.all(queries.map(e => this.prepare(e).run()));
-
-			await this.prepare(`UPDATE ${this.DB_NAME} SET addTimestamp = CURRENT_TIMESTAMP;`).run();
-
-			const sql_games = await this.prepare<SQLGame & { state: number }>(`SELECT * FROM ${this.DB_NAME}`).getAll();
-			const libraries = await Steam.get().getLibraries();
-			function findLibrary(id: string) {
-				for (const i in libraries) {
-					const library = libraries[i];
-					const _id = Object.keys(library.apps).find(e => e == id);
-					if (_id == id) return library.path;
-				}
-				return '';
+			switch (db_ver) {
+				case 0:
+					this.migrateFromV0();
+					break;
+				case 1:
+					this.migrateFromV1();
+					break;
 			}
-
-			await Promise.all(sql_games.map(async game => {
-				game.library = findLibrary(game.id.toString());
-				game.configured = (game.state & 0b100).toString();
-				game.needWrite = (game.state & 0b010).toString();
-				return (await Game.createFromSql(game)).save()
-			}))
-
-			await this.prepare(`ALTER TABLE ${this.DB_NAME} DROP COLUMN state;`).run();
 		} else {
-			await this.prepare(`CREATE TABLE ${this.DB_NAME} (
-				id INT PRIMARY KEY,
-				name VARCHAR(255),
-				library TEXT,
-				stared BOOLEAN DEFAULT 0,
-				installed BOOLEAN DEFAULT 0,
-				configured BOOLEAN DEFAULT 0,
-				needWrite BOOLEAN DEFAULT 0,
-				addTimestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-			);`).run();
+			this.createTable();
 		}
 		await Settings.setNumber(Game.DB_VER_KEY, Game.DB_VER);
 	}
@@ -120,11 +151,12 @@ class Game extends Database.Model implements IGame {
 		return await Promise.all(sql_data.map(sql_data => this.createFromSql(sql_data)))
 	};
 
-	private static async create(id: number, name: string, library: string) {
+	private static async create(id: number, name: string, library: string, installDir: string) {
 		const game = new Game();
 		game.id = id;
 		game.name = name;
 		game.library = library;
+		game.installDir = installDir;
 
 		await game.checkInstalled();
 		await game.checkConfigured();
@@ -137,9 +169,10 @@ class Game extends Database.Model implements IGame {
 		game.id = sql.id;
 		game.name = sql.name;
 		game.library = sql.library;
+		game.installDir = sql.installDir;
 
 		game.stared = parseBoolean(sql.stared) || false;
-		game.addTimestamp = sql.addTimestamp;
+		game.addTimestamp = new Date(sql.addTimestamp).getTime();
 		game.installed = parseBoolean(sql.installed) || false;
 		game.configured = parseBoolean(sql.configured) || false;
 		game.needWrite = parseBoolean(sql.needWrite) || false;
@@ -201,13 +234,14 @@ class Game extends Database.Model implements IGame {
 	public async save() {
 		Configure.editGame(this);
 		await Game.prepare(
-			`INSERT OR REPLACE INTO ${Game.DB_NAME} (id, name, stared, addTimestamp, library, installed, configured, needWrite) values ($id, $name, $stared, $addTimestamp, $library, $installed, $configured, $needWrite);`
+			`INSERT OR REPLACE INTO ${Game.DB_NAME} (id, name, stared, addTimestamp, library, installed, configured, needWrite, installDir) values ($id, $name, $stared, DATETIME($addTimestamp/1000, 'unixepoch'), $library, $installed, $configured, $needWrite, $installDir);`
 		).run({
 			id: this.id,
 			name: this.name,
 			stared: this.stared.toString(),
 			addTimestamp: this.addTimestamp,
 			library: this.library,
+			installDir: this.installDir,
 			installed: this.installed.toString(),
 			configured: this.configured.toString(),
 			needWrite: this.needWrite.toString()
@@ -225,8 +259,8 @@ class Game extends Database.Model implements IGame {
 				if (!app_manifest) continue;
 
 				if (await Game.get(appId)) continue;
-				const { name } = app_manifest.appstate;
-				const game = await Game.create(appId, name, library.path);
+				const { name, installdir } = app_manifest.appstate;
+				const game = await Game.create(appId, name, library.path, installdir);
 				game.addTimestamp = scan_time;
 				game.save();
 			}

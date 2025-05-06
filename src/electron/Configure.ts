@@ -5,10 +5,12 @@ import Logger from "./Logger";
 import parseBoolean from "@utils/parseBoolean";
 import VKVB, { AppInfo, Map, MapWithHeader } from "valve-key-values-binary";
 import Steam from "./Steam";
-import { readFile, writeFile } from "fs/promises";
+import { copyFile, readFile, writeFile } from "fs/promises";
 import Game from "./Database/Game";
 import Launch from "./Database/Launch";
-import { dirname } from "path";
+import { dirname, relative, resolve } from "path";
+import exsist from "@utils/exists";
+import { ASAR_ROOT, DEV } from "./consts";
 
 namespace Configure {
 	const steam = Steam.get();
@@ -47,22 +49,26 @@ namespace Configure {
 	type VDFBLaunch = AppInfo[string]['appinfo']['config']['launch'][number] & { 'slc_id': number };
 	type VDFBLaunchs = VDFBLaunch[];
 
-	function compareLaunchs(db_launch: Launch, ai_launch: VDFBLaunch): boolean {
+	async function compareLaunchs(db_launch: Launch, ai_launch: VDFBLaunch, game: Game): Promise<boolean> {
 		console.log("compare", ai_launch, db_launch);
+
+		let execute = relative(game.path, db_launch.execute);
+		let workdir = relative(game.path, db_launch.workdir || dirname(db_launch.execute));
+		let args = db_launch.launch.join(' ');
+
+		if (/^[A-Z]:/.test(execute) || /^[A-Z]:/.test(workdir)) {
+			Logger.log(`Can't get relative path for launch ${db_launch.id}. Game path: ${game.path}. Executable: ${db_launch.execute}. Workdir:  ${db_launch.workdir}`);
+			args = `"${execute}" --wd="${workdir}" ` + args;
+			execute = relative(game.path, await getSLCWPath(game.library));
+			workdir = dirname(execute);
+		}
 
 
 		if (ai_launch.description != db_launch.name) return false;
-		if (ai_launch.executable != db_launch.execute) return false;
-		if (db_launch.workdir) {
-			if (ai_launch.workingdir != db_launch.workdir) return false;
-		} else {
-			if (ai_launch.workingdir != dirname(db_launch.execute)) return false;
-		}
-		if (db_launch.launch.length) {
-			if (db_launch.launch.join(' ') != ai_launch.arguments) return false;
-		} else if (ai_launch.arguments) {
-			return false;
-		}
+		if (ai_launch.executable != execute) return false;
+		if (ai_launch.workingdir != workdir) return false;
+		if (args != ai_launch.arguments) return false;
+
 		return true;
 	}
 	let storeLaunchsFromAppInfo = {} as Record<number, Map<VDFBLaunchs>>;
@@ -135,7 +141,7 @@ namespace Configure {
 				if (db_launch.state == Launch.SteamState.NEED_DELETE) {
 					editLaunch(db_launch);
 				} else {
-					if (!compareLaunchs(db_launch, ai_launch.toJSON())) {
+					if (!await compareLaunchs(db_launch, ai_launch.toJSON(), (await Game.get(db_launch.game_id))!)) {
 						if (db_launch.state == Launch.SteamState.NEED_EDIT) {
 							editLaunch(db_launch);
 						} else {
@@ -189,22 +195,40 @@ namespace Configure {
 		changeState();
 	}
 
+	const SLCW_PATH = DEV ? resolve(process.cwd(), "steam-launch-custom-wrapper/dist/slc_wrapper.exe") : resolve(ASAR_ROOT, 'slc_wrapper.exe');
+	async function getSLCWPath(library: string) {
+		const slcw_executable = resolve(library, 'slcw.exe');
 
+		if (!await exsist(slcw_executable))
+			await copyFile(SLCW_PATH, slcw_executable);
 
+		return slcw_executable;
+	}
 
-
-
-	function writeAppInfo() {
+	async function writeAppInfo() {
 		if (!appinfo) return;
 		const all_launchs = Object.values(storeLaunchs);
 		for (const launch of all_launchs) {
+			const game = (await Game.get(launch.game_id))!;
 			switch (launch.state) {
 				case Launch.SteamState.NEED_ADD: {
 					const ai_launch = new Map<VDFBLaunch>();
 					ai_launch.setString('description', launch.name);
-					ai_launch.setString('executable', launch.execute);
-					ai_launch.setString('workingdir', launch.workdir || dirname(launch.execute));
-					ai_launch.setString('arguments', launch.launch.join(' '));
+
+					let execute = relative(game.path, launch.execute);
+					let workdir = relative(game.path, launch.workdir || dirname(launch.execute));
+					let args = launch.launch.join(' ');
+
+					if (/^[A-Z]:/.test(execute) || /^[A-Z]:/.test(workdir)) {
+						Logger.log(`Can't get relative path for launch ${launch.id}. Game path: ${game.path}. Executable: ${launch.execute}. Workdir:  ${launch.workdir}`);
+						args = `"${execute}" --wd="${workdir}" ` + args;
+						execute = relative(game.path, await getSLCWPath(game.library));
+						workdir = dirname(execute);
+					}
+
+					ai_launch.setString('executable', execute);
+					ai_launch.setString('workingdir', workdir);
+					ai_launch.setString('arguments', args);
 					ai_launch.setInt('slc_id', launch.id);
 					ai_launch.setMap('config', new Map<VDFBLaunch['config']>().setString('oslist', 'windows'))
 					const launchs = getLaunchsFromAppInfo(launch.game_id)!;
@@ -216,9 +240,20 @@ namespace Configure {
 				case Launch.SteamState.NEED_EDIT: {
 					const ai_launch = getLaunch(launch.game_id, launch.id)!;
 					ai_launch.setString('description', launch.name);
-					ai_launch.setString('executable', launch.execute);
-					ai_launch.setString('workingdir', launch.workdir || dirname(launch.execute));
-					ai_launch.setString('arguments', launch.launch.join(' '));
+
+					let execute = relative(game.path, launch.execute);
+					let workdir = relative(game.path, launch.workdir || dirname(launch.execute));
+					let args = launch.launch.join(' ');
+
+					if (/^[A-Z]:/.test(execute) || /^[A-Z]:/.test(workdir)) {
+						Logger.log(`Can't get relative path for launch ${launch.id}. Game path: ${game.path}. Executable: ${launch.execute}. Workdir:  ${launch.workdir}`);
+						args = `"${execute}" --wd="${workdir}" ` + args;
+						execute = relative(game.path, await getSLCWPath(game.library));
+						workdir = dirname(execute);
+					}
+					ai_launch.setString('executable', execute);
+					ai_launch.setString('workingdir', workdir);
+					ai_launch.setString('arguments', args);
 
 					launch.state = Launch.SteamState.READY;
 					launch.save();
