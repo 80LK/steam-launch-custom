@@ -54,16 +54,20 @@ class Steam implements IInitialable {
 	private static readonly RegisterPIDKey = "SteamPID";
 	private static readonly RegisterKey32 = new Registry({ hive: Registry.HKLM, key: '\\SOFTWARE\\Valve\\Steam' })
 	private static readonly RegisterKey64 = new Registry({ hive: Registry.HKLM, key: '\\SOFTWARE\\Wow6432Node\\Valve\\Steam' })
-	private static async getKey(key: string) {
+	private static async getKey(key: string): Promise<string | null>;
+	private static async getKey(key: string, defValue: string): Promise<string>;
+	private static async getKey(key: string, def?: string): Promise<string | null> {
+		const defValue: string | null = def ?? null;
+
 		const registers = process.arch == "x64" ? [Steam.RegisterKey64, Steam.RegisterKey32] : [Steam.RegisterKey32, Steam.RegisterKey64];
 		for (const register of registers) {
 			const exsist = await new Promise<boolean>(r => register.valueExists(key, (err, exsist) => r(err ? false : exsist)));
 			if (!exsist) continue;
 
-			return new Promise<string | null>(r => register.get(key, (err, item) => r(err ? null : item.value ?? null)))
+			return new Promise<string | null>(r => register.get(key, (err, item) => r(err ? defValue : item.value ?? defValue)))
 		}
 
-		return null
+		return defValue;
 	}
 	private async getPathFromRegistry(): Promise<string> {
 		return await Steam.getKey(Steam.RegisterInstallKey) ?? "";
@@ -166,7 +170,7 @@ class Steam implements IInitialable {
 	}
 
 	private async getPIDFromRegistry() {
-		return await Steam.getKey(Steam.RegisterPIDKey) ?? 0;
+		return parseInt(await Steam.getKey(Steam.RegisterPIDKey, "0")) ?? 0;
 	}
 
 	private localConfig: LocalConfig | null = null;
