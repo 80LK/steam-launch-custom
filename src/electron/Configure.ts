@@ -183,7 +183,7 @@ namespace Configure {
 		changeState();
 	}
 
-	const SLCW_PATH = DEV ? resolve(process.cwd(), "steam-launch-custom-wrapper/dist/slc_wrapper.exe") : resolve(ASAR_ROOT, 'slc_wrapper.exe');
+	const SLCW_PATH = DEV ? resolve(process.cwd(), "wrapper/slc_wrapper.exe") : resolve(ASAR_ROOT, 'slc_wrapper.exe');
 	async function getSLCWPath(library: string) {
 		const slcw_executable = resolve(library, 'slcw.exe');
 
