@@ -6,8 +6,8 @@ import Version from "./Version";
 import Steam from "./Steam";
 
 namespace Wrapper {
-	const WRAPPER = DEV ? resolve(process.cwd(), "wrapper/slc_wrapper.exe") : resolve(ASAR_ROOT, 'slc_wrapper.exe');
-	const VERSION_FILE = DEV ? resolve(process.cwd(), "wrapper/go.ver") : resolve(ASAR_ROOT, 'wrapper.ver');
+	const WRAPPER = resolve(DEV ? process.cwd() : ASAR_ROOT, "wrapper/slc_wrapper.exe");
+	const VERSION_FILE = resolve(DEV ? process.cwd() : ASAR_ROOT, "wrapper/go.ver");
 
 	export async function init() {
 		const libraries = Object.values(await Steam.get().getLibraries());
