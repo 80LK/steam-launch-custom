@@ -55,7 +55,7 @@ interface LocalConfig extends VDF.VDFObject {
 	};
 }
 interface AppsConfig extends VDF.VDFObject {
-	[id: string]: AppConfig | undefined;
+	[id: string]: AppConfig;
 }
 interface AppConfig extends VDF.VDFObject {
 	launchoptions: string;

@@ -1,26 +1,41 @@
 import { ipcRenderer } from "electron";
+// import EventMap from "./EventMap";
+import {
+	ChangeNeedWriteListener,
+	// CanUseAppInfoListener,
+	// ChangeStateListener,
+	Messages
+} from "@shared/Configure";
 import EventMap from "./EventMap";
-import { ChangeStateListener, Messages } from "@shared/Configure";
 
 namespace Configure {
-	export function getState(): Promise<boolean> {
-		return ipcRenderer.invoke(Messages.getState);
-	}
-	export function canUseAppInfo(): Promise<boolean> {
+	export function canUseAppInfo() {
 		return ipcRenderer.invoke(Messages.canUseAppInfo);
 	}
 
-	export function wrtie(): Promise<number[]> {
-		return ipcRenderer.invoke(Messages.write);
+	export function setUseAppInfo(value: boolean) {
+		return ipcRenderer.invoke(Messages.setUseAppInfo, value);
 	}
 
-	const changeStateListener = new EventMap<ChangeStateListener>(Messages.changeState)
-	export function onChangeState(listener: ChangeStateListener) {
-		return changeStateListener.on(listener);
-	};
-	export function offChangeState(listener: number) {
-		changeStateListener.off(listener);
-	};
+	export function useAppInfo() {
+		return ipcRenderer.invoke(Messages.useAppInfo);
+	}
+
+	export function checkNeedWrite() {
+		return ipcRenderer.invoke(Messages.checkNeedWrite);
+	}
+
+	const changeNeedWriteEvents = new EventMap<ChangeNeedWriteListener>(Messages.changeNeedWrite);
+	export function onChangeNeedWrite(listener: ChangeNeedWriteListener): number {
+		return changeNeedWriteEvents.on(listener);
+	}
+	export function offChangeNeedWrite(listener: number) {
+		changeNeedWriteEvents.off(listener);
+	}
+
+	export function write() {
+		return ipcRenderer.invoke(Messages.write);
+	}
 }
 
 export default Configure;

@@ -10,23 +10,11 @@ namespace Game {
 		return ipcRenderer.invoke(Messages.stared, id, stared);
 	}
 
-	export function scan(): Promise<boolean> {
-		return ipcRenderer.invoke(Messages.scan);
-	}
-
 	export function configure(id: number): Promise<IGame> {
 		return ipcRenderer.invoke(Messages.configure, id);
 	}
 	export function resetConfigure(id: number): Promise<IGame> {
 		return ipcRenderer.invoke(Messages.resetConfigure, id);
-	}
-
-	export function needWrite(): Promise<boolean> {
-		return ipcRenderer.invoke(Messages.needWrite);
-	}
-
-	export function write(): Promise<number[]> {
-		return ipcRenderer.invoke(Messages.write);
 	}
 
 	export function getLaunch(): Promise<IGame | null> {

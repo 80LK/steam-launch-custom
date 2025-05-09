@@ -5,14 +5,15 @@ import TextField from '@components/Input/TextField.vue';
 import Select from '@components/Input/Select.vue';
 import Switch from '@components/Input/Switch.vue';
 import { ref } from "vue";
+import useConfigure from "@store/configure";
 
 const settings = useSettings();
+const configure = useConfigure();
+
 const appDataPath = ref('');
 const steamPath = ref('');
-const canUseAppInfo = ref(true);
 App.getAppData().then(value => appDataPath.value = value);
 Steam.getPath().then(value => steamPath.value = value);
-Configure.canUseAppInfo().then(value => canUseAppInfo.value = value)
 function copyPath(path: string) {
 	navigator.clipboard.writeText(path);
 }
@@ -42,12 +43,9 @@ function openPath(path: string) {
 						:model-value="settings.locale.current" @update:model-value="settings.locale.set" force-label
 						hide-details />
 
-					<Switch :label="$t('settings.scan_every_launch')" :model-value="settings.scanGameLaunch.value"
-						color="primary" @update:model-value="settings.scanGameLaunch.set" hide-details />
-
-					<Switch :label="$t('settings.use_appinfo')" :model-value="settings.useAppInfo.value" color="primary"
-						@update:model-value="settings.useAppInfo.set" hide-details
-						v-tooltip:bottom-start="$t('settings.use_appinfo_tooltip')" v-if="canUseAppInfo" />
+					<Switch :label="$t('settings.use_appinfo')" color="primary" hide-details
+						:model-value="configure.useAppInfo" @update:model-value="configure.setUseAppInfo"
+						v-tooltip:bottom-start="$t('settings.use_appinfo_tooltip')" v-if="configure.canUseAppInfo" />
 
 					<Switch :label="$t('settings.check_prerelease')" :model-value="settings.checkPreRelease.value"
 						color="primary" @update:model-value="settings.checkPreRelease.set" />

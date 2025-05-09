@@ -1,10 +1,19 @@
 enum Messages {
-	getState = 'configure.getState',
-	changeState = 'configure.changeState',
 	canUseAppInfo = 'configure.canUseAppInfo',
-	write = "configure.write",
+	onCanUseAppInfo = "configure.onCanUseAppInfo",
+	setUseAppInfo = "configure.setUseAppInfo",
+	useAppInfo = "configure.useAppInfo",
+
+	checkNeedWrite = "configure.getNeedWrite",
+	changeNeedWrite = "configure.changeNeedWrite",
+	write = "configure.write"
 }
-interface ChangeStateListener { (state: boolean): void; };
+interface CanUseAppInfoListener { (state: boolean): void; };
+interface ChangeNeedWriteListener { (state: boolean): void; };
 const USE_APPINFO = 'use_appinfo';
 
-export { Messages, type ChangeStateListener, USE_APPINFO }
+export { Messages, USE_APPINFO }
+export {
+	type ChangeNeedWriteListener,
+	type CanUseAppInfoListener
+}

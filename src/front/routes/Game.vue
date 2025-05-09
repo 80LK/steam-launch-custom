@@ -11,13 +11,13 @@ import useGamesStore from '@store/games';
 import useLaunchStore from '@store/launch';
 import { computed, ref, useTemplateRef } from 'vue';
 import { useRoute } from 'vue-router';
-import useSettings from '@store/settings';
+import useConfigure from '@store/configure';
 
 const rawGameId = useRoute().params.gameId;
 const gameId = parseInt(Array.isArray(rawGameId) ? rawGameId[0] : rawGameId)
 
 const gameStore = useGamesStore();
-const settings = useSettings();
+const configure = useConfigure();
 const game = gameStore.get(gameId);
 function gameConfigure() {
 	gameStore.configure(game.id);
@@ -26,7 +26,7 @@ function resetConfigure() {
 	gameStore.resetConfigure(game.id);
 }
 
-const configured = computed(() => settings.useAppInfo.value ? true : game.configured);
+const configured = computed(() => configure.useAppInfo ? true : game.configured);
 
 const launchStore = useLaunchStore();
 const launchs = ref([] as ILaunch[]);
@@ -80,7 +80,7 @@ function delet(launch_id: number) {
 
 				<div v-if="configured" :class="$style.add">
 					<v-btn :icon="mdiClose" color="error" v-tooltip:start="$t('game.reset_configure')"
-						@click="resetConfigure" v-if="!settings.useAppInfo.value" />
+						@click="resetConfigure" v-if="!configure.useAppInfo" />
 					<v-btn :icon="mdiPlus" color="primary" v-tooltip:start="$t('game.add_launch')"
 						@click="editor?.create(game.id)" />
 				</div>

@@ -51,7 +51,7 @@ class Version {
 		return this.create(parseInt(major), parseInt(minor), parseInt(patch), prerelease ? parseInt(prerelease) : null);
 	}
 
-	public static create(major: number, minor: number, patch: number, prerelease: number | null = null) {
+	public static create(major: number, minor: number = 0, patch: number = 0, prerelease: number | null = null) {
 		const v = new Version();
 		v._major = major;
 		v._minor = minor;

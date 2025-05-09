@@ -10,7 +10,7 @@
     "dist",
     "dist-electron",
     {
-      "from": "steam-launch-custom-wrapper/dist",
+      "from": "wrapper",
       "to": "",
       "filter": "*.exe"
     }

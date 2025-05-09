@@ -2,9 +2,7 @@ import parseBoolean from "@utils/parseBoolean";
 import { defineStore } from "pinia";
 import { useI18n } from "vue-i18n";
 import { useTheme } from "vuetify";
-import { SCAN_GAME_IN_LAUNCH_KEY } from '@shared/Game';
 import { ref, watch } from "vue";
-import { USE_APPINFO } from "@shared/Configure";
 import { CHECK_PRERELEASE_KEY } from "@shared/Updater";
 
 const THEME_OLD_STORE_KEY = 'isDark';
@@ -23,8 +21,6 @@ const useSettings = defineStore('settings', () => {
 		availableThemes.value.forEach(item => item.title = t(`theme.${item.value}`, item.value))
 	});
 
-	const scanGameLaunch = ref(false);
-	const useAppInfo = ref(false);
 	const checkPreRelease = ref(false);
 
 	function init() {
@@ -41,8 +37,6 @@ const useSettings = defineStore('settings', () => {
 		}
 		locale.value = cachedLocale || 'en';
 
-		Settings.getBoolean(SCAN_GAME_IN_LAUNCH_KEY, false).then(v => scanGameLaunch.value = v);
-		Settings.getBoolean(USE_APPINFO, false).then(v => useAppInfo.value = v);
 		Settings.getBoolean(CHECK_PRERELEASE_KEY, false).then(v => checkPreRelease.value = v);
 		Settings.get(THEME_STORE_KEY, 'light').then(value => setTheme(value));
 		Settings.get(LOCALE_STORE_KEY, 'en').then(value => setLocale(value));
@@ -91,20 +85,6 @@ const useSettings = defineStore('settings', () => {
 			available: availableThemes,
 			current: theme.global.name,
 			set: setTheme
-		},
-		useAppInfo: {
-			value: useAppInfo,
-			set(value: boolean | null) {
-				useAppInfo.value = value || false;
-				edit(USE_APPINFO, useAppInfo.value)
-			}
-		},
-		scanGameLaunch: {
-			value: scanGameLaunch,
-			set: (value: boolean | null) => {
-				scanGameLaunch.value = value || false;
-				edit(SCAN_GAME_IN_LAUNCH_KEY, scanGameLaunch.value)
-			}
 		},
 		checkPreRelease: {
 			value: checkPreRelease,

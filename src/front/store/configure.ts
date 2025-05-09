@@ -1,24 +1,36 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import useGamesStore from "./games";
+// import useGamesStore from "./games";
 
 const useConfigure = defineStore('configure', () => {
-	const state = ref(false)
-	const { storage } = useGamesStore();
+	const needWrite = ref(false);
+	Configure.checkNeedWrite().then(v => needWrite.value = v);
+	Configure.onChangeNeedWrite((v) => needWrite.value = v);
 
-	Configure.getState().then(value => state.value = value);
-	Configure.onChangeState((new_state) => state.value = new_state);
+	const canUseAppInfo = ref(true);
+	Configure.canUseAppInfo().then(v => canUseAppInfo.value = v);
+	const useAppInfo = ref(false);
+	Configure.useAppInfo().then(v => useAppInfo.value = v);
 
-	async function write() {
-		const games = await Configure.wrtie();
-		for (const id of games) {
-			storage[id].needWrite = false;
-		}
-	}
+
 
 	return {
-		get() { return state },
-		write
+		get canUseAppInfo() {
+			return canUseAppInfo
+		},
+		get useAppInfo() {
+			return useAppInfo;
+		},
+		get needWrite() {
+			return needWrite
+		},
+		setUseAppInfo(value: boolean) {
+			Configure.setUseAppInfo(value);
+			useAppInfo.value = value;
+		},
+		write() {
+			return Configure.write();
+		}
 	};
 });
 
