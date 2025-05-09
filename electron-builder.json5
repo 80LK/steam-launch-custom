@@ -11,8 +11,8 @@
     "dist-electron",
     {
       "from": "wrapper",
-      "to": "",
-      "filter": "*.exe"
+      "to": "wrapper",
+      "filter": "*.{exe,ver}"
     }
   ],
   "win": {
