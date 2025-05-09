@@ -4,7 +4,6 @@ import MainWindow from './Window/MainWindow';
 import Database from './Database/Database';
 import Settings from './Database/Settings';
 import Game from './Database/Game';
-import { SCAN_GAME_IN_LAUNCH_KEY } from '@shared/Game';
 import Steam from './Steam';
 import ImageProtocol from './Protocol/ImgaeProtocol';
 import Launch from './Database/Launch';
@@ -27,9 +26,7 @@ const app = App.create(isLaunch ? LaunchWindow : MainWindow)
 	.init(
 		Logger.get(isLaunch ? `log.${appId}.txt` : 'log.txt'),
 		Steam.get(),
-		Database.get().register(Settings, Game, Launch),
-		Wrapper,
-		Configure
+		Database.get().register(Settings, Game, Launch)
 	)
 	.useIPC(
 		SystemBar,
@@ -46,23 +43,16 @@ if (isLaunch) {
 	app.setCloseCondition(() => !spawn.hasRunning)
 		.open();
 } else {
-	app.useIPC(
+	app.init(
+		Wrapper,
+		Configure
+	).useIPC(
 		Steam.IPC,
 		Updater.IPC,
 		Configure.IPC
 	)
 		.open(async (setmessage) => {
 			setmessage("init.scan")
-			const FIRST_LAUNCH_KEY = 'firstLaunch';
-			const firstLaunch = await Settings.getBoolean(FIRST_LAUNCH_KEY, false);
-			if (!firstLaunch) {
-				await Game.scan()
-				Settings.setBoolean(FIRST_LAUNCH_KEY, true);
-			} else {
-				const scanLaunch = await Settings.getBoolean(SCAN_GAME_IN_LAUNCH_KEY, false);
-				if (scanLaunch) await Game.scan();
-			}
-
 			Configure.init();
 		});
 }

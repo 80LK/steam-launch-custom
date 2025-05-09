@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { mdiCached, mdiMagnify, mdiDownload, mdiStar, mdiCog } from "@mdi/js";
+import { mdiMagnify, mdiDownload, mdiStar, mdiCog } from "@mdi/js";
 import ToggleBtn from "@components/ToggleBtn.vue";
 import Updater from '@components/Updater.vue';
 import NeedConfigure from '@components/Game/NeedConfigure.vue';
@@ -52,13 +52,6 @@ function scaned() {
 		onScaned = resolve;
 	})
 }
-async function scan() {
-	isScaning = true;
-	resetGames();
-	await Game.scan();
-	isScaning = false;
-	onScaned();
-}
 </script>
 
 <template>
@@ -69,15 +62,7 @@ async function scan() {
 			<NeedConfigure class="mb-4" />
 
 			<TextField :label="$t('main.search')" clearable hide-details="auto" v-model="search"
-				@update:modelValue="searching" class="mb-4" :prepend-inner-icon="mdiMagnify">
-
-				<template v-slot:append>
-					<v-btn height="40px" color="primary" :prepend-icon="mdiCached" @click="scan"
-						v-tooltip:bottom-end="$t('main.scan-hint')">
-						{{ $t('main.scan') }}
-					</v-btn>
-				</template>
-			</TextField>
+				@update:modelValue="searching" class="mb-4" :prepend-inner-icon="mdiMagnify" />
 
 			<div :class="$style.filterPanel">
 				<ToggleBtn :icon="mdiDownload" v-model="filterInstalled" @update:model-value="searching">

@@ -14,16 +14,8 @@ const installedIcon = computed(() => game.installed ? mdiDownload : mdiDownloadO
 const installedColor = computed(() => game.installed ? 'success' : 'grey');
 const installedTooltip = computed(() => t(game.installed ? 'game.installed' : 'game.not_installed'));
 
-const configuredColor = computed(() => {
-	if (!game.installed) return 'grey';
-	if (game.needWrite) return 'warning'
-	return game.configured ? 'success' : 'grey';
-})
-const configuredTooltip = computed(() => {
-	if (!game.installed) return t('game.not_configured');
-	if (game.needWrite) return t('game.need_write');
-	return t(game.configured ? 'game.configured' : 'game.not_configured');
-})
+const configuredColor = computed(() => game.installed && game.configured ? 'success' : 'grey')
+const configuredTooltip = computed(() => t(game.installed && game.configured ? 'game.configured' : 'game.not_configured'))
 
 const isFavoriteIcon = computed(() => game.stared ? mdiStar : mdiStarOutline);
 const isFavoriteColor = computed(() => game.stared ? 'yellow' : 'grey');

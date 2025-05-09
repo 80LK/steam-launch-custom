@@ -5,27 +5,33 @@ import Value from "@utils/Value"
 import Steam from "../Steam";
 import Launch from "../Database/Launch";
 import AppInfo from "./AppInfo";
+import LocalConfig from "./LocalConfig";
+import Game from "../Database/Game";
 
 namespace Configure {
 	let useAppInfo = new Value(false, (_, v) => {
 		Settings.setBoolean(USE_APPINFO, v)
-		needWrite.set(v ? AppInfo.needWrite.get() : false)
+		needWrite.set(v ? AppInfo.needWrite.get() : LocalConfig.needWrite.get())
 	});
 	let canUseAppInfo = true;
 
 	export function editLaunch(launch: Launch) {
 		AppInfo.configure(launch);
 	}
-	export function editGame(_: any) { }
+	export function editGame(game: Game) {
+		LocalConfig.configure(game);
+	}
 
 	export async function init() {
-		useAppInfo.set(await Settings.getBoolean(USE_APPINFO, false), false);
 		const inited = await AppInfo.init();
 
 		if (!inited) {
 			canUseAppInfo = false;
 			useAppInfo.set(false);
 		}
+
+		await LocalConfig.init();
+		useAppInfo.set(await Settings.getBoolean(USE_APPINFO, false));
 	}
 
 	async function write() {
@@ -33,17 +39,18 @@ namespace Configure {
 		const SteamIsRunning = await steam.isRunning();
 		SteamIsRunning && await steam.stop();
 
-		if (useAppInfo.get()) {
-			await AppInfo.write();
-		} else {
-			await AppInfo.reset();
-		}
+		await Promise.all(
+			useAppInfo.get()
+				? [AppInfo.write(), LocalConfig.reset()]
+				: [LocalConfig.write(), AppInfo.reset()]
+		);
 
 		SteamIsRunning && await steam.start();
 	}
 
 	const needWrite = new Value(false);
 	AppInfo.needWrite.on((_, v) => useAppInfo.get() && needWrite.set(v));
+	LocalConfig.needWrite.on((_, v) => (!useAppInfo.get()) && needWrite.set(v));
 
 	export function IPC(_: any, ipc: IPCTunnel) {
 		ipc.handle(Messages.canUseAppInfo, () => canUseAppInfo);

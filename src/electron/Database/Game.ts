@@ -2,14 +2,12 @@ import Database from "./Database";
 import Settings from "./Settings";
 import { GameFilter, IGame, Messages } from "@shared/Game";
 import parseBoolean from "@utils/parseBoolean";
-import Steam, { TestLaunch } from "../Steam";
+import Steam from "../Steam";
 import { IPCTunnel } from "../IPCTunnel";
 import ImageProtocol from "../Protocol/ImgaeProtocol";
 import App from "../App";
 import Configure from "../Configure/Configure";
 import { basename, resolve } from "path";
-
-const steam = Steam.get();
 
 type SQLGame = Pick<IGame, 'id' | 'name'> & { addTimestamp: string; stared: string, installed: boolean, configured: string, library: string, installDir: string, needWrite: string };
 
@@ -25,7 +23,6 @@ class Game extends Database.Model implements IGame {
 	stared: boolean = false;
 	installed: boolean = false;
 	configured: boolean = false;
-	needWrite: boolean = false;
 	addTimestamp: number = Date.now();
 
 	public get image(): string {
@@ -151,15 +148,12 @@ class Game extends Database.Model implements IGame {
 		return await Promise.all(sql_data.map(sql_data => this.createFromSql(sql_data)))
 	};
 
-	private static async create(id: number, name: string, library: string, installDir: string) {
+	public static create(id: number, name: string, library: string, installDir: string) {
 		const game = new Game();
 		game.id = id;
 		game.name = name;
 		game.library = library;
 		game.installDir = installDir;
-
-		await game.checkInstalled();
-		await game.checkConfigured();
 
 		return game;
 	}
@@ -175,47 +169,8 @@ class Game extends Database.Model implements IGame {
 		game.addTimestamp = new Date(sql.addTimestamp).getTime();
 		game.installed = parseBoolean(sql.installed) || false;
 		game.configured = parseBoolean(sql.configured) || false;
-		game.needWrite = parseBoolean(sql.needWrite) || false;
-
-		await game.checkInstalled();
-		await game.checkConfigured();
 
 		return game;
-	}
-
-	private async checkInstalled() {
-		const man = await steam.getAppManifest(this.library, this.id);
-		const installed = man ? true : false;
-		if (this.installed == installed) return;
-
-		this.installed = installed;
-		await this.save();
-	}
-
-	private async checkNeedWrite() {
-		const test = await steam.testLaunchPath(this.id);
-
-		if (this.configured && this.needWrite && test == TestLaunch.CURRENT) {
-			return false;
-		} else if (this.configured && !this.needWrite && test != TestLaunch.CURRENT) {
-			return true;
-		} else if (!this.configured && this.needWrite && test == TestLaunch.NO) {
-			return false;
-		} else if (!this.configured && !this.needWrite && test != TestLaunch.NO) {
-			return true;
-		}
-
-		return this.needWrite;
-	}
-
-	private async checkConfigured() {
-		if (!this.installed) return;
-		const old_needWrite = this.needWrite;
-
-		this.needWrite = await this.checkNeedWrite();
-
-		if (old_needWrite != this.needWrite)
-			await this.save();
 	}
 
 	public toJSON(): IGame {
@@ -224,7 +179,6 @@ class Game extends Database.Model implements IGame {
 			name: this.name,
 			installed: this.installed,
 			configured: this.configured,
-			needWrite: this.needWrite,
 			stared: this.stared,
 			addTimestamp: this.addTimestamp,
 			image: this.image
@@ -232,9 +186,8 @@ class Game extends Database.Model implements IGame {
 	}
 
 	public async save() {
-		Configure.editGame(this);
 		await Game.prepare(
-			`INSERT OR REPLACE INTO ${Game.DB_NAME} (id, name, stared, addTimestamp, library, installed, configured, needWrite, installDir) values ($id, $name, $stared, DATETIME($addTimestamp/1000, 'unixepoch'), $library, $installed, $configured, $needWrite, $installDir);`
+			`INSERT OR REPLACE INTO ${Game.DB_NAME} (id, name, stared, addTimestamp, library, installed, configured, installDir) values ($id, $name, $stared, DATETIME($addTimestamp/1000, 'unixepoch'), $library, $installed, $configured, $installDir);`
 		).run({
 			id: this.id,
 			name: this.name,
@@ -244,59 +197,8 @@ class Game extends Database.Model implements IGame {
 			installDir: this.installDir,
 			installed: this.installed.toString(),
 			configured: this.configured.toString(),
-			needWrite: this.needWrite.toString()
 		})
 	}
-
-	public static async scan() {
-		const scan_time = Date.now();
-		const libraries = await steam.getLibraries();
-		for (const key in libraries) {
-			const library = libraries[key];
-			for (const s_appId in library.apps) {
-				const appId = parseInt(s_appId);
-				const app_manifest = await steam.getAppManifest(library.path, appId);
-				if (!app_manifest) continue;
-
-				if (await Game.get(appId)) continue;
-				const { name, installdir } = app_manifest.appstate;
-				const game = await Game.create(appId, name, library.path, installdir);
-				game.addTimestamp = scan_time;
-				game.save();
-			}
-		}
-	};
-
-	public static async needWrite() {
-		return await this.prepare<SQLGame>(`SELECT * FROM ${this.DB_NAME} WHERE needWrite = 'true';`).getAll().then(e => Promise.all(e.map(e => this.createFromSql(e))));
-	};
-
-	public static async write() {
-		const steamWasBeenRun = await steam.isRunning();
-		await steam.stop();
-
-		const all_games = await this.needWrite();
-		const games = all_games.filter(game => game.installed && game.needWrite);
-		const { configured, reset } = all_games.reduce((r, game) => {
-			r[game.configured ? 'configured' : 'reset'].push(game.id);
-			return r;
-		}, { configured: [] as number[], reset: [] as number[] });
-
-		const editedIds = [
-			...await steam.setLaunchOptions(configured),
-			...await steam.resetLaunchOptions(reset),
-		];
-
-		if (await steam.writeLocalConfig())
-			await Promise.all(games.map(game => {
-				if (editedIds.indexOf(game.id) == -1) return;
-				game.needWrite = false;
-				return game.save()
-			}));
-
-		steamWasBeenRun && await steam.start()
-		return editedIds;
-	};
 
 	public static async getLaunch() {
 		const appId = App.getLaunchApp();
@@ -317,15 +219,14 @@ class Game extends Database.Model implements IGame {
 
 			return game.stared;
 		})
-		ipc.handle(Messages.scan, () => Game.scan());
 		ipc.handle(Messages.configure, async (id: number) => {
 			const game = await Game.get(id);
 			if (!game) return null;
 
 			game.configured = true;
-			game.needWrite = await game.checkNeedWrite();
 			await game.save();
 
+			Configure.editGame(game);
 			return game.toJSON();
 		})
 		ipc.handle(Messages.resetConfigure, async (id: number) => {
@@ -333,13 +234,10 @@ class Game extends Database.Model implements IGame {
 			if (!game) return null;
 
 			game.configured = false;
-			game.needWrite = await game.checkNeedWrite();
 			await game.save();
+			Configure.editGame(game);
 			return game.toJSON();
 		})
-
-		ipc.handle(Messages.needWrite, () => Game.needWrite());
-		ipc.handle(Messages.write, () => Game.write());
 		ipc.handle(Messages.getLaunch, () => Game.getLaunch());
 	}
 };

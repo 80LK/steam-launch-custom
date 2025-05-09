@@ -13,8 +13,6 @@
 	},
 	"main": {
 		"search": "Search",
-		"scan": "Scan games",
-		"scan-hint": "If the game does not appear, try closing Steam before scanning.",
 		"installed": "Installed",
 		"configured": "Configured",
 		"favourites": "Favourites"
@@ -23,7 +21,6 @@
 		"installed": "@:main.installed",
 		"not_installed": "Not installed",
 		"configured": "@:main.configured",
-		"need_write": "@:configure.need_write",
 		"not_configured": "Not configured",
 		"favourites": "@:main.favourites",
 		"launch": "Launch",
@@ -69,7 +66,6 @@
 	"settings": {
 		"title": "Settings",
 		"theme": "Theme",
-		"scan_every_launch": "Scan games every time launch program",
 		"appdata": "AppData",
 		"steam": "Steam",
 		"open": "Open",

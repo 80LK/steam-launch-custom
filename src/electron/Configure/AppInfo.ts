@@ -68,7 +68,6 @@ namespace AppInfo {
 		}
 	}
 	export async function configure(launch: Launch) {
-		console.log(launch);
 		switch (launch.state) {
 			case Launch.SteamState.NEED_ADD:
 			case Launch.SteamState.NEED_EDIT: {
@@ -132,17 +131,20 @@ namespace AppInfo {
 	}
 
 	export async function reset() {
+		if (!appInfo) return;
+
 		const launches = await Launch.getAll();
 		await Promise.all(
 			launches.map(launch => {
 				launch.state = Launch.SteamState.NEED_ADD;
-				getStore(launch.game_id).add(launch.id)
+				addInStore(launch);
 				return launch.save()
 			})
 		);
 		mapAppInfo(({ key, launches }) => {
 			launches.delete(key);
 		});
+		await writeFile(Steam.get().pathToAppInfo, VKVB.serializate(appInfo));
 		needWrite.set(storeGames.size > 0);
 	}
 
@@ -175,12 +177,6 @@ namespace AppInfo {
 		return arr;
 	}
 	const storeGames = new Map<number, Set<number>>();
-	function getStore(game_id: number) {
-		if (!storeGames.has(game_id))
-			storeGames.set(game_id, new Set());
-
-		return storeGames.get(game_id)!;
-	}
 	function addInStore({ id, game_id }: Pick<Launch, 'id' | 'game_id'>) {
 		if (!storeGames.has(game_id)) storeGames.set(game_id, new Set());
 

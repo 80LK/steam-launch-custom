@@ -1,4 +1,3 @@
-const SCAN_GAME_IN_LAUNCH_KEY = "scanGameLaunch";
 
 interface IGame {
 	id: number;
@@ -7,7 +6,6 @@ interface IGame {
 
 	installed: boolean;
 	configured: boolean;
-	needWrite: boolean;
 
 	stared: boolean;
 
@@ -23,11 +21,8 @@ interface GameFilter {
 enum Messages {
 	getAll = 'game.getAll',
 	stared = 'game.stared',
-	scan = 'game.scan',
 	configure = 'game.configure',
 	resetConfigure = 'game.resetConfigure',
-	needWrite = 'game.needWrite',
-	write = 'game.write',
 	getLaunch = 'game.getLaunch'
 }
 
@@ -35,5 +30,4 @@ export {
 	type IGame,
 	Messages,
 	type GameFilter,
-	SCAN_GAME_IN_LAUNCH_KEY
 }

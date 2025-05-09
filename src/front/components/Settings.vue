@@ -14,7 +14,6 @@ const appDataPath = ref('');
 const steamPath = ref('');
 App.getAppData().then(value => appDataPath.value = value);
 Steam.getPath().then(value => steamPath.value = value);
-// Configure.canUseAppInfo().then(value => canUseAppInfo.value = value)
 function copyPath(path: string) {
 	navigator.clipboard.writeText(path);
 }
@@ -43,9 +42,6 @@ function openPath(path: string) {
 					<Select :label="$t('settings.language')" :items="settings.locale.available"
 						:model-value="settings.locale.current" @update:model-value="settings.locale.set" force-label
 						hide-details />
-
-					<Switch :label="$t('settings.scan_every_launch')" :model-value="settings.scanGameLaunch.value"
-						color="primary" @update:model-value="settings.scanGameLaunch.set" hide-details />
 
 					<Switch :label="$t('settings.use_appinfo')" color="primary" hide-details
 						:model-value="configure.useAppInfo" @update:model-value="configure.setUseAppInfo"
