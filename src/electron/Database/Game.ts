@@ -6,7 +6,7 @@ import Steam, { TestLaunch } from "../Steam";
 import { IPCTunnel } from "../IPCTunnel";
 import ImageProtocol from "../Protocol/ImgaeProtocol";
 import App from "../App";
-import Configure from "../Configure";
+import Configure from "../Configure/Configure";
 import { basename, resolve } from "path";
 
 const steam = Steam.get();

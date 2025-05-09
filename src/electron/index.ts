@@ -12,7 +12,8 @@ import Updater from './Updater';
 import LaunchWindow from './Window/LaunchWindow';
 import Spawn from './Spawn';
 import Logger from './Logger';
-import Configure from './Configure';
+import Configure from './Configure/Configure';
+import Wrapper from './Wrapper';
 
 // process.argv.push('--launch=41700');
 
@@ -27,6 +28,8 @@ const app = App.create(isLaunch ? LaunchWindow : MainWindow)
 		Logger.get(isLaunch ? `log.${appId}.txt` : 'log.txt'),
 		Steam.get(),
 		Database.get().register(Settings, Game, Launch),
+		Wrapper,
+		Configure
 	)
 	.useIPC(
 		SystemBar,

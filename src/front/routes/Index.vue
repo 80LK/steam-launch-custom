@@ -8,10 +8,10 @@ import GameCard from "@components/Game/Card.vue";
 import TextField from "@components/Input/TextField.vue";
 import { ref, useTemplateRef } from "vue";
 import useGamesStore from "@store/games";
-import useSettings from "@store/settings";
+import useConfigure from "@store/configure";
 
 const store = useGamesStore();
-const { useAppInfo } = useSettings();
+const configure = useConfigure();
 
 const search = ref(null as string | null);
 const filterInstalled = ref(false);
@@ -88,7 +88,7 @@ async function scan() {
 					{{ $t('main.favourites') }}
 				</ToggleBtn>
 				<ToggleBtn :icon="mdiCog" v-model="filterConfigured" @update:model-value="searching"
-					v-if="!useAppInfo.value">
+					v-if="!configure.useAppInfo">
 					{{ $t('main.configured') }}
 				</ToggleBtn>
 			</div>
