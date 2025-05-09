@@ -23,6 +23,7 @@ namespace Configure {
 	}
 
 	export async function init() {
+		useAppInfo.set(await Settings.getBoolean(USE_APPINFO, false));
 		const inited = await AppInfo.init();
 
 		if (!inited) {
@@ -31,7 +32,6 @@ namespace Configure {
 		}
 
 		await LocalConfig.init();
-		useAppInfo.set(await Settings.getBoolean(USE_APPINFO, false));
 	}
 
 	async function write() {
