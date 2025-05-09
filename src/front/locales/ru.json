@@ -13,8 +13,6 @@
 	},
 	"main": {
 		"search": "Поиск",
-		"scan": "Сканировать",
-		"scan-hint": "Если игра не появилась, попробуйте закрыть Steam перед сканированием.",
 		"installed": "Установлено",
 		"configured": "Сконфигурировано",
 		"favourites": "Избранное"
@@ -23,7 +21,6 @@
 		"installed": "@:main.installed",
 		"not_installed": "Не установлено",
 		"configured": "@:main.configured",
-		"need_write": "@:configure.need_write",
 		"not_configured": "Не сконфигурировано",
 		"favourites": "@:main.favourites",
 		"launch": "Запустить",
@@ -69,7 +66,6 @@
 	"settings": {
 		"title": "Настройки",
 		"theme": "Тема",
-		"scan_every_launch": "Сканировать игры при каждом запуске программы",
 		"appdata": "Данные приложения",
 		"steam": "Steam",
 		"open": "Открыть",
