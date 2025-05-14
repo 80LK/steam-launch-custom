@@ -2,7 +2,7 @@
 import { mdiAlphabetical, mdiApplicationOutline, mdiCog, mdiFolder, mdiPencil } from '@mdi/js';
 import { ILaunch, INIT_LAUNCH } from '@shared/Launch';
 import useLaunchStore from '@store/launch';
-import FilePicker from '@components/FilePicker.vue';
+import FilePicker from '@components/Input/FilePicker.vue';
 import TextField from '@components/Input/TextField.vue';
 import Combobox from '@components/Input/Combobox.vue';
 import { computed, ref, toRaw, unref } from 'vue';
