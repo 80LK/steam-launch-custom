@@ -2,7 +2,7 @@
 import { mdiAlphabetical, mdiApplicationOutline, mdiCog, mdiFolder, mdiPencil } from '@mdi/js';
 import { ILaunch, INIT_LAUNCH } from '@shared/Launch';
 import useLaunchStore from '@store/launch';
-import FilePicker from '@components/FilePicker.vue';
+import FilePicker from '@components/Input/FilePicker.vue';
 import TextField from '@components/Input/TextField.vue';
 import Combobox from '@components/Input/Combobox.vue';
 import { computed, ref, toRaw, unref } from 'vue';
@@ -99,20 +99,14 @@ function pasteArgs(event: ClipboardEvent) {
 						:rules="[blockNullRule($t('launch.title'))]" :prepend-inner-icon="mdiAlphabetical" />
 
 					<FilePicker v-model="launch.execute" :default-path="defaultPathForExe"
-						:type="{ name: 'Application', extensions: ['exe'] }" v-slot="{ value, selectFile }">
-						<TextField :label="$t('launch.execute')" clearable :prepend-inner-icon="mdiApplicationOutline"
-							:rules="[blockNullRule($t('launch.execute'))]" :model-value="value"
-							@click:clear="launch.execute = ''" @click:control="selectFile" />
-					</FilePicker>
+						:type="{ name: 'Application', extensions: ['exe'] }" :label="$t('launch.execute')"
+						:rules="[blockNullRule($t('launch.execute'))]" :icon="mdiApplicationOutline" />
 
 					<Combobox :prepend-inner-icon="mdiCog" :label="$t('launch.options')" clearable chips multiple
 						closable-chips :hint="$t('launch.options_hint')" v-model="launch.launch" @paste="pasteArgs" />
 
 					<FilePicker v-model="launch.workdir" :default-path="defaultPathForWorkDir" type="directory"
-						v-slot="{ value, selectFile }">
-						<TextField :label="$t('launch.work')" clearable :prepend-inner-icon="mdiFolder"
-							:model-value="value" @click:clear="launch.workdir = ''" @click:control="selectFile" />
-					</FilePicker>
+						:label="$t('launch.work')" :icon="mdiFolder" />
 				</v-card-text>
 				<v-divider />
 				<v-card-actions>
