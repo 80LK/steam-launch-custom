@@ -5,7 +5,7 @@ import { readFile, writeFile } from "fs/promises";
 import Steam from "../Steam";
 import Logger from "../Logger";
 import Game from "../Database/Game";
-import { dirname, relative, resolve } from "path";
+import { dirname, relative } from "path";
 import Wrapper from "../Wrapper";
 
 namespace AppInfo {
@@ -200,7 +200,7 @@ namespace AppInfo {
 
 
 		let executable = relative(game.path, launch.execute);
-		let workingdir = relative(game.path, launch.workdir);
+		let workingdir = relative(game.path, launch.workdir || dirname(executable));
 		let args = launch.launch.length ? `"${launch.launch.join('" "')}"` : "";
 		if (/^[A-Z]:/.test(executable) || /^[A-Z]:/.test(workingdir)) {
 			Logger.log(`Can't get relative path for launch ${launch.id}. Game path: ${game.path}. Executable: ${launch.execute}. Workdir:  ${launch.workdir}. Set wrapper.`, { prefix: 'Configure][AppInfo' });
