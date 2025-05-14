@@ -99,20 +99,14 @@ function pasteArgs(event: ClipboardEvent) {
 						:rules="[blockNullRule($t('launch.title'))]" :prepend-inner-icon="mdiAlphabetical" />
 
 					<FilePicker v-model="launch.execute" :default-path="defaultPathForExe"
-						:type="{ name: 'Application', extensions: ['exe'] }" v-slot="{ value, selectFile }">
-						<TextField :label="$t('launch.execute')" clearable :prepend-inner-icon="mdiApplicationOutline"
-							:rules="[blockNullRule($t('launch.execute'))]" :model-value="value"
-							@click:clear="launch.execute = ''" @click:control="selectFile" />
-					</FilePicker>
+						:type="{ name: 'Application', extensions: ['exe'] }" :label="$t('launch.execute')"
+						:rules="[blockNullRule($t('launch.execute'))]" :icon="mdiApplicationOutline" />
 
 					<Combobox :prepend-inner-icon="mdiCog" :label="$t('launch.options')" clearable chips multiple
 						closable-chips :hint="$t('launch.options_hint')" v-model="launch.launch" @paste="pasteArgs" />
 
 					<FilePicker v-model="launch.workdir" :default-path="defaultPathForWorkDir" type="directory"
-						v-slot="{ value, selectFile }">
-						<TextField :label="$t('launch.work')" clearable :prepend-inner-icon="mdiFolder"
-							:model-value="value" @click:clear="launch.workdir = ''" @click:control="selectFile" />
-					</FilePicker>
+						:label="$t('launch.work')" :icon="mdiFolder" />
 				</v-card-text>
 				<v-divider />
 				<v-card-actions>

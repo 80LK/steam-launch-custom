@@ -1,19 +1,23 @@
 <script setup lang="ts">
-import { FileType } from '@shared/App';
-import { computed } from 'vue';
+import FilePickerBase, { PropFilePickerBase } from './FilePickerBase.vue';
+import TextField from './TextField.vue';
+import { IconValue, ValidationRule } from './Input';
+import { mdiFile } from '@mdi/js';
 
-const { type = { name: "Any files", extensions: ['*'] }, defaultPath } = defineProps<{ type?: FileType, defaultPath?: string }>();
-
-async function selectFile() {
-	const result = await App.selectFile(type, defaultPath);
-	if (result)
-		value.value = result;
+interface PropFilePicker extends PropFilePickerBase {
+	icon?: IconValue;
+	label?: string;
+	rules?: readonly ValidationRule[];
 }
 
-const value = defineModel<string>({ default: '' });
-const isNotEmpty = computed(() => !!(value.value));
+const { defaultPath, type, icon = mdiFile, label, rules = [] } = defineProps<PropFilePicker>();
+const value = defineModel({ default: '' })
+
 </script>
 
 <template>
-	<slot v-bind="{ selectFile, value, isNotEmpty }" />
+	<FilePickerBase v-model="value" :default-path="defaultPath" :type="type" v-slot="{ value, selectFile, clear }">
+		<TextField :label="label" clearable :prepend-inner-icon="icon" :rules="rules" :model-value="value"
+			@click:clear="clear" @click:control="selectFile" readonly />
+	</FilePickerBase>
 </template>
