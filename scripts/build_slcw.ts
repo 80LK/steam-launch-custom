@@ -13,7 +13,7 @@ const builded_version_file = resolve(node_modules, ".slcw-version");
 (async () => {
 	const version = await readFile(version_file, 'utf-8');
 
-	if (await exsist(executable)) {
+	if (await exsist(executable) && await exsist(builded_version_file)) {
 		const builded_version = await readFile(builded_version_file, "utf-8");
 		if (version == builded_version) return;
 	}
