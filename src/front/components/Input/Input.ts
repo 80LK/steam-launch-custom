@@ -22,4 +22,4 @@ type FieldProps = {
 	forceLabel?: boolean
 };
 
-export type { FieldProps, Variant };
+export type { FieldProps, Variant, IconValue, ValidationRule };

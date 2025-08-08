@@ -39,7 +39,7 @@ class App {
 		uses.forEach(use => this.useIPCList.add(use));
 		return this;
 	}
-	private AppIPC: UseIPC = (_, ipc) => {
+	private AppIPC: UseIPC = (win, ipc) => {
 		ipc.handle(Messages.getCurrentState, () => this.message);
 		ipc.handle(Messages.selectFile, async (type: FileType, defaultPath: string) => {
 			let property: 'openFile' | 'openDirectory' = 'openFile';
@@ -51,6 +51,14 @@ class App {
 			}
 
 			if (defaultPath) defaultPath = resolve(defaultPath);
+			const files = dialog.showOpenDialogSync(win, { defaultPath, properties: [property], filters: filters });
+
+			if (Array.isArray(files))
+				return files[0];
+
+			return false;
+
+
 			const { canceled, filePaths } = await dialog.showOpenDialog({ defaultPath, properties: [property], filters: filters });
 			if (canceled || filePaths.length == 0) return false;
 			return filePaths[0]
