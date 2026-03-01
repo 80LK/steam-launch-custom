@@ -2,12 +2,13 @@
 import { mdiAlphabetical, mdiApplicationOutline, mdiCog, mdiFolder, mdiPencil } from '@mdi/js';
 import { ILaunch, INIT_LAUNCH } from '@shared/Launch';
 import useLaunchStore from '@store/launch';
-import FilePicker from '@components/Input/FilePicker.vue';
+import FilePicker from '@components/Input/FilePickerTextField.vue';
 import TextField from '@components/Input/TextField.vue';
 import Combobox from '@components/Input/Combobox.vue';
 import { computed, ref, toRaw, unref } from 'vue';
 import { SubmitEventPromise } from 'vuetify';
 import { useI18n } from 'vue-i18n';
+import FilePickerBtn from '@components/Input/FilePickerBtn.vue';
 const { t } = useI18n()
 const emit = defineEmits(['create']);
 
@@ -58,7 +59,6 @@ const defaultPathForExe = computed(() => {
 	if (!l || !l.execute) return undefined;
 	return l.execute + '/..';
 })
-
 const defaultPathForWorkDir = computed(() => {
 	const l = launch.value;
 	if (!l || !l.workdir) return defaultPathForExe.value;
@@ -89,6 +89,9 @@ function pasteArgs(event: ClipboardEvent) {
 		<v-form @submit.prevent="submit" v-if="launch">
 			<v-card>
 				<v-card-item :prepend-icon="mdiPencil">
+					<template #prepend>
+						<v-avatar :image="launch.image" class="bg-grey-lighten-2" />
+					</template>
 					<v-card-title>
 						{{ $t(isEdit ? `launch.edit` : 'launch.new', [store.get(launch.id)?.name]) }}
 					</v-card-title>
@@ -110,6 +113,9 @@ function pasteArgs(event: ClipboardEvent) {
 				</v-card-text>
 				<v-divider />
 				<v-card-actions>
+					<FilePickerBtn v-model="launch.image" color="warning" :label="$t('launch.edit_icon')"
+						:type="{ name: 'Image', extensions: ['png', 'jpg', 'webp', 'gif'] }" />
+					<v-spacer />
 					<v-btn color="error" @click="close()">{{ $t('launch.cancel') }}</v-btn>
 					<v-btn color="success" type="submit">{{ $t('launch.save') }}</v-btn>
 				</v-card-actions>
