@@ -30,7 +30,8 @@
 		"reset_configure": "Reset configuration",
 		"add_launch": "Add variant launch",
 		"edit_launch": "Edit launch setting",
-		"remove_launch": "Remove launch setting"
+		"remove_launch": "Remove launch setting",
+		"shortcut": "Create shortcut on desktop"
 	},
 	"launch": {
 		"edit": "Edit laucnh \"{0}\"",
