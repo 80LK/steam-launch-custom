@@ -72,9 +72,12 @@
 		"open": "Открыть",
 		"close": "Закрыть",
 		"language": "Язык",
-		"use_appinfo": "Использовать AppInfo.vdf для создания вариантов запуска",
-		"use_appinfo_tooltip": "Использование AppInfo.vdf требует перезаписывания файлов Steam при каждом изменении вариантов запуска.",
-		"check_prerelease": "Проверять ПРЕ-релизы"
+		"use_appinfo": "Использовать нативное окно вариантов запуска Steam",
+		"use_appinfo_tooltip": "Использование нативного окна Steam требует перезаписывания файлов Steam при каждом изменении вариантов запуска.",
+		"use_appinfo_warning": "Функция является экспериментальной и не будет поддерживаться. Работает как есть.",
+		"check_prerelease": "Проверять ПРЕ-релизы",
+		"integrate_in_steam": "Интеграция в Steam",
+		"integrate_in_steam_tooltip": "Интегрировать окно запуска Steam-Launch-Custom в Steam"
 	},
 	"theme": {
 		"dark": "Темная",

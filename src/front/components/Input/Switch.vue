@@ -22,5 +22,9 @@ const model = defineModel();
 </script>
 
 <template>
-	<v-switch :label="label" :readonly="readonly" v-model="model" v-bind="$attrs" :color="color" :inset="c_inset" />
+	<v-switch :label="label" :readonly="readonly" v-model="model" v-bind="$attrs" :color="color" :inset="c_inset">
+		<template v-for="(_, name) in $slots" #[name]="slotProps">
+			<slot :name="name" v-bind="slotProps" />
+		</template>
+	</v-switch>
 </template>

@@ -72,9 +72,12 @@
 		"open": "Open",
 		"close": "Close",
 		"language": "Language",
-		"use_appinfo": "Use AppInfo.vdf for creating launch options",
-		"use_appinfo_tooltip": "Using AppInfo.vdf requires overwriting the Steam files every time you change the launch options.",
-		"check_prerelease": "Check Pre-release"
+		"use_appinfo": "Use the native Steam launch options window",
+		"use_appinfo_tooltip": "Using the native Steam window requires overwriting the Steam files every time you change the startup options.",
+		"use_appinfo_warning": "The feature is experimental and will not be supported. It works as it is.",
+		"check_prerelease": "Check Pre-release",
+		"integrate_in_steam": "Steam Integration",
+		"integrate_in_steam_tooltip": "Integrate the Steam-Launch-Custom launch window into Steam"
 	},
 	"theme": {
 		"dark": "Dark",

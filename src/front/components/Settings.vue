@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { mdiCog, mdiContentCopy } from "@mdi/js";
+import { mdiAlertOutline, mdiCog, mdiContentCopy } from "@mdi/js";
 import useSettings from '@store/settings';
 import TextField from '@components/Input/TextField.vue';
 import Select from '@components/Input/Select.vue';
@@ -43,9 +43,21 @@ function openPath(path: string) {
 						:model-value="settings.locale.current" @update:model-value="settings.locale.set" force-label
 						hide-details />
 
-					<Switch :label="$t('settings.use_appinfo')" color="primary" hide-details
-						:model-value="configure.useAppInfo" @update:model-value="configure.setUseAppInfo"
-						v-tooltip:bottom-start="$t('settings.use_appinfo_tooltip')" v-if="configure.canUseAppInfo" />
+					<Switch :label="$t('settings.integrate_in_steam')" color="primary" hide-details
+						v-tooltip:bottom-start="$t('settings.integrate_in_steam_tooltip')" />
+
+					<Switch color="primary" hide-details :model-value="configure.useAppInfo"
+						@update:model-value="configure.setUseAppInfo" v-if="configure.canUseAppInfo">
+						<template #label>
+							<span v-tooltip:bottom-start="$t('settings.use_appinfo_tooltip')">
+								{{ $t('settings.use_appinfo') }}
+							</span>
+						</template>
+						<template #append>
+							<v-icon :icon="mdiAlertOutline" color="warning"
+								v-tooltip="$t('settings.use_appinfo_warning')" />
+						</template>
+					</Switch>
 
 					<Switch :label="$t('settings.check_prerelease')" :model-value="settings.checkPreRelease.value"
 						color="primary" @update:model-value="settings.checkPreRelease.set" />
