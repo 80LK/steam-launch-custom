@@ -1,6 +1,6 @@
 import Settings from "../Database/Settings";
 import { IPCTunnel } from "../IPCTunnel";
-import { USE_APPINFO, Messages } from "@shared/Configure"
+import { USE_APPINFO, Messages, INTEGRATE_STEAM } from "@shared/Configure"
 import Value from "@utils/Value"
 import Steam from "../Steam";
 import Launch from "../Database/Launch";
@@ -14,6 +14,9 @@ namespace Configure {
 		needWrite.set(v ? AppInfo.needWrite.get() : LocalConfig.needWrite.get())
 	});
 	let canUseAppInfo = true;
+	let integrateSteam = new Value(true, (_, v) => {
+		Settings.setBoolean(INTEGRATE_STEAM, v);
+	});
 
 	export function editLaunch(launch: Launch) {
 		AppInfo.configure(launch);
@@ -23,6 +26,7 @@ namespace Configure {
 	}
 
 	export async function init() {
+		integrateSteam.set(await Settings.getBoolean(INTEGRATE_STEAM, true));
 		useAppInfo.set(await Settings.getBoolean(USE_APPINFO, false));
 		const inited = await AppInfo.init();
 
@@ -58,8 +62,12 @@ namespace Configure {
 		ipc.handle(Messages.setUseAppInfo, async (value: boolean) => useAppInfo.set(value))
 		ipc.handle(Messages.useAppInfo, () => useAppInfo.get());
 
-		ipc.handle(Messages.checkNeedWrite, () => needWrite.get())
+		ipc.handle(Messages.integrateSteam, () => integrateSteam.get());
+		ipc.handle(Messages.setIntegrateSteam, async (value: boolean) => integrateSteam.set(value))
+
+		ipc.handle(Messages.checkNeedWrite, () => integrateSteam.get() && needWrite.get())
 		needWrite.on((_, v) => ipc.send(Messages.changeNeedWrite, v));
+		integrateSteam.on((_, v) => ipc.send(Messages.changeNeedWrite, v ? needWrite.get() : false));
 
 		ipc.handle(Messages.write, async () => await write())
 	}

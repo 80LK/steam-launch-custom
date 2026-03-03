@@ -21,6 +21,13 @@ namespace Configure {
 		return ipcRenderer.invoke(Messages.useAppInfo);
 	}
 
+	export function integrateSteam() {
+		return ipcRenderer.invoke(Messages.integrateSteam);
+	}
+	export function setIntegrateSteam(value: boolean) {
+		return ipcRenderer.invoke(Messages.setIntegrateSteam, value);
+	}
+
 	export function checkNeedWrite() {
 		return ipcRenderer.invoke(Messages.checkNeedWrite);
 	}

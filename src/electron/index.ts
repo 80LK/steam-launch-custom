@@ -14,7 +14,7 @@ import Logger from './Logger';
 import Configure from './Configure/Configure';
 import Wrapper from './Wrapper';
 
-// process.argv.push('--launch=41700');
+// process.argv.push('--app=41700');
 
 Database.debug({ logSql: true })
 

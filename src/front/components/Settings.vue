@@ -44,10 +44,12 @@ function openPath(path: string) {
 						hide-details />
 
 					<Switch :label="$t('settings.integrate_in_steam')" color="primary" hide-details
+						:model-value="configure.integrateSteam" @update:model-value="configure.setIntegrateSteam"
 						v-tooltip:bottom-start="$t('settings.integrate_in_steam_tooltip')" />
 
 					<Switch color="primary" hide-details :model-value="configure.useAppInfo"
-						@update:model-value="configure.setUseAppInfo" v-if="configure.canUseAppInfo">
+						@update:model-value="configure.setUseAppInfo"
+						v-if="configure.canUseAppInfo && configure.integrateSteam">
 						<template #label>
 							<span v-tooltip:bottom-start="$t('settings.use_appinfo_tooltip')">
 								{{ $t('settings.use_appinfo') }}
