@@ -23,7 +23,7 @@ function openPath(path: string) {
 </script>
 
 <template>
-	<v-dialog max-width="500">
+	<v-dialog max-width="500" scrollable>
 		<template v-slot:activator="{ props: activatorProps }">
 			<v-fab :icon="mdiCog" :class="$style.settings" v-bind="activatorProps" location="right" absolute offset />
 		</template>
