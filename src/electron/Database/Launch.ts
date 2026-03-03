@@ -197,7 +197,7 @@ class Launch extends Database.Model implements ILaunch {
 	}
 
 	public static async getCurrentLaunch(): Promise<ILaunch | null> {
-		const game_id = App.getLaunchApp();
+		const game_id = App.getAppId();
 		if (game_id == 0) return null;
 		const [exe, ...args] = App.getSteamArgs();
 		const launch = new Launch();

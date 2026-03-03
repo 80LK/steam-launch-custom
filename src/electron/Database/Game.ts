@@ -201,7 +201,7 @@ class Game extends Database.Model implements IGame {
 	}
 
 	public static async getLaunch() {
-		const appId = App.getLaunchApp();
+		const appId = App.getAppId();
 		return (await this.get(appId))?.toJSON();
 	}
 

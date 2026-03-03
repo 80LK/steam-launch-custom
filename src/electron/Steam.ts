@@ -267,13 +267,15 @@ class Steam implements IInitialable {
 		return editIds;
 	}
 
+
+
 	public async testLaunchPath(id: number): Promise<TestLaunch> {
 		const path = await this.getLaunchOptions(id);
 		Logger.log(`Current path: ${path}`, { prefix: 'Steam] [Game ' + id })
 		if (!path) return TestLaunch.NO;
-		// /".*\/electron.exe" ".*" --launch=\d+ %command%/
+		// /".*\/electron.exe" ".*" --app=\d+ %command%/
 
-		if (!/\\".*\/(?:steam-launch-custom.exe|electron.exe\\" \\".*)\\" --launch=\d+ %command%/.test(path))
+		if (!/\\".*\/(?:steam-launch-custom.exe|electron.exe\\" \\".*)\\" --app=\d+ %command%/.test(path))
 			return TestLaunch.NO;
 
 		Logger.log(`Need set path: ${this.getLaunchPath(id)}`, { prefix: 'Steam] [Game ' + id })
@@ -282,7 +284,7 @@ class Steam implements IInitialable {
 	public getLaunchPath(id: number) {
 		const args = [`\\"${App.getExecutable()}\\"`];
 		if (!app.isPackaged) args.push(`\\"${process.argv[1].replace(/\\/g, "/")}\\"`);
-		args.push(`--launch=${id}`, "%command%")
+		args.push(`${App.APP_ARG}=${id}`, "%command%")
 		return args.join(' ')
 	}
 

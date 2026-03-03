@@ -3,7 +3,7 @@ import getIPCTunnel, { IPCTunnel } from "./IPCTunnel";
 import BaseWindow from "./Window/BaseWindow";
 import { resolve, join } from 'path';
 import { FileType, Messages, State, StateMessage } from "@shared/App";
-import { getAppDataFilePath } from "./consts";
+import { DEV, getAppDataFilePath } from "./consts";
 import Protocol from "./Protocol/Protocol";
 import { spawn } from "child_process";
 import Logger from "./Logger";
@@ -157,17 +157,25 @@ class App {
 		return process.argv[0].replace(/\\/g, "/");
 	}
 
-	public static getLaunchApp(): number {
-		const index = process.argv.findIndex(e => e.startsWith('--launch'));
-		const isLaunch = index != -1;
-		const appId = isLaunch ? parseInt(process.argv[index].split('=')[1]) : 0;
-		return appId
+	public static readonly APP_ARG = '--app';
+	public static readonly LAUNCH_ARG = '--app';
+
+	public static getAppId(): number {
+		const appId = process.argv.find(e => e.startsWith(this.APP_ARG));
+		if (appId === undefined) return -1;
+		return parseInt(appId.split('=')[1]);
+	}
+
+	public static getLaunchId(): number {
+		const launchId = process.argv.find(e => e.startsWith(this.LAUNCH_ARG));
+		if (launchId === undefined) return -1;
+		return parseInt(launchId.split('=')[1]);
 	}
 
 	public static getSteamArgs(): string[] {
 		const index = process.argv.findIndex(e => e.startsWith('--launch'));
 		if (index == -1) return [];
-		return process.argv.slice(index + 1);
+		return process.argv.slice(DEV ? 2 : 1).filter(arg => [this.APP_ARG, this.LAUNCH_ARG].findIndex(test => test.startsWith(arg)) == -1);
 	}
 }
 export default App;

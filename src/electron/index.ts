@@ -18,8 +18,8 @@ import Wrapper from './Wrapper';
 
 Database.debug({ logSql: true })
 
-const appId = App.getLaunchApp();
-const isLaunch = appId !== 0;
+const appId = App.getAppId();
+const isLaunch = appId !== -1;
 const image = ImageProtocol.get();
 const app = App.create(isLaunch ? LaunchWindow : MainWindow)
 	.setPath(isLaunch ? `game/${appId}` : 'main')
