@@ -41,12 +41,18 @@ function relaod() {
 	container.value?.reset();
 }
 
+function create() {
+	game.countLaunches++;
+	relaod();
+}
+
 const removeModel = useTemplateRef('remove');
 function delet(launch_id: number) {
 	removeModel.value?.open('launch')
 		.then(async e => {
 			if (!e) return;
 			await launchStore.remove(launch_id);
+			game.countLaunches--;
 			relaod();
 		})
 }
@@ -96,7 +102,7 @@ function delet(launch_id: number) {
 		</LaunchList>
 	</Container>
 
-	<Editor ref="editor" @create="relaod" />
+	<Editor ref="editor" @create="create" />
 	<ConfirmRemove ref="remove" />
 </template>
 
