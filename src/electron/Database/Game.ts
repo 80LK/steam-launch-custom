@@ -156,8 +156,9 @@ class Game extends Database.Model implements IGame {
 		if (filters.stared) where.push("stared IS 'true'");
 
 		if (where.length) sql += ` WHERE ${where.join(' AND ')}`;
-		sql += ` GROUP BY ${Game.DB_NAME}.id ORDER BY stared DESC, installed DESC, addTimestamp DESC, name ASC`;
+		sql += ` GROUP BY ${Game.DB_NAME}.id`;
 		if (filters.haveLaunches) sql += ' HAVING countLaunches > 0';
+		sql += ' ORDER BY stared DESC, installed DESC, addTimestamp DESC, name ASC';
 		if (limit != null) sql += ' LIMIT $limit';
 		if (offset != null) sql += ' OFFSET $offset';
 		sql += ';';
