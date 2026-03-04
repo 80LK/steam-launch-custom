@@ -73,7 +73,7 @@ function scaned() {
 					{{ $t('main.favourites') }}
 				</ToggleBtn>
 				<ToggleBtn :icon="mdiCog" v-model="filterConfigured" @update:model-value="searching"
-					v-if="!configure.useAppInfo">
+					v-if="configure.integrateSteam && !configure.useAppInfo">
 					{{ $t('main.configured') }}
 				</ToggleBtn>
 			</div>

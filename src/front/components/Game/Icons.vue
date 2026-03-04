@@ -5,6 +5,7 @@ import useConfigure from '@store/configure';
 import useGamesStore from '@store/games';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+
 const { game } = defineProps<{ game: IGame }>()
 const store = useGamesStore();
 const configure = useConfigure()
@@ -29,7 +30,8 @@ function star(event: PointerEvent) {
 <template>
 	<div>
 		<v-icon :icon="installedIcon" :color="installedColor" v-tooltip="installedTooltip" />
-		<v-icon :icon="mdiCog" :color="configuredColor" v-tooltip="configuredTooltip" v-if="!configure.useAppInfo" />
+		<v-icon :icon="mdiCog" :color="configuredColor" v-tooltip="configuredTooltip"
+			v-if="configure.integrateSteam && !configure.useAppInfo" />
 		<v-icon :icon="isFavoriteIcon" :color="isFavoriteColor" v-tooltip="$t('game.favourites')" @click="star" />
 	</div>
 </template>

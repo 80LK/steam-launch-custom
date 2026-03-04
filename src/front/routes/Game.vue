@@ -5,37 +5,28 @@ import GameIcons from '@components/Game/Icons.vue';
 import Header from '@components/Game/Header.vue';
 import Editor from '@components/Launch/Editor.vue';
 import LaunchList from '@components/Launch/List.vue';
-import { mdiArrowLeft, mdiClose, mdiPencil, mdiPlay, mdiPlus, mdiTrashCan, mdiLinkBoxVariantOutline } from '@mdi/js';
+import { mdiArrowLeft, mdiPencil, mdiPlay, mdiPlus, mdiTrashCan, mdiLinkBoxVariantOutline } from '@mdi/js';
 import { ILaunch } from '@shared/Launch';
 import useGamesStore from '@store/games';
 import useLaunchStore from '@store/launch';
 import { computed, ref, useTemplateRef } from 'vue';
 import { useRoute } from 'vue-router';
-import useConfigure from '@store/configure';
 
 const rawGameId = useRoute().params.gameId;
 const gameId = parseInt(Array.isArray(rawGameId) ? rawGameId[0] : rawGameId)
 
 const gameStore = useGamesStore();
-const configure = useConfigure();
 const game = gameStore.get(gameId);
-function gameConfigure() {
-	gameStore.configure(game.id);
-}
-function resetConfigure() {
-	gameStore.resetConfigure(game.id);
-}
-
-const configured = computed(() => configure.useAppInfo ? true : game.configured);
 
 const launchStore = useLaunchStore();
 const launchs = ref([] as ILaunch[]);
-const hasLaucnhs = computed(() => configured && launchs.value.length > 0)
+const hasLaunchs = computed(() => launchs.value.length > 0)
 
 let total = 0;
 const limit = 2;
 async function loadLaunchs(done: Done) {
 	const items = await launchStore.getForGame(game.id, total, limit);
+	console.log(items);
 	launchs.value = launchs.value.concat(items);
 	total += items.length;
 	done(items.length < limit ? 'empty' : 'ok');
@@ -63,7 +54,7 @@ function delet(launch_id: number) {
 </script>
 
 <template>
-	<Container padding="0" @load="loadLaunchs" ref="container" :is-infinite-scroll="configured">
+	<Container padding="0" @load="loadLaunchs" ref="container" is-infinite-scroll>
 		<template v-slot:header>
 			<Header :game="game">
 				<template v-slot:toolbar-prepare>
@@ -74,13 +65,12 @@ function delet(launch_id: number) {
 				</template>
 
 				<v-btn :prepend-icon="mdiPlay" tile color="success" size="large" :class="$style.play"
-					:href="`steam://rungameid/${game.id}`" v-if="game.installed">
+					:href="`steam://rungameid/${game.id}`" v-if="game.installed"
+					v-tooltip:bottom="$t('game.launch_steam')">
 					{{ $t('game.launch') }}
 				</v-btn>
 
-				<div v-if="configured" :class="$style.add">
-					<v-btn :icon="mdiClose" color="error" v-tooltip:start="$t('game.reset_configure')"
-						@click="resetConfigure" v-if="!configure.useAppInfo" />
+				<div :class="$style.add">
 					<v-btn :icon="mdiPlus" color="primary" v-tooltip:start="$t('game.add_launch')"
 						@click="editor?.create(game.id)" />
 				</div>
@@ -88,11 +78,8 @@ function delet(launch_id: number) {
 			</Header>
 		</template>
 
-		<div v-if="!hasLaucnhs" :class="$style.center">
-			<v-btn v-if="!configured" tile size="x-large" color="success" @click="gameConfigure">
-				{{ $t('game.configure') }}
-			</v-btn>
-			<span v-else class="text-h6">
+		<div v-if="!hasLaunchs" :class="$style.center">
+			<span class="text-h6">
 				{{ $t('game.not_have_launchs') }}
 			</span>
 		</div>

@@ -24,6 +24,7 @@
 		"not_configured": "Не сконфигурировано",
 		"favourites": "@:main.favourites",
 		"launch": "Запустить",
+		"launch_steam": "Запустить игру с помощью steam://rungameid",
 		"cancel": "Отмена",
 		"configure": "Сконфигурировать",
 		"not_have_launchs": "Нет вариантов запуска",

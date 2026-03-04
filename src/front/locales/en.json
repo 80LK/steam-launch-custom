@@ -24,6 +24,7 @@
 		"not_configured": "Not configured",
 		"favourites": "@:main.favourites",
 		"launch": "Launch",
+		"launch_steam": "Launch game with steam://rungameid",
 		"cancel": "Cancel",
 		"configure": "Configure",
 		"not_have_launchs": "No Launchs",
