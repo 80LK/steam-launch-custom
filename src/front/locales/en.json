@@ -15,7 +15,8 @@
 		"search": "Search",
 		"installed": "Installed",
 		"configured": "Configured",
-		"favourites": "Favourites"
+		"favourites": "Favourites",
+		"have_launches": "Have launches"
 	},
 	"game": {
 		"installed": "@:main.installed",
@@ -23,6 +24,8 @@
 		"configured": "@:main.configured",
 		"not_configured": "Not configured",
 		"favourites": "@:main.favourites",
+		"have_launches": "@:main.have_launches",
+		"not_have_launches": "NOt have launches",
 		"launch": "Launch",
 		"launch_steam": "Launch game in Steam",
 		"cancel": "Cancel",

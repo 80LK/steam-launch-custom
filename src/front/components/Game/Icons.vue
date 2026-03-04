@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { mdiDownload, mdiDownloadOff, mdiStar, mdiStarOutline } from '@mdi/js';
+import { mdiDownload, mdiDownloadOff, mdiStar, mdiStarOutline, mdiViewList } from '@mdi/js';
 import { IGame } from "@shared/Game";
 import useGamesStore from '@store/games';
 import { computed } from 'vue';
@@ -16,6 +16,9 @@ const installedTooltip = computed(() => t(game.installed ? 'game.installed' : 'g
 const isFavoriteIcon = computed(() => game.stared ? mdiStar : mdiStarOutline);
 const isFavoriteColor = computed(() => game.stared ? 'yellow' : 'grey');
 
+const haveLaunchesColor = computed(() => game.countLaunches > 0 ? 'success' : 'grey');
+const haveLaunchesTooltip = computed(() => t(game.installed ? 'game.have_launches' : 'game.not_have_launches'));
+
 function star(event: PointerEvent) {
 	event.stopPropagation();
 	store.stared(game.id, !game.stared);
@@ -25,6 +28,7 @@ function star(event: PointerEvent) {
 <template>
 	<div>
 		<v-icon :icon="installedIcon" :color="installedColor" v-tooltip="installedTooltip" />
+		<v-icon :icon="mdiViewList" :color="haveLaunchesColor" v-tooltip="haveLaunchesTooltip" />
 		<v-icon :icon="isFavoriteIcon" :color="isFavoriteColor" v-tooltip="$t('game.favourites')" @click="star" />
 	</div>
 </template>

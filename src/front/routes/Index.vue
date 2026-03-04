@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { mdiMagnify, mdiDownload, mdiStar } from "@mdi/js";
+import { mdiMagnify, mdiDownload, mdiStar, mdiViewList } from "@mdi/js";
 import ToggleBtn from "@components/ToggleBtn.vue";
 import Updater from '@components/Updater.vue';
 import NeedConfigure from '@components/Game/NeedConfigure.vue';
@@ -14,6 +14,7 @@ const store = useGamesStore();
 const search = ref(null as string | null);
 const filterInstalled = ref(false);
 const filterFavourites = ref(false);
+const filterHaveLaunches = ref(false);
 
 const container = useTemplateRef('container');
 const limit = 12;
@@ -23,6 +24,7 @@ async function loadGames(done: Done) {
 		search: search.value,
 		stared: filterFavourites.value,
 		installed: filterInstalled.value,
+		haveLaunches: filterHaveLaunches.value,
 	});
 	done(loaded < limit ? 'empty' : 'ok');
 }
@@ -54,6 +56,9 @@ function searching() {
 				<ToggleBtn :icon="mdiStar" v-model="filterFavourites" @update:model-value="searching"
 					active-color="#c16100">
 					{{ $t('main.favourites') }}
+				</ToggleBtn>
+				<ToggleBtn :icon="mdiViewList" v-model="filterHaveLaunches" @update:model-value="searching">
+					{{ $t('main.have_launches') }}
 				</ToggleBtn>
 			</div>
 		</template>

@@ -15,7 +15,8 @@
 		"search": "Поиск",
 		"installed": "Установлено",
 		"configured": "Сконфигурировано",
-		"favourites": "Избранное"
+		"favourites": "Избранное",
+		"have_launches": "Имеет варианты запуска"
 	},
 	"game": {
 		"installed": "@:main.installed",
@@ -23,6 +24,8 @@
 		"configured": "@:main.configured",
 		"not_configured": "Не сконфигурировано",
 		"favourites": "@:main.favourites",
+		"have_launches": "@:main.have_launches",
+		"not_have_launches": "Не имеет варианты запуска",
 		"launch": "Запустить",
 		"launch_steam": "Запустить игру в Steam",
 		"cancel": "Отмена",
