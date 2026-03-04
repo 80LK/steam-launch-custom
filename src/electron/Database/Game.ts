@@ -132,6 +132,7 @@ class Game extends Database.Model implements IGame {
 			FROM ${Game.DB_NAME} 
 			LEFT JOIN ${Launch.DB_NAME}
 				ON ${Game.DB_NAME}.id = ${Launch.DB_NAME}.game_id
+				AND ${Launch.DB_NAME}.state != ${Launch.SteamState.NEED_DELETE}
 			WHERE ${Game.DB_NAME}.id = $id
 			GROUP BY ${Game.DB_NAME}.id
 			LIMIT 1;`
@@ -147,7 +148,8 @@ class Game extends Database.Model implements IGame {
 						COUNT(${Launch.DB_NAME}.id) AS countLaunches
 					FROM ${Game.DB_NAME} 
 					LEFT JOIN ${Launch.DB_NAME}
-						ON ${Game.DB_NAME}.id = ${Launch.DB_NAME}.game_id`;
+						ON ${Game.DB_NAME}.id = ${Launch.DB_NAME}.game_id
+						AND ${Launch.DB_NAME}.state != ${Launch.SteamState.NEED_DELETE}`;
 		const where = [] as string[];
 
 

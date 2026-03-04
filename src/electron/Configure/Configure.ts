@@ -19,6 +19,7 @@ namespace Configure {
 
 	export function editLaunch(launch: Launch) {
 		AppInfo.configure(launch);
+		LocalConfig.configure(launch);
 	}
 
 	export async function init() {

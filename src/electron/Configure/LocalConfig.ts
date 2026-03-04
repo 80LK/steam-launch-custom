@@ -1,6 +1,7 @@
 import Value from "@utils/Value";
 import Game from "../Database/Game";
 import Steam, { TestLaunch } from "../Steam";
+import Launch from "../Database/Launch";
 
 namespace LocalConfig {
 	export const needWrite = new Value(true);
@@ -24,7 +25,8 @@ namespace LocalConfig {
 					registerd.installed = !!manifest;
 					await registerd.save();
 					if (manifest) {
-						if (test == TestLaunch.CURRENT) continue;
+						if (test == TestLaunch.CURRENT && registerd.countLaunches > 0) continue;
+						if (test == TestLaunch.NO && registerd.countLaunches == 0) continue;
 						addInStore(app_id);
 					}
 				} else if (manifest) {
@@ -54,7 +56,8 @@ namespace LocalConfig {
 		const reset = [] as number[];
 		const set = [] as number[];
 		for (const app_id of store.values()) {
-			// const game = (await Game.get(app_id))!;
+			const game = (await Game.get(app_id))!;
+			(game.countLaunches > 0 ? set : reset).push(app_id);
 			store.delete(app_id);
 		}
 
@@ -70,6 +73,24 @@ namespace LocalConfig {
 		const game_ids = (await Game.getAll(undefined, undefined, null, { installed: true })).map(game => { addInStore(game.id); return game.id });
 		await Steam.get().resetLaunchOptions(game_ids);
 		await Steam.get().writeLocalConfig();
+		needWrite.set(store.size > 0);
+	}
+
+	export async function configure(launch: Launch) {
+		const game = (await Game.get(launch.game_id))!;
+
+		console.log({
+			launch,
+			game,
+			has: store.has(game.id)
+		})
+
+		if (game.countLaunches == 1 && launch.state == Launch.SteamState.NEED_ADD) {
+			store[store.has(game.id) ? 'delete' : 'add'](game.id);
+		} else if (game.countLaunches == 0 && launch.state == Launch.SteamState.NEED_DELETE) {
+			store[store.has(game.id) ? 'delete' : 'add'](game.id);
+		}
+
 		needWrite.set(store.size > 0);
 	}
 
