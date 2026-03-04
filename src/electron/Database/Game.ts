@@ -6,10 +6,9 @@ import Steam from "../Steam";
 import { IPCTunnel } from "../IPCTunnel";
 import ImageProtocol from "../Protocol/ImgaeProtocol";
 import App from "../App";
-import Configure from "../Configure/Configure";
 import { basename, resolve } from "path";
 
-type SQLGame = Pick<IGame, 'id' | 'name'> & { addTimestamp: string; stared: string, installed: boolean, configured: string, library: string, installDir: string, needWrite: string };
+type SQLGame = Pick<IGame, 'id' | 'name'> & { addTimestamp: string; stared: string, installed: boolean, library: string, installDir: string, needWrite: string };
 
 class Game extends Database.Model implements IGame {
 	public library: string = '';
@@ -22,7 +21,6 @@ class Game extends Database.Model implements IGame {
 	name: string = "";
 	stared: boolean = false;
 	installed: boolean = false;
-	configured: boolean = false;
 	addTimestamp: number = Date.now();
 
 	public get image(): string {
@@ -31,7 +29,7 @@ class Game extends Database.Model implements IGame {
 
 	private static readonly DB_NAME: string = "game";
 	private static readonly DB_VER_KEY: string = "game-db-ver";
-	private static readonly DB_VER: number = 2;
+	private static readonly DB_VER: number = 3;
 
 	private static createTable() {
 		return this.prepare(`CREATE TABLE ${this.DB_NAME} (
@@ -41,7 +39,6 @@ class Game extends Database.Model implements IGame {
 			installDir TEXT,
 			stared BOOLEAN DEFAULT 0,
 			installed BOOLEAN DEFAULT 0,
-			configured BOOLEAN DEFAULT 0,
 			needWrite BOOLEAN DEFAULT 0,
 			addTimestamp DATETIME DEFAULT CURRENT_TIMESTAMP
 		);`).run();
@@ -52,7 +49,6 @@ class Game extends Database.Model implements IGame {
 			`ALTER TABLE ${this.DB_NAME} ADD COLUMN addTimestamp DATETIME;`,
 			`ALTER TABLE ${this.DB_NAME} ADD COLUMN library TEXT;`,
 			`ALTER TABLE ${this.DB_NAME} ADD COLUMN installed BOOLEAN DEFAULT 0;`,
-			`ALTER TABLE ${this.DB_NAME} ADD COLUMN configured BOOLEAN DEFAULT 0;`,
 			`ALTER TABLE ${this.DB_NAME} ADD COLUMN needWrite BOOLEAN DEFAULT 0;`,
 		];
 
@@ -74,16 +70,16 @@ class Game extends Database.Model implements IGame {
 		await Promise.all(sql_games.map(async game => {
 			game.library = findLibrary(game.id.toString());
 			game.installDir = basename(game.installDir);
-			game.configured = (game.state & 0b100).toString();
 			game.needWrite = (game.state & 0b010).toString();
 			return (await Game.createFromSql(game)).save()
 		}))
 
 		await this.prepare(`ALTER TABLE ${this.DB_NAME} DROP COLUMN state;`).run();
+		await this.run(`ALTER TABLE ${this.DB_NAME} DROP COLUMN configure;`);
 	}
 	private static async migrateFromV1() {
-		this.run(`ALTER TABLE ${this.DB_NAME} ADD COLUMN installDir TEXT DEFAULT '';`);
-		this.run(`UPDATE ${this.DB_NAME} SET addTimestamp = DATETIME(addTimestamp/1000, 'unixepoch') WHERE DATETIME(addTimestamp) IS NULL`);
+		await this.run(`ALTER TABLE ${this.DB_NAME} ADD COLUMN installDir TEXT DEFAULT '';`);
+		await this.run(`UPDATE ${this.DB_NAME} SET addTimestamp = DATETIME(addTimestamp/1000, 'unixepoch') WHERE DATETIME(addTimestamp) IS NULL`);
 
 		const sql_games = await this.prepare<SQLGame & { state: number }>(`SELECT * FROM ${this.DB_NAME} WHERE installed = 'true'`).getAll();
 		await Promise.all(sql_games.map(async game => {
@@ -91,6 +87,10 @@ class Game extends Database.Model implements IGame {
 			if (!manifest) return await this.run(`UPDATE ${this.DB_NAME} SET installed = 'false' WHERE id = $game_id;`, { game_id: game.id });
 			return await this.run(`UPDATE ${this.DB_NAME} SET installDir = $installdir WHERE id = $game_id;`, { game_id: game.id, installdir: manifest.appstate.installdir });
 		}))
+	}
+
+	private static async migrateFromV2() {
+		await this.run(`ALTER TABLE ${this.DB_NAME} DROP COLUMN configure;`);
 	}
 
 	public static async init() {
@@ -106,6 +106,9 @@ class Game extends Database.Model implements IGame {
 					break;
 				case 1:
 					this.migrateFromV1();
+					break;
+				case 2:
+					this.migrateFromV2();
 					break;
 			}
 		} else {
@@ -130,7 +133,6 @@ class Game extends Database.Model implements IGame {
 
 		if (search) where.push('name LIKE $search');
 		if (filters.installed) where.push("installed IS 'true'");
-		if (filters.configured) where.push("configured IS 'true'");
 		if (filters.stared) where.push("stared IS 'true'");
 
 		if (where.length) sql += ` WHERE ${where.join(' AND ')}`;
@@ -168,7 +170,6 @@ class Game extends Database.Model implements IGame {
 		game.stared = parseBoolean(sql.stared) || false;
 		game.addTimestamp = new Date(sql.addTimestamp).getTime();
 		game.installed = parseBoolean(sql.installed) || false;
-		game.configured = parseBoolean(sql.configured) || false;
 
 		return game;
 	}
@@ -178,7 +179,6 @@ class Game extends Database.Model implements IGame {
 			id: this.id,
 			name: this.name,
 			installed: this.installed,
-			configured: this.configured,
 			stared: this.stared,
 			addTimestamp: this.addTimestamp,
 			image: this.image
@@ -187,7 +187,7 @@ class Game extends Database.Model implements IGame {
 
 	public async save() {
 		await Game.prepare(
-			`INSERT OR REPLACE INTO ${Game.DB_NAME} (id, name, stared, addTimestamp, library, installed, configured, installDir) values ($id, $name, $stared, DATETIME($addTimestamp/1000, 'unixepoch'), $library, $installed, $configured, $installDir);`
+			`INSERT OR REPLACE INTO ${Game.DB_NAME} (id, name, stared, addTimestamp, library, installed, installDir) values ($id, $name, $stared, DATETIME($addTimestamp/1000, 'unixepoch'), $library, $installed, $installDir);`
 		).run({
 			id: this.id,
 			name: this.name,
@@ -196,7 +196,6 @@ class Game extends Database.Model implements IGame {
 			library: this.library,
 			installDir: this.installDir,
 			installed: this.installed.toString(),
-			configured: this.configured.toString(),
 		})
 	}
 
@@ -218,25 +217,6 @@ class Game extends Database.Model implements IGame {
 			await game.save();
 
 			return game.stared;
-		})
-		ipc.handle(Messages.configure, async (id: number) => {
-			const game = await Game.get(id);
-			if (!game) return null;
-
-			game.configured = true;
-			await game.save();
-
-			Configure.editGame(game);
-			return game.toJSON();
-		})
-		ipc.handle(Messages.resetConfigure, async (id: number) => {
-			const game = await Game.get(id);
-			if (!game) return null;
-
-			game.configured = false;
-			await game.save();
-			Configure.editGame(game);
-			return game.toJSON();
 		})
 		ipc.handle(Messages.getLaunch, () => Game.getLaunch());
 	}

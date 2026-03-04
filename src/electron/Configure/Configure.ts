@@ -6,7 +6,6 @@ import Steam from "../Steam";
 import Launch from "../Database/Launch";
 import AppInfo from "./AppInfo";
 import LocalConfig from "./LocalConfig";
-import Game from "../Database/Game";
 
 namespace Configure {
 	let useAppInfo = new Value(false, (_, v) => {
@@ -20,9 +19,6 @@ namespace Configure {
 
 	export function editLaunch(launch: Launch) {
 		AppInfo.configure(launch);
-	}
-	export function editGame(game: Game) {
-		LocalConfig.configure(game);
 	}
 
 	export async function init() {

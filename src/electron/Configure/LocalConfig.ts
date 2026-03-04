@@ -24,17 +24,14 @@ namespace LocalConfig {
 					registerd.installed = !!manifest;
 					await registerd.save();
 					if (manifest) {
-						if (test == TestLaunch.NO && !registerd.configured) continue;
-						if (test == TestLaunch.CURRENT && registerd.configured) continue;
+						if (test == TestLaunch.CURRENT) continue;
 						addInStore(app_id);
 					}
 				} else if (manifest) {
 					const game = Game.create(app_id, manifest.appstate.name, path, manifest.appstate.installdir);
 					game.installed = true;
-					if (test != TestLaunch.NO) {
-						game.configured = true;
-						if (test == TestLaunch.NOT_CURRENT)
-							addInStore(app_id)
+					if (test == TestLaunch.NOT_CURRENT) {
+						addInStore(app_id)
 					}
 					await game.save();
 				}
@@ -52,29 +49,12 @@ namespace LocalConfig {
 
 		return true;
 	}
-	export async function configure(game: Game) {
-		const test = await Steam.get().testLaunchPath(game.id);
-		if (game.configured) {
-			if (test == TestLaunch.CURRENT) {
-				deleteFromStore(game.id);
-			} else {
-				addInStore(game.id);
-			}
-		} else {
-			if (test == TestLaunch.NO) {
-				deleteFromStore(game.id);
-			} else {
-				addInStore(game.id);
-			}
-		}
-		needWrite.set(store.size > 0);
-	}
+
 	export async function write() {
 		const reset = [] as number[];
 		const set = [] as number[];
 		for (const app_id of store.values()) {
-			const game = (await Game.get(app_id))!;
-			(game.configured ? set : reset).push(app_id);
+			// const game = (await Game.get(app_id))!;
 			store.delete(app_id);
 		}
 
@@ -96,9 +76,6 @@ namespace LocalConfig {
 	const store = new Set<number>();
 	function addInStore(game_id: number) {
 		store.add(game_id);
-	}
-	function deleteFromStore(game_id: number) {
-		store.delete(game_id);
 	}
 }
 
