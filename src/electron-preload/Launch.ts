@@ -18,6 +18,10 @@ namespace Launch {
 		return await ipcRenderer.invoke(Messages.remove, launch_id);
 	}
 
+	export async function createShortcut(launch_id: number): Promise<boolean> {
+		return await ipcRenderer.invoke(Messages.createShortcut, launch_id);
+	}
+
 	export async function getCurrentLaunch(): Promise<null | ILaunch> {
 		return await ipcRenderer.invoke(Messages.getCurrentLaunch);
 	}

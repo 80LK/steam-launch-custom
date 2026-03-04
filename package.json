@@ -48,6 +48,7 @@
     "to-ico": "^1.1.5",
     "valve-key-values": "^1.0.0",
     "valve-key-values-binary": "^1.0.0",
+    "windows-shortcuts": "^0.1.6",
     "winreg": "^1.2.5"
   }
 }

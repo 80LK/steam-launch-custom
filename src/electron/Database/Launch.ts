@@ -14,6 +14,7 @@ import BaseWindow from "../Window/BaseWindow";
 import Logger from "../Logger";
 import { dirname } from "path";
 import Configure from "../Configure/Configure";
+import { app } from "electron";
 import { require } from '../consts';
 const ws = require('windows-shortcuts') as typeof import('windows-shortcuts');
 const toIco = require('to-ico') as typeof import('to-ico');
@@ -260,6 +261,25 @@ class Launch extends Database.Model implements ILaunch {
 			win.webContents.close();
 			return true;
 		});
+		ipc.handle(Messages.createShortcut, async (launch_id: number) => {
+			const launch = await Launch.get(launch_id);
+			if (!launch) return;
+			Logger.log(`${launch.name} | ${launch.game_id} | ${launch.id}`, { prefix: "SHORTCUT" })
+
+			await new Promise<void>(async (r) => {
+				const args = [];
+				if (!app.isPackaged) args.push(`${process.argv[1].replace(/\\/g, "/")}`);
+				args.push(`${App.APP_ARG}=${launch.game_id}`, `${App.LAUNCH_ARG}=${launch.id}`);
+				Logger.log(JSON.stringify(args), { prefix: 'SHORTCUT' })
+				const icon = await ImageProtocol.get().getIcon(launch.game_id.toString(), launch.id.toString());
+				Logger.log(icon, { prefix: "SHORTCUT" })
+				ws.create(`%USERPROFILE%/Desktop/${launch.name}.lnk`, {
+					target: App.getExecutable(),
+					args: `"${args.join("\" \"")}"`,
+					icon
+				}, () => r());
+			})
+		})
 	}
 }
 namespace Launch {

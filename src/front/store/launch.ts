@@ -33,7 +33,11 @@ const useLaunchStore = defineStore('launch', () => {
 
 	}
 
-	return { get, getForGame, create, remove, edit };
+	function createShortcut(launch_id: number) {
+		return Launch.createShortcut(launch_id);
+	}
+
+	return { get, getForGame, create, remove, edit, createShortcut };
 });
 
 export default useLaunchStore;

@@ -96,7 +96,8 @@ function delet(launch_id: number) {
 					@click="editor?.edit(launch.id)" />
 				<v-btn color="error" :icon="mdiTrashCan" variant="text" v-tooltip="$t('game.remove_launch')"
 					@click="delet(launch.id)" />
-				<v-btn :icon="mdiLinkBoxVariantOutline" variant="text" v-tooltip="$t('game.shortcut')" />
+				<v-btn :icon="mdiLinkBoxVariantOutline" variant="text" v-tooltip="$t('game.shortcut')"
+					@click="launchStore.createShortcut(launch.id)" />
 				<v-btn :icon="mdiPlay" color="success" variant="text" v-tooltip="$t('game.launch')" />
 			</template>
 		</LaunchList>
