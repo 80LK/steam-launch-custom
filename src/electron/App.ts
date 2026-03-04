@@ -173,9 +173,7 @@ class App {
 	}
 
 	public static getSteamArgs(): string[] {
-		const index = process.argv.findIndex(e => e.startsWith('--launch'));
-		if (index == -1) return [];
-		return process.argv.slice(DEV ? 2 : 1).filter(arg => [this.APP_ARG, this.LAUNCH_ARG].findIndex(test => test.startsWith(arg)) == -1);
+		return process.argv.slice(DEV ? 2 : 1).filter(arg => [this.APP_ARG, this.LAUNCH_ARG].findIndex(test => arg.startsWith(test)) == -1);
 	}
 
 	public static async parentProcessIsSteam(): Promise<boolean> {
