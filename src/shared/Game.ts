@@ -9,11 +9,14 @@ interface IGame {
 	stared: boolean;
 
 	image: string;
+
+	countLaunches: number;
 }
 
 interface GameFilter {
 	installed?: boolean | null;
 	stared?: boolean | null;
+	haveLaunches?: boolean | null;
 }
 
 enum Messages {

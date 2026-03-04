@@ -41,7 +41,7 @@ class Launch extends Database.Model implements ILaunch {
 		} catch (e) { }
 	}
 
-	private static readonly DB_NAME: string = "launch";
+	public static readonly DB_NAME: string = "launch";
 	private static readonly DB_VER_KEY: string = "launch-db-ver";
 	private static readonly DB_VER: number = 2;
 

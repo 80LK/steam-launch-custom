@@ -7,8 +7,10 @@ import { IPCTunnel } from "../IPCTunnel";
 import ImageProtocol from "../Protocol/ImgaeProtocol";
 import App from "../App";
 import { basename, resolve } from "path";
+import Launch from "./Launch";
+import Logger from "../Logger";
 
-type SQLGame = Pick<IGame, 'id' | 'name'> & { addTimestamp: string; stared: string, installed: boolean, library: string, installDir: string, needWrite: string };
+type SQLGame = Pick<IGame, 'id' | 'name' | 'countLaunches'> & { addTimestamp: string; stared: string, installed: boolean, library: string, installDir: string, needWrite: string };
 
 class Game extends Database.Model implements IGame {
 	public library: string = '';
@@ -25,6 +27,11 @@ class Game extends Database.Model implements IGame {
 
 	public get image(): string {
 		return ImageProtocol.getHeader(this);
+	}
+
+	private _countLaunches: number = 0;
+	public get countLaunches() {
+		return this._countLaunches;
 	}
 
 	private static readonly DB_NAME: string = "game";
@@ -75,7 +82,7 @@ class Game extends Database.Model implements IGame {
 		}))
 
 		await this.prepare(`ALTER TABLE ${this.DB_NAME} DROP COLUMN state;`).run();
-		await this.run(`ALTER TABLE ${this.DB_NAME} DROP COLUMN configure;`);
+		await this.run(`ALTER TABLE ${this.DB_NAME} DROP COLUMN configured;`);
 	}
 	private static async migrateFromV1() {
 		await this.run(`ALTER TABLE ${this.DB_NAME} ADD COLUMN installDir TEXT DEFAULT '';`);
@@ -90,7 +97,7 @@ class Game extends Database.Model implements IGame {
 	}
 
 	private static async migrateFromV2() {
-		await this.run(`ALTER TABLE ${this.DB_NAME} DROP COLUMN configure;`);
+		await this.run(`ALTER TABLE ${this.DB_NAME} DROP COLUMN configured;`);
 	}
 
 	public static async init() {
@@ -119,7 +126,15 @@ class Game extends Database.Model implements IGame {
 
 	public static async get(id: number): Promise<Game | null> {
 		const sql_data = await this.prepare<SQLGame>(
-			`SELECT * FROM ${Game.DB_NAME} WHERE id = $id LIMIT 1;`
+			`SELECT 
+				${Game.DB_NAME}.*, 
+				COUNT(${Launch.DB_NAME}.id) AS countLaunches
+			FROM ${Game.DB_NAME} 
+			LEFT JOIN ${Launch.DB_NAME}
+				ON ${Game.DB_NAME}.id = ${Launch.DB_NAME}.game_id
+			WHERE ${Game.DB_NAME}.id = $id
+			GROUP BY ${Game.DB_NAME}.id
+			LIMIT 1;`
 		).get({ id });
 
 		if (!sql_data) return null;
@@ -127,7 +142,12 @@ class Game extends Database.Model implements IGame {
 		return this.createFromSql(sql_data);
 	};
 	public static async getAll(offset: number | undefined = 0, limit: number | undefined = 10, search: string | null = null, filters: GameFilter = {}): Promise<Game[]> {
-		let sql = `SELECT * FROM ${Game.DB_NAME}`;
+		let sql = `SELECT
+						${Game.DB_NAME}.*, 
+						COUNT(${Launch.DB_NAME}.id) AS countLaunches
+					FROM ${Game.DB_NAME} 
+					LEFT JOIN ${Launch.DB_NAME}
+						ON ${Game.DB_NAME}.id = ${Launch.DB_NAME}.game_id`;
 		const where = [] as string[];
 
 
@@ -136,10 +156,14 @@ class Game extends Database.Model implements IGame {
 		if (filters.stared) where.push("stared IS 'true'");
 
 		if (where.length) sql += ` WHERE ${where.join(' AND ')}`;
-		sql += ' ORDER BY stared DESC, installed DESC, configured DESC, addTimestamp DESC, name ASC';
+		sql += ` GROUP BY ${Game.DB_NAME}.id ORDER BY stared DESC, installed DESC, addTimestamp DESC, name ASC`;
+		if (filters.haveLaunches) sql += ' HAVING countLaunches > 0';
 		if (limit != null) sql += ' LIMIT $limit';
 		if (offset != null) sql += ' OFFSET $offset';
 		sql += ';';
+		Logger.log(sql, {
+			'prefix': 'SQL'
+		})
 
 		const sql_data = await this.prepare<SQLGame>(sql).getAll({
 			offset,
@@ -170,6 +194,7 @@ class Game extends Database.Model implements IGame {
 		game.stared = parseBoolean(sql.stared) || false;
 		game.addTimestamp = new Date(sql.addTimestamp).getTime();
 		game.installed = parseBoolean(sql.installed) || false;
+		game._countLaunches = sql.countLaunches;
 
 		return game;
 	}
@@ -181,7 +206,8 @@ class Game extends Database.Model implements IGame {
 			installed: this.installed,
 			stared: this.stared,
 			addTimestamp: this.addTimestamp,
-			image: this.image
+			image: this.image,
+			countLaunches: this.countLaunches
 		}
 	}
 
