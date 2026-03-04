@@ -26,7 +26,8 @@ const app = App.create(isLaunch ? LaunchWindow : MainWindow)
 	.init(
 		Logger.get(isLaunch ? `log.${appId}.txt` : 'log.txt'),
 		Steam.get(),
-		Database.get().register(Settings, Game, Launch)
+		Database.get().register(Settings, Game, Launch),
+		ImageProtocol
 	)
 	.useIPC(
 		SystemBar,

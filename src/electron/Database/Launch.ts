@@ -14,8 +14,9 @@ import BaseWindow from "../Window/BaseWindow";
 import Logger from "../Logger";
 import { dirname } from "path";
 import Configure from "../Configure/Configure";
-
-
+import { require } from '../consts';
+const ws = require('windows-shortcuts') as typeof import('windows-shortcuts');
+const toIco = require('to-ico') as typeof import('to-ico');
 
 type SQLLaunch = Omit<ILaunch, 'launch'> & { launch: string, state: Launch.SteamState };
 class Launch extends Database.Model implements ILaunch {
@@ -28,7 +29,7 @@ class Launch extends Database.Model implements ILaunch {
 	state: Launch.SteamState = Launch.SteamState.NEED_ADD;
 
 	public get image(): string {
-		return ImageProtocol.getIcon(this);
+		return ImageProtocol.getURLIcon(this);
 	}
 
 	private async generateIcon() {
@@ -37,8 +38,10 @@ class Launch extends Database.Model implements ILaunch {
 		try {
 			const buf = extractIcon(this.execute)
 			if (buf)
-				writeFileSync(ImageProtocol.getFileIcon(this.game_id, this.id), buf);
-		} catch (e) { }
+				writeFileSync(ImageProtocol.getFileIcon(this.game_id, this.id), await toIco(buf));
+		} catch (e) {
+			Logger.error((e as any).toString(), { prefix: "IMAGE PROTOCOL | " + this.game_id })
+		}
 	}
 
 	public static readonly DB_NAME: string = "launch";

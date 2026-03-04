@@ -26,7 +26,7 @@ class Game extends Database.Model implements IGame {
 	addTimestamp: number = Date.now();
 
 	public get image(): string {
-		return ImageProtocol.getHeader(this);
+		return ImageProtocol.getURLHeader(this);
 	}
 
 	private _countLaunches: number = 0;
