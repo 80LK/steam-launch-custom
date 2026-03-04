@@ -8,7 +8,6 @@ import Protocol from "./Protocol/Protocol";
 import { spawn } from "child_process";
 import Logger from "./Logger";
 
-
 interface IInitialable {
 	init(setmessage: (msg: string) => void): Promise<void>;
 }
@@ -64,6 +63,7 @@ class App {
 			return filePaths[0]
 		})
 		ipc.handle(Messages.getAppData, () => getAppDataFilePath())
+		ipc.handle(Messages.parentProcessIsSteam, () => App.parentProcessIsSteam());
 		ipc.on(Messages.openExplorer, (dir: string) => {
 			spawn('explorer', [resolve(dir)], { detached: true })
 		})
@@ -158,7 +158,7 @@ class App {
 	}
 
 	public static readonly APP_ARG = '--app';
-	public static readonly LAUNCH_ARG = '--app';
+	public static readonly LAUNCH_ARG = '--launch';
 
 	public static getAppId(): number {
 		const appId = process.argv.find(e => e.startsWith(this.APP_ARG));
@@ -177,6 +177,42 @@ class App {
 		if (index == -1) return [];
 		return process.argv.slice(DEV ? 2 : 1).filter(arg => [this.APP_ARG, this.LAUNCH_ARG].findIndex(test => test.startsWith(arg)) == -1);
 	}
+
+	public static async parentProcessIsSteam(): Promise<boolean> {
+		if (process.ppid <= 1) return false;
+		const name = await getProcess(process.ppid);
+		return name.toLowerCase() == "steam.exe";
+	}
 }
+
+
+async function getProcess(pid: number): Promise<string> {
+	return new Promise<string>((r, c) => {
+		const wmic = spawn(`wmic`, [
+			"process", "where", `ProcessId=${pid}`, "get", "Name,ProcessId", "/format:csv"
+		]);
+
+		const processes: Record<number, string> = {};
+		wmic.stdout.on('data', (data: Buffer) => {
+			const items = data.toString().replace(/[\r]/g, '').split('\n');
+			for (const item of items) {
+				if (item == '' || item == 'Node,Name,ProcessId') continue;
+				const [, name, _pid] = item.split(',');
+				const pid = parseInt(_pid);
+
+				processes[pid] = name;
+			}
+		});
+		const err: string[] = [];
+		wmic.stderr.on('data', (data: Buffer) => {
+			err.push(data.toString());
+		});
+		wmic.on('exit', () => {
+			if (err.length > 0) return c(err.join('\n\r'));
+			return r(processes[pid]);
+		})
+	})
+}
+
 export default App;
 export { type IInitialable };

@@ -25,6 +25,10 @@ namespace App {
 	export async function selectFile(type: FileType, defaultPath?: string) {
 		return await ipcRenderer.invoke(Messages.selectFile, type, defaultPath);
 	}
+	export async function parentProcessIsSteam(): Promise<boolean> {
+		return await ipcRenderer.invoke(Messages.parentProcessIsSteam);
+	}
+
 
 	export function openExploret(dir: string) {
 		ipcRenderer.send(Messages.openExplorer, dir);

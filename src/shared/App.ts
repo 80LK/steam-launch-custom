@@ -4,7 +4,8 @@ enum Messages {
 	selectFile = 'app.selectFile',
 	getAppData = 'app.getAppData',
 	openExplorer = 'app.openExplorer',
-	openUrl = 'app.openUrl'
+	openUrl = 'app.openUrl',
+	parentProcessIsSteam = 'app.parentProcessIsSteam'
 }
 
 export { Messages };

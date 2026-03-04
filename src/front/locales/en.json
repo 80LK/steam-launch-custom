@@ -9,7 +9,8 @@
 	},
 	"configure": {
 		"need_write": "You need close Steam and rewrite launch options",
-		"now": "Now"
+		"now": "Now",
+		"cant_write": "Cannot be overwritten, the application is running through Steam"
 	},
 	"main": {
 		"search": "Search",
