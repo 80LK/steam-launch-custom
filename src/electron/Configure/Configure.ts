@@ -66,7 +66,7 @@ namespace Configure {
 		ipc.handle(Messages.setIntegrateSteam, async (value: boolean) => integrateSteam.set(value))
 
 		ipc.handle(Messages.checkNeedWrite, () => integrateSteam.get() && needWrite.get())
-		needWrite.on((_, v) => ipc.send(Messages.changeNeedWrite, v));
+		needWrite.on((_, v) => ipc.send(Messages.changeNeedWrite, integrateSteam.get() ? v : false));
 		integrateSteam.on((_, v) => ipc.send(Messages.changeNeedWrite, v ? needWrite.get() : false));
 
 		ipc.handle(Messages.write, async () => await write())
