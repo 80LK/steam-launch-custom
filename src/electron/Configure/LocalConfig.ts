@@ -4,9 +4,15 @@ import Launch from "../Database/Launch";
 import Logger from "../Logger";
 
 namespace LocalConfig {
-	export const needWriteGames = new Set<number>();
-	export const configuredGames = new Set<number>();
+	const needWriteGames = new Set<number>();
+	const configuredGames = new Set<number>();
 
+	export function needWrite() {
+		return needWriteGames.size > 0;
+	}
+	export function hasConfigured() {
+		return configuredGames.size > 0;
+	}
 
 	export async function init(): Promise<boolean> {
 		const steam = Steam.get();

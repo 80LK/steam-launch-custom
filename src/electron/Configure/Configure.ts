@@ -21,10 +21,10 @@ namespace Configure {
 
 	function checkNeedWrite() {
 		if (!integrateSteam.get())
-			return needWrite.set(LocalConfig.configuredGames.size > 0);
+			return needWrite.set(LocalConfig.hasConfigured());
 
 		if (!useAppInfo.get())
-			return needWrite.set(LocalConfig.needWriteGames.size > 0);
+			return needWrite.set(LocalConfig.needWrite());
 
 		needWrite.set(AppInfo.needWrite.get());
 	}
@@ -69,16 +69,7 @@ namespace Configure {
 		SteamIsRunning && await steam.start();
 	}
 
-	const needWrite = new Value(false, (_, needWrite) => {
-		Logger.log(JSON.stringify({
-			appinfo: AppInfo.needWrite.get(),
-			local_config: {
-				configured: Array.from(LocalConfig.configuredGames.values()),
-				need_write: Array.from(LocalConfig.needWriteGames.values())
-			},
-			needWrite
-		}), { prefix: "CheckNeedWrite" })
-	});
+	const needWrite = new Value(false);
 
 	export function IPC(_: any, ipc: IPCTunnel) {
 		ipc.handle(Messages.canUseAppInfo, () => canUseAppInfo);
