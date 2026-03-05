@@ -142,7 +142,7 @@ class Game extends Database.Model implements IGame {
 
 		return this.createFromSql(sql_data);
 	};
-	public static async getAll(offset: number | undefined = 0, limit: number | undefined = 10, search: string | null = null, filters: GameFilter = {}): Promise<Game[]> {
+	public static async getAll(offset: number | null = 0, limit: number | null = 10, search: string | null = null, filters: GameFilter = {}): Promise<Game[]> {
 		let sql = `SELECT
 						${Game.DB_NAME}.*, 
 						COUNT(${Launch.DB_NAME}.id) AS countLaunches
@@ -153,16 +153,16 @@ class Game extends Database.Model implements IGame {
 		const where = [] as string[];
 
 
-		if (search) where.push('name LIKE $search');
-		if (filters.installed) where.push("installed IS 'true'");
-		if (filters.stared) where.push("stared IS 'true'");
+		if (search) where.push(`${this.DB_NAME}.name LIKE $search`);
+		if (filters.installed) where.push(`${this.DB_NAME}.installed IS 'true'`);
+		if (filters.stared) where.push(`${this.DB_NAME}.stared IS 'true'`);
 
 		if (where.length) sql += ` WHERE ${where.join(' AND ')}`;
 		sql += ` GROUP BY ${Game.DB_NAME}.id`;
 		if (filters.haveLaunches) sql += ' HAVING countLaunches > 0';
 		sql += ' ORDER BY stared DESC, installed DESC, addTimestamp DESC, name ASC';
-		if (limit != null) sql += ' LIMIT $limit';
-		if (offset != null) sql += ' OFFSET $offset';
+		if (limit !== null) sql += ' LIMIT $limit';
+		if (offset !== null) sql += ' OFFSET $offset';
 		sql += ';';
 		Logger.log(sql, {
 			'prefix': 'SQL'

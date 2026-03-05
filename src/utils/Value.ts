@@ -1,4 +1,3 @@
-
 class Value<T> {
 	constructor(private value: T, change?: Value.ChangeHandle<T>) {
 		change && this.on(change);
@@ -12,6 +11,7 @@ class Value<T> {
 		this._event.delete(call);
 	}
 	public get(): T {
+		if (typeof this.value == "function") return this.value();
 		return this.value;
 	}
 	public set(value: T, callEvent: boolean = true) {
@@ -23,6 +23,7 @@ class Value<T> {
 			}
 	}
 }
+
 namespace Value {
 	export interface ChangeHandle<T> {
 		(old: T, cur: T): void

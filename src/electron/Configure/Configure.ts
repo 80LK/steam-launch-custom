@@ -6,20 +6,35 @@ import Steam from "../Steam";
 import Launch from "../Database/Launch";
 import AppInfo from "./AppInfo";
 import LocalConfig from "./LocalConfig";
+import Logger from "../Logger";
 
 namespace Configure {
-	let useAppInfo = new Value(false, (_, v) => {
-		Settings.setBoolean(USE_APPINFO, v)
-		needWrite.set(v ? AppInfo.needWrite.get() : LocalConfig.needWrite.get())
-	});
-	let canUseAppInfo = true;
 	let integrateSteam = new Value(true, (_, v) => {
 		Settings.setBoolean(INTEGRATE_STEAM, v);
+		checkNeedWrite();
 	});
+	let canUseAppInfo = true;
+	let useAppInfo = new Value(false, (_, v) => {
+		Settings.setBoolean(USE_APPINFO, v)
+		checkNeedWrite();
+	});
+
+	function checkNeedWrite() {
+		if (!integrateSteam.get())
+			return needWrite.set(LocalConfig.configuredGames.size > 0);
+
+		if (!useAppInfo.get())
+			return needWrite.set(LocalConfig.needWriteGames.size > 0);
+
+		needWrite.set(AppInfo.needWrite.get());
+	}
+
 
 	export function editLaunch(launch: Launch) {
 		AppInfo.configure(launch);
 		LocalConfig.configure(launch);
+
+		checkNeedWrite();
 	}
 
 	export async function init() {
@@ -41,17 +56,29 @@ namespace Configure {
 		SteamIsRunning && await steam.stop();
 
 		await Promise.all(
-			useAppInfo.get()
-				? [AppInfo.write(), LocalConfig.reset()]
-				: [LocalConfig.write(), AppInfo.reset()]
+			!integrateSteam.get() ?
+				[AppInfo.reset(), LocalConfig.reset()]
+				: useAppInfo.get()
+					? [AppInfo.write(), LocalConfig.reset()]
+					: [LocalConfig.write(), AppInfo.reset()]
 		);
+
+		checkNeedWrite();
+
 
 		SteamIsRunning && await steam.start();
 	}
 
-	const needWrite = new Value(false);
-	AppInfo.needWrite.on((_, v) => useAppInfo.get() && needWrite.set(v));
-	LocalConfig.needWrite.on((_, v) => (!useAppInfo.get()) && needWrite.set(v));
+	const needWrite = new Value(false, (_, needWrite) => {
+		Logger.log(JSON.stringify({
+			appinfo: AppInfo.needWrite.get(),
+			local_config: {
+				configured: Array.from(LocalConfig.configuredGames.values()),
+				need_write: Array.from(LocalConfig.needWriteGames.values())
+			},
+			needWrite
+		}), { prefix: "CheckNeedWrite" })
+	});
 
 	export function IPC(_: any, ipc: IPCTunnel) {
 		ipc.handle(Messages.canUseAppInfo, () => canUseAppInfo);
@@ -62,9 +89,8 @@ namespace Configure {
 		ipc.handle(Messages.integrateSteam, () => integrateSteam.get());
 		ipc.handle(Messages.setIntegrateSteam, async (value: boolean) => integrateSteam.set(value))
 
-		ipc.handle(Messages.checkNeedWrite, () => integrateSteam.get() && needWrite.get())
-		needWrite.on((_, v) => ipc.send(Messages.changeNeedWrite, integrateSteam.get() ? v : false));
-		integrateSteam.on((_, v) => ipc.send(Messages.changeNeedWrite, v ? needWrite.get() : false));
+		ipc.handle(Messages.checkNeedWrite, () => needWrite.get())
+		needWrite.on((_, v) => ipc.send(Messages.changeNeedWrite, v));
 
 		ipc.handle(Messages.write, async () => await write())
 	}

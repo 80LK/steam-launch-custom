@@ -92,7 +92,6 @@ namespace AppInfo {
 		needWrite.set(storeGames.size > 0);
 	}
 	export async function write() {
-
 		for (const game_id of storeGames.keys()) {
 			const launches = getLaunchesInAppInfo(game_id);
 			if (!launches) continue;
