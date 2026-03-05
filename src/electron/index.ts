@@ -26,10 +26,30 @@ const isGame = launchId !== 0;
 
 if (isGame) {
 	(async () => {
+		const _void = () => void 0;
+		await Logger.get(`log.launch.${launchId}.txt`).init(_void);
+		Database.get(true);
+
 		const launch = await Launch.get(launchId);
 		if (!launch) return;
+
+		const steam = Steam.get();
+		await steam.init(_void);
+
+		if (!Steam.startSDK(launch.game_id)) {
+			await steam.start();
+			await new Promise<void>(r => setTimeout(() => {
+				if (!Steam.startSDK(launch.game_id))
+					return electron.quit();
+				r();
+			}, 10000));
+		}
+
 		const spawn = Spawn.get();
-		spawn.onClose(() => electron.quit());
+		spawn.onClose(() => {
+			electron.quit()
+			Steam.stopSDK();
+		});
 		spawn.start(
 			launch.execute,
 			launch.launch,
@@ -79,6 +99,7 @@ if (isGame) {
 			});
 	}
 }
+
 
 process.on('uncaughtException', (err) => {
 	Logger.error(err.message + '\n' + err.stack, { prefix: 'MAIN' });

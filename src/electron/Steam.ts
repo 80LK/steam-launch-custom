@@ -10,6 +10,9 @@ import BaseWindow from "./Window/BaseWindow";
 import { IPCTunnel } from "./IPCTunnel";
 import { Messages } from "@shared/Steam";
 import Logger from "./Logger";
+import { require } from "./consts";
+
+const SteamSDK = (require("steamworks-ffi-node") as typeof import("steamworks-ffi-node")).default;
 
 interface AuthorizedDevice extends VDF.VDFObject {
 	timeused: string;
@@ -345,6 +348,18 @@ class Steam implements IInitialable {
 	private static convertSteam64IDtoAccountID(id: bigint | string): number {
 		if (typeof id == "string") id = BigInt(id);
 		return Number(id - 0x0110000100000000n);
+	}
+
+	public static startSDK(game_id: number): boolean {
+		const sdk = SteamSDK.getInstance();
+		const status = sdk.init({ appId: game_id });
+		if (!status)
+			Logger.log("Can't start Steam SDK", { prefix: "Steam" })
+		return status;
+	}
+	public static stopSDK() {
+		const sdk = SteamSDK.getInstance();
+		sdk.shutdown();
 	}
 }
 
