@@ -16,6 +16,7 @@ import { dirname } from "path";
 import Configure from "../Configure/Configure";
 import { app } from "electron";
 import { require } from '../consts';
+import { spawn } from "child_process";
 const ws = require('windows-shortcuts') as typeof import('windows-shortcuts');
 const toIco = require('to-ico') as typeof import('to-ico');
 
@@ -253,7 +254,15 @@ class Launch extends Database.Model implements ILaunch {
 			return true;
 		});
 		ipc.handle(Messages.getCurrentLaunch, () => Launch.getCurrentLaunch());
-		ipc.on(Messages.start, async (id: number) => {
+		ipc.on(Messages.start, async (id: number, deatached: boolean = false) => {
+			if (deatached) {
+				const args = [];
+				if (!app.isPackaged) args.push(`${process.argv[1].replace(/\\/g, "/")}`);
+				args.push(`${App.LAUNCH_ARG}=${id}`);
+				return spawn(App.getExecutable(), args, {
+					detached: true
+				})
+			}
 			const launch = await (id == -1 ? Launch.getCurrentLaunch() : Launch.get(id));
 			Logger.log(`Try launch ${id}. ${launch ? JSON.stringify(launch) : false}`);
 			if (!launch) return false;

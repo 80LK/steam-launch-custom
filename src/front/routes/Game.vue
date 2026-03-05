@@ -56,7 +56,9 @@ function delet(launch_id: number) {
 			relaod();
 		})
 }
-
+function start(id: number) {
+	Launch.start(id, true);
+}
 </script>
 
 <template>
@@ -98,7 +100,8 @@ function delet(launch_id: number) {
 					@click="delet(launch.id)" />
 				<v-btn :icon="mdiLinkBoxVariantOutline" variant="text" v-tooltip="$t('game.shortcut')"
 					@click="launchStore.createShortcut(launch.id)" />
-				<v-btn :icon="mdiPlay" color="success" variant="text" v-tooltip="$t('game.launch')" />
+				<v-btn :icon="mdiPlay" color="success" variant="text" v-tooltip="$t('game.launch')"
+					@click="start(launch.id)" />
 			</template>
 		</LaunchList>
 	</Container>
