@@ -13,49 +13,71 @@ import Spawn from './Spawn';
 import Logger from './Logger';
 import Configure from './Configure/Configure';
 import Wrapper from './Wrapper';
+import { dirname } from 'path';
+import { app as electron, } from "electron";
 
 // process.argv.push('--app=41700');
 
 Database.debug({ logSql: true })
 
-const appId = App.getAppId();
-const isLaunch = appId !== -1;
-const image = ImageProtocol.get();
-const app = App.create(isLaunch ? LaunchWindow : MainWindow)
-	.setPath(isLaunch ? `game/${appId}` : 'main')
-	.init(
-		Logger.get(isLaunch ? `log.${appId}.txt` : 'log.txt'),
-		Steam.get(),
-		Database.get().register(Settings, Game, Launch),
-		ImageProtocol
-	)
-	.useIPC(
-		SystemBar,
-		Settings.IPC,
-		Logger.IPC,
-		Game.IPC,
-		Launch.IPC
-	)
-	.addProtocols(image);
+const launchId = App.getLaunchId();
+const isGame = launchId !== 0;
 
-if (isLaunch) {
-	const spawn = Spawn.get();
-	spawn.onClose(() => app.quit());
-	app.setCloseCondition(() => !spawn.hasRunning)
-		.open();
+
+if (isGame) {
+	(async () => {
+		const launch = await Launch.get(launchId);
+		if (!launch) return;
+		const spawn = Spawn.get();
+		spawn.onClose(() => electron.quit());
+		spawn.start(
+			launch.execute,
+			launch.launch,
+			launch.workdir || dirname(launch.execute)
+		);
+	})();
 } else {
-	app.init(
-		Wrapper,
-		Configure
-	).useIPC(
-		Steam.IPC,
-		Updater.IPC,
-		Configure.IPC
-	)
-		.open(async (setmessage) => {
-			setmessage("init.scan")
-			Configure.init();
-		});
+	const appId = App.getAppId();
+	const isLaunch = appId !== 0;
+
+	const image = ImageProtocol.get();
+
+	const app = App.create(isLaunch ? LaunchWindow : MainWindow)
+		.setPath(isLaunch ? `game/${appId}` : 'main')
+		.init(
+			Logger.get(isLaunch ? `log.${appId}.txt` : 'log.txt'),
+			Steam.get(),
+			Database.get().register(Settings, Game, Launch),
+			ImageProtocol
+		)
+		.useIPC(
+			SystemBar,
+			Settings.IPC,
+			Logger.IPC,
+			Game.IPC,
+			Launch.IPC
+		)
+		.addProtocols(image);
+
+	if (isLaunch) {
+		const spawn = Spawn.get();
+		spawn.onClose(() => app.quit());
+		app.setCloseCondition(() => !spawn.hasRunning)
+			.open();
+	} else {
+		app.init(
+			Wrapper,
+			Configure
+		).useIPC(
+			Steam.IPC,
+			Updater.IPC,
+			Configure.IPC
+		)
+			.open(async (setmessage) => {
+				setmessage("init.scan")
+				Configure.init();
+			});
+	}
 }
 
 process.on('uncaughtException', (err) => {

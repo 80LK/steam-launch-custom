@@ -162,13 +162,13 @@ class App {
 
 	public static getAppId(): number {
 		const appId = process.argv.find(e => e.startsWith(this.APP_ARG));
-		if (appId === undefined) return -1;
+		if (appId === undefined) return 0;
 		return parseInt(appId.split('=')[1]);
 	}
 
 	public static getLaunchId(): number {
 		const launchId = process.argv.find(e => e.startsWith(this.LAUNCH_ARG));
-		if (launchId === undefined) return -1;
+		if (launchId === undefined) return 0;
 		return parseInt(launchId.split('=')[1]);
 	}
 
