@@ -6,7 +6,6 @@ import Steam from "../Steam";
 import Launch from "../Database/Launch";
 import AppInfo from "./AppInfo";
 import LocalConfig from "./LocalConfig";
-import Logger from "../Logger";
 
 namespace Configure {
 	let integrateSteam = new Value(true, (_, v) => {
@@ -21,18 +20,19 @@ namespace Configure {
 
 	function checkNeedWrite() {
 		if (!integrateSteam.get())
-			return needWrite.set(LocalConfig.hasConfigured());
+			return needWrite.set(LocalConfig.hasConfigured() || AppInfo.hasConfigured());
 
-		if (!useAppInfo.get())
-			return needWrite.set(LocalConfig.needWrite());
+		if (useAppInfo.get())
+			return needWrite.set(AppInfo.needWrite());
 
-		needWrite.set(AppInfo.needWrite.get());
+		needWrite.set(LocalConfig.needWrite());
+
 	}
 
 
-	export function editLaunch(launch: Launch) {
-		AppInfo.configure(launch);
-		LocalConfig.configure(launch);
+	export async function editLaunch(launch: Launch) {
+		await AppInfo.configure(launch);
+		await LocalConfig.configure(launch);
 
 		checkNeedWrite();
 	}
@@ -55,16 +55,18 @@ namespace Configure {
 		const SteamIsRunning = await steam.isRunning();
 		SteamIsRunning && await steam.stop();
 
-		await Promise.all(
-			!integrateSteam.get() ?
-				[AppInfo.reset(), LocalConfig.reset()]
-				: useAppInfo.get()
-					? [AppInfo.write(), LocalConfig.reset()]
-					: [LocalConfig.write(), AppInfo.reset()]
-		);
+		if (!integrateSteam.get()) {
+			await (AppInfo.hasConfigured() && AppInfo.reset());
+			await (LocalConfig.hasConfigured() && LocalConfig.reset());
+		} else if (useAppInfo.get()) {
+			await (LocalConfig.hasConfigured() && LocalConfig.reset());;
+			await (AppInfo.needWrite() && AppInfo.write());
+		} else {
+			await (AppInfo.hasConfigured() && AppInfo.reset());
+			await (LocalConfig.needWrite() && LocalConfig.write());
+		}
 
 		checkNeedWrite();
-
 
 		SteamIsRunning && await steam.start();
 	}

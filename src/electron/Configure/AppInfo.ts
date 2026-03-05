@@ -1,4 +1,3 @@
-import Value from "@utils/Value";
 import VKVB, { AppInfo as VKVBAppInfo, MapWithHeader, Map as VKVBMap } from "valve-key-values-binary";
 import Launch from "../Database/Launch";
 import { readFile, writeFile } from "fs/promises";
@@ -9,7 +8,44 @@ import { dirname, relative } from "path";
 import Wrapper from "../Wrapper";
 
 namespace AppInfo {
-	export const needWrite = new Value(false);
+	const HELP_KEY = 'slc_id';
+
+	const needWriteLaunches = new Map<number, Set<number>>();
+	function addInNeedWriteLaunches(game_id: number, launch_id: number) {
+		if (!needWriteLaunches.has(game_id))
+			needWriteLaunches.set(game_id, new Set());
+
+		needWriteLaunches.get(game_id)!.add(launch_id);
+	}
+	function deleteInNeedWriteLaunches(game_id: number, launch_id: number) {
+		if (!needWriteLaunches.has(game_id)) return;
+
+		const launches = needWriteLaunches.get(game_id)!;
+		launches.delete(launch_id);
+		if (launches.size == 0) needWriteLaunches.delete(game_id);
+	}
+	const configuredLaunches = new Map<number, Set<number>>();
+	function addInConfiguredLaunches(game_id: number, launch_id: number) {
+		if (!configuredLaunches.has(game_id))
+			configuredLaunches.set(game_id, new Set());
+
+		configuredLaunches.get(game_id)!.add(launch_id);
+	}
+	function deleteInConfiguredLaunches(game_id: number, launch_id: number) {
+		if (!configuredLaunches.has(game_id)) return;
+
+		const launches = configuredLaunches.get(game_id)!;
+		launches.delete(launch_id);
+		if (launches.size == 0) configuredLaunches.delete(game_id);
+	}
+
+	export function needWrite() {
+		return needWriteLaunches.size > 0;
+	}
+
+	export function hasConfigured() {
+		return configuredLaunches.size > 0;
+	}
 
 	export async function init(): Promise<boolean> {
 		try {
@@ -17,29 +53,39 @@ namespace AppInfo {
 			if (!VKVB.isAppInfo(map)) throw new ReferenceError('Not support current appinfo.vdf');
 			appInfo = map;
 
+			type LaunchKey = `${number}|${number}`;
 			const registeredLaunches = (await Launch.getAll()).reduce((r, l) => {
 				r[`${l.game_id}|${l.id}`] = l
 				return r;
-			}, {} as Record<string, Launch>);
+			}, {} as Record<LaunchKey, Launch>);
 
 			await Promise.all(mapAppInfo(async ({ game_id, launch_id, launch }) => {
-				const regKey = `${game_id}|${launch_id}`;
+				const regKey: LaunchKey = `${game_id}|${launch_id}`;
 				const db_launch = registeredLaunches[regKey];
-				if (!db_launch) {
-					addInStore({ id: -launch_id, game_id });
-				} else {
 
+				if (!db_launch) {
+					addInNeedWriteLaunches(game_id, -launch_id);
+					addInConfiguredLaunches(game_id, -launch_id);
+				} else {
 					if (db_launch.state == Launch.SteamState.NEED_DELETE) {
-						addInStore(db_launch);
+						addInNeedWriteLaunches(game_id, launch_id);
+						addInConfiguredLaunches(game_id, launch_id);
 					} else {
-						if (await equal(db_launch, launch)) {
-							if (db_launch.state != Launch.SteamState.READY) {
-								await db_launch.edit({ state: Launch.SteamState.READY }).save();
-							}
-						} else {
-							if (db_launch.state != Launch.SteamState.NEED_EDIT)
-								await db_launch.edit({ state: Launch.SteamState.NEED_EDIT }).save();
-							addInStore(db_launch);
+						const eq = await equal(db_launch, launch);
+						if (eq && db_launch.state != Launch.SteamState.READY) {
+							await db_launch.edit({ state: Launch.SteamState.READY }).save()
+						} else if (!eq && db_launch.state != Launch.SteamState.NEED_EDIT) {
+							await db_launch.edit({ state: Launch.SteamState.NEED_EDIT }).save()
+						}
+
+						switch (db_launch.state) {
+							case Launch.SteamState.NEED_EDIT:
+								addInNeedWriteLaunches(game_id, launch_id);
+							case Launch.SteamState.READY:
+								addInConfiguredLaunches(game_id, launch_id);
+								break;
+							default:
+								break;
 						}
 					}
 
@@ -47,19 +93,16 @@ namespace AppInfo {
 				}
 			}));
 
-			for (const launch of Object.values(registeredLaunches)) {
-				if (launch.state == Launch.SteamState.NEED_DELETE) {
-					launch.remove();
-				} else {
-					if (launch.state != Launch.SteamState.NEED_ADD)
-						await launch.edit({ state: Launch.SteamState.NEED_ADD }).save();
+			for (const regKey of (Object.keys(registeredLaunches) as LaunchKey[])) {
+				const launch = registeredLaunches[regKey];
 
-					addInStore(launch);
+				if (launch.state == Launch.SteamState.NEED_DELETE) {
+					await launch.remove();
+				} else if (launch.state != Launch.SteamState.NEED_ADD) {
+					await launch.edit({ state: Launch.SteamState.NEED_ADD }).save();
+					addInNeedWriteLaunches(launch.game_id, launch.id);
 				}
 			}
-
-			needWrite.set(storeGames.size > 0);
-
 			return true;
 		} catch (e) {
 			Logger.error(e instanceof Error ? e.message : (e as any).toString(), { prefix: "Configure" });
@@ -68,36 +111,55 @@ namespace AppInfo {
 		}
 	}
 	export async function configure(launch: Launch) {
+		const hasInAppInfo = findInAppInfo(launch);
+		const equalInAppInfo = hasInAppInfo ? await equal(launch, hasInAppInfo) : false;
+
 		switch (launch.state) {
 			case Launch.SteamState.NEED_ADD:
-			case Launch.SteamState.NEED_EDIT: {
-				if (await hasValidInAppInfo(launch)) {
-					launch.edit({ state: Launch.SteamState.READY }).save();
-					deleteFromStore(launch);
-				} else {
-					addInStore(launch);
+				if (!hasInAppInfo) break;
+				await launch.edit({ state: equalInAppInfo ? Launch.SteamState.READY : Launch.SteamState.NEED_EDIT }).save();
+				break;
+			case Launch.SteamState.NEED_EDIT:
+				if (hasInAppInfo) {
+					if (equalInAppInfo) await launch.edit({ state: Launch.SteamState.READY }).save();
+					break;
 				}
-			} break;
-			case Launch.SteamState.NEED_DELETE: {
-				if (findInAppInfo(launch)) {
-					addInStore(launch);
-				} else {
-					deleteFromStore(launch);
-					launch.remove();
-				}
-			} break;
-
+				await launch.edit({ state: Launch.SteamState.NEED_ADD }).save();
+				break;
 		}
-		console.log(storeGames);
-		needWrite.set(storeGames.size > 0);
+
+		switch (launch.state) {
+			case Launch.SteamState.NEED_ADD:
+				addInNeedWriteLaunches(launch.game_id, launch.id);
+				deleteInConfiguredLaunches(launch.game_id, launch.id);
+				break;
+			case Launch.SteamState.NEED_EDIT:
+				addInNeedWriteLaunches(launch.game_id, launch.id);
+				addInConfiguredLaunches(launch.game_id, launch.id);
+				break;
+
+			case Launch.SteamState.READY:
+				addInConfiguredLaunches(launch.game_id, launch.id);
+				deleteInNeedWriteLaunches(launch.game_id, launch.id);
+				break;
+			case Launch.SteamState.NEED_DELETE:
+				if (hasInAppInfo) {
+					addInConfiguredLaunches(launch.game_id, launch.id);
+					addInNeedWriteLaunches(launch.game_id, launch.id);
+				} else {
+					deleteInNeedWriteLaunches(launch.game_id, launch.id);
+					await launch.remove();
+				}
+				break;
+		}
 	}
 	export async function write() {
-		for (const game_id of storeGames.keys()) {
+		for (const game_id of needWriteLaunches.keys()) {
 			const launches = getLaunchesInAppInfo(game_id);
 			if (!launches) continue;
 
 			mapLaunches(launches, ({ launch, key }) => {
-				const launch_id = launch.getInt('slc_id');
+				const launch_id = launch.getInt(HELP_KEY);
 				if (launch_id == null) return;
 				launches.delete(key);
 			})
@@ -110,7 +172,7 @@ namespace AppInfo {
 					continue;
 				}
 				const ai_launch = new VKVBMap<LaunchInfo>();
-				ai_launch.setInt('slc_id', launch.id);
+				ai_launch.setInt(HELP_KEY, launch.id);
 				ai_launch.setString('description', launch.name);
 
 				const { executable, workingdir, args } = await toAppInfo(launch);
@@ -119,14 +181,13 @@ namespace AppInfo {
 				ai_launch.setString('arguments', args);
 				launches.setMap(offset++, ai_launch);
 				launch.edit({ state: Launch.SteamState.READY }).save();
-			}
 
-			storeGames.delete(game_id);
+				deleteInNeedWriteLaunches(launch.game_id, launch.id);
+				addInConfiguredLaunches(launch.game_id, launch.id);
+			}
 		}
 
 		await writeFile(Steam.get().pathToAppInfo, VKVB.serializate(appInfo!));
-
-		needWrite.set(storeGames.size > 0);
 	}
 
 	export async function reset() {
@@ -136,7 +197,8 @@ namespace AppInfo {
 		await Promise.all(
 			launches.map(launch => {
 				launch.state = Launch.SteamState.NEED_ADD;
-				addInStore(launch);
+				addInNeedWriteLaunches(launch.game_id, launch.id);
+				deleteInConfiguredLaunches(launch.game_id, launch.id);
 				return launch.save()
 			})
 		);
@@ -144,7 +206,6 @@ namespace AppInfo {
 			launches.delete(key);
 		});
 		await writeFile(Steam.get().pathToAppInfo, VKVB.serializate(appInfo));
-		needWrite.set(storeGames.size > 0);
 	}
 
 	let appInfo: MapWithHeader<VKVBAppInfo> | null = null;
@@ -167,7 +228,7 @@ namespace AppInfo {
 			const launches = game.getMap('appinfo')?.getMap('config')?.getMap('launch') as (VKVBMap<Launches> | null);
 			if (!launches) continue;
 			mapLaunches(launches, ({ launch, key, launches }) => {
-				const launch_id = launch.getInt('slc_id');
+				const launch_id = launch.getInt(HELP_KEY);
 				if (launch_id == null) return;
 
 				arr.push(callback({ key, game_id: parseInt(game_id as string), launch_id, launch, launches }));
@@ -175,23 +236,8 @@ namespace AppInfo {
 		}
 		return arr;
 	}
-	const storeGames = new Map<number, Set<number>>();
-	function addInStore({ id, game_id }: Pick<Launch, 'id' | 'game_id'>) {
-		if (!storeGames.has(game_id)) storeGames.set(game_id, new Set());
 
-		const store = storeGames.get(game_id)!;
-		store.add(id);
-	}
-	function deleteFromStore({ id, game_id }: Pick<Launch, 'id' | 'game_id'>) {
-		if (!storeGames.has(game_id)) return;
-
-		const store = storeGames.get(game_id)!
-		store.delete(id);
-
-		if (store.size == 0) storeGames.delete(game_id);
-	}
-
-	type LaunchInfo = VKVBAppInfo[number]['appinfo']['config']['launch'][number] & { "slc_id": number };
+	type LaunchInfo = VKVBAppInfo[number]['appinfo']['config']['launch'][number] & { [HELP_KEY]: number };
 	type Launches = LaunchInfo[];
 
 	async function toAppInfo(launch: Launch) {
@@ -236,7 +282,7 @@ namespace AppInfo {
 		if (!launches) return null;
 		for (const key of launches.getKeys()) {
 			const ai_launch = launches.getMap(key)! as VKVBMap<LaunchInfo>;
-			const launch_id = ai_launch.getInt('slc_id');
+			const launch_id = ai_launch.getInt(HELP_KEY);
 			if (launch_id == null) continue;
 
 			if (launch_id == launch.id)
@@ -244,12 +290,6 @@ namespace AppInfo {
 		}
 
 		return null;
-	}
-	function hasValidInAppInfo(launch: Launch): Promise<boolean> {
-		const ai_launch = findInAppInfo(launch);
-		if (!ai_launch) return Promise.resolve(false);
-
-		return equal(launch, ai_launch);
 	}
 }
 
