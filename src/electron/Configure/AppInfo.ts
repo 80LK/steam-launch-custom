@@ -98,10 +98,14 @@ namespace AppInfo {
 
 				if (launch.state == Launch.SteamState.NEED_DELETE) {
 					await launch.remove();
+					deleteInNeedWriteLaunches(launch.game_id, launch.id);
+					deleteInConfiguredLaunches(launch.game_id, launch.id);
+					continue;
 				} else if (launch.state != Launch.SteamState.NEED_ADD) {
 					await launch.edit({ state: Launch.SteamState.NEED_ADD }).save();
-					addInNeedWriteLaunches(launch.game_id, launch.id);
 				}
+				addInNeedWriteLaunches(launch.game_id, launch.id);
+				deleteInConfiguredLaunches(launch.game_id, launch.id);
 			}
 			return true;
 		} catch (e) {

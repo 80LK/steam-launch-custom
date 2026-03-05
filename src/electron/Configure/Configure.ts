@@ -56,14 +56,14 @@ namespace Configure {
 		SteamIsRunning && await steam.stop();
 
 		if (!integrateSteam.get()) {
-			await (AppInfo.hasConfigured() && AppInfo.reset());
-			await (LocalConfig.hasConfigured() && LocalConfig.reset());
+			if (AppInfo.hasConfigured()) await AppInfo.reset();
+			if (LocalConfig.hasConfigured()) await LocalConfig.reset();
 		} else if (useAppInfo.get()) {
-			await (LocalConfig.hasConfigured() && LocalConfig.reset());;
-			await (AppInfo.needWrite() && AppInfo.write());
+			if (LocalConfig.hasConfigured()) await LocalConfig.reset();
+			if (AppInfo.needWrite()) await AppInfo.write();
 		} else {
-			await (AppInfo.hasConfigured() && AppInfo.reset());
-			await (LocalConfig.needWrite() && LocalConfig.write());
+			if (AppInfo.hasConfigured()) await AppInfo.reset();
+			if (LocalConfig.needWrite()) await LocalConfig.write();
 		}
 
 		checkNeedWrite();

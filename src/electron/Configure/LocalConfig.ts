@@ -1,7 +1,6 @@
 import Game from "../Database/Game";
 import Steam, { TestLaunch } from "../Steam";
 import Launch from "../Database/Launch";
-import Logger from "../Logger";
 
 namespace LocalConfig {
 	const needWriteGames = new Set<number>();
@@ -29,12 +28,6 @@ namespace LocalConfig {
 				const registerd = registeredGames[app_id];
 				delete registeredGames[app_id];
 
-				([3241660, 1366540].indexOf(app_id) != -1) && Logger.log(JSON.stringify({
-					registerd: registerd?.toJSON() || 'not found',
-					has_manifest: !!manifest,
-					test
-				}), { prefix: "LocalConfigInit" });
-
 				if (registerd) {
 					registerd.installed = !!manifest;
 					await registerd.save();
@@ -42,8 +35,7 @@ namespace LocalConfig {
 						if (test == TestLaunch.NO) {
 							if (registerd.countLaunches == 0) continue;
 							else needWriteGames.add(app_id);
-						}
-						if (test == TestLaunch.CURRENT && registerd.countLaunches > 0) {
+						} else if (test == TestLaunch.CURRENT && registerd.countLaunches > 0) {
 							configuredGames.add(app_id);
 						} else {
 							needWriteGames.add(app_id);
