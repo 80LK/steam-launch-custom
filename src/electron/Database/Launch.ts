@@ -3,7 +3,7 @@ import { IPCTunnel } from "../IPCTunnel";
 import Database from "./Database";
 import Settings from "./Settings";
 import { ILaunch, Messages } from "@shared/Launch";
-import ImageProtocol from "../Protocol/ImgaeProtocol";
+import ImageProtocol from "../Protocol/ImageProtocol";
 import { rename, rm } from "fs/promises";
 import App from "../App";
 import Game from "./Game";

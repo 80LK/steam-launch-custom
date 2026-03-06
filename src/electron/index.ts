@@ -5,7 +5,7 @@ import Database from './Database/Database';
 import Settings from './Database/Settings';
 import Game from './Database/Game';
 import Steam from './Steam';
-import ImageProtocol from './Protocol/ImgaeProtocol';
+import ImageProtocol from './Protocol/ImageProtocol';
 import Launch from './Database/Launch';
 import Updater from './Updater';
 import LaunchWindow from './Window/LaunchWindow';

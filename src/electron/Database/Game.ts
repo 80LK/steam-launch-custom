@@ -4,7 +4,7 @@ import { GameFilter, IGame, Messages } from "@shared/Game";
 import parseBoolean from "@utils/parseBoolean";
 import Steam from "../Steam";
 import { IPCTunnel } from "../IPCTunnel";
-import ImageProtocol from "../Protocol/ImgaeProtocol";
+import ImageProtocol from "../Protocol/ImageProtocol";
 import App from "../App";
 import Configure from "../Configure/Configure";
 import { basename, resolve } from "path";
