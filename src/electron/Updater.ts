@@ -47,26 +47,29 @@ class Updater {
 
 	private async check(): Promise<CheckResult> {
 		if (DEV) return this.set(UpdateState.NO);
+		try {
+			const release = await this.getLastRelease();
+			if (isCheckResult(release)) return release;
 
-		const release = await this.getLastRelease();
-		if (isCheckResult(release)) return release;
+			Logger.log(`Found version: ${release.tag_name}`, { prefix: "UPDATER" });
+			const version = Version.createFromString(release.tag_name);
+			Logger.log(`Found version: ${version}`, { prefix: "UPDATER" });
 
-		console.log("Found version:", release.tag_name)
-		const version = Version.createFromString(release.tag_name);
-		console.log("Found version:", version)
+			if (this.current.compare(version) >= Version.Compare.EQUAL)
+				return this.set(UpdateState.NO);
 
-		if (this.current.compare(version) >= Version.Compare.EQUAL)
-			return this.set(UpdateState.NO);
+			if (await this.checkDownloaded(version))
+				return this.set(UpdateState.DOWNLOADED, version)
 
-		if (await this.checkDownloaded(version))
-			return this.set(UpdateState.DOWNLOADED, version)
-
-		const asset = release.assets.find(release => release.name.endsWith('Setup.exe'));
-		if (!asset) return this.set(UpdateState.NO)
+			const asset = release.assets.find(release => release.name.endsWith('Setup.exe'));
+			if (!asset) return this.set(UpdateState.NO)
 
 
-		this.asset = asset.browser_download_url;
-		return this.set(UpdateState.HAVE, version);
+			this.asset = asset.browser_download_url;
+			return this.set(UpdateState.HAVE, version);
+		} catch (e) {
+			return this.set(UpdateState.ERROR);
+		}
 	}
 
 	private async checkDownloaded(version: Version) {

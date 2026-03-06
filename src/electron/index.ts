@@ -35,6 +35,7 @@ const app = App.create(isLaunch ? LaunchWindow : MainWindow)
 		Logger.IPC,
 		Game.IPC,
 		Launch.IPC,
+		Updater.IPC,
 		image.IPC
 	)
 	.addProtocols(image);
@@ -50,7 +51,6 @@ if (isLaunch) {
 		Configure
 	).useIPC(
 		Steam.IPC,
-		Updater.IPC,
 		Configure.IPC
 	)
 		.open(async (setmessage) => {
