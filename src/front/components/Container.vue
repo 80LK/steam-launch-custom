@@ -39,6 +39,10 @@ export type { Done };
 		<div :class="$style.body" v-else>
 			<slot />
 		</div>
+
+		<div>
+			<slot name="footer" />
+		</div>
 	</div>
 </template>
 
