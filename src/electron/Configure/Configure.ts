@@ -31,8 +31,8 @@ namespace Configure {
 
 
 	export async function editLaunch(launch: Launch) {
-		await AppInfo.configure(launch);
 		await LocalConfig.configure(launch);
+		await AppInfo.configure(launch);
 
 		checkNeedWrite();
 	}
