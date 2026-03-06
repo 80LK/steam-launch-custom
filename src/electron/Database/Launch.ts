@@ -16,7 +16,6 @@ import { app } from "electron";
 import { require } from '../consts';
 import { spawn } from "child_process";
 const ws = require('windows-shortcuts') as typeof import('windows-shortcuts');
-const toIco = require('to-ico') as typeof import('to-ico');
 
 type SQLLaunch = Omit<ILaunch, 'launch'> & { launch: string, state: Launch.SteamState };
 class Launch extends Database.Model implements ILaunch {
