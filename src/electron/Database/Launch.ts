@@ -276,6 +276,7 @@ class Launch extends Database.Model implements ILaunch {
 			await new Promise<void>(async (r) => {
 				const args = [];
 				if (!app.isPackaged) args.push(`${process.argv[1].replace(/\\/g, "/")}`);
+				args.push(`${App.APP_ARG}=${launch.game_id}`);
 				args.push(`${App.LAUNCH_ARG}=${launch.id}`);
 				Logger.log(JSON.stringify(args), { prefix: 'SHORTCUT' })
 				const icon = await ImageProtocol.get().getIcon(launch.game_id.toString(), launch.id.toString());

@@ -24,20 +24,22 @@ Database.debug({ logSql: true })
 const launchId = App.getLaunchId();
 const isGame = launchId !== 0;
 
+const appId = App.getAppId();
+const isLaunch = appId !== 0;
 
-if (isGame) {
+if (appId && isGame) {
 	(async () => {
 		const _void = () => void 0;
 		await Logger.get(`log.launch.${launchId}.txt`).init(_void);
 		Database.get(true);
 
 		const launch = await Launch.get(launchId);
-		if (!launch) return;
+		if (!launch || launch.game_id != appId) return;
 
 		const steam = Steam.get();
 		await steam.init(_void);
 
-		if (!steam.startSDK(launch.game_id)) {
+		if (!steam.startSDK(appId)) {
 			dialog.showMessageBoxSync({
 				title: `${name}-${version}`,
 				message: "Can't init SteamSDK and start Steam"
@@ -57,8 +59,6 @@ if (isGame) {
 		);
 	})();
 } else {
-	const appId = App.getAppId();
-	const isLaunch = appId !== 0;
 
 	const image = ImageProtocol.get();
 

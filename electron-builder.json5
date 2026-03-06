@@ -15,6 +15,12 @@
       "filter": "*.{exe,ver}"
     }
   ],
+  "extraResources": [
+    {
+      "from": "steamworks_sdk",
+      "to": "steamworks_sdk"
+    }
+  ],
   "win": {
     "icon": "public/logo.png",
     "target": [

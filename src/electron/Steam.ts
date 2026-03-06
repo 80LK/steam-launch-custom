@@ -354,6 +354,8 @@ class Steam implements IInitialable {
 	public async startSDK(game_id: number): Promise<boolean> {
 		const sdk = SteamSDK.getInstance();
 
+		sdk.setSdkPath(resolve(process.resourcesPath, "steamworks_sdk"));
+
 		if (sdk.init({ appId: game_id }))
 			return true;
 
