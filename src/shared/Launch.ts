@@ -27,7 +27,8 @@ enum Messages {
 	edit = 'launch.edit',
 	remove = 'launch.remove',
 	getCurrentLaunch = 'launch.getCurrentLaunch',
-	start = 'launch.start'
+	start = 'launch.start',
+	createShortcut = 'launch.createShortcut'
 }
 
 export {

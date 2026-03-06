@@ -10,6 +10,10 @@ import BaseWindow from "./Window/BaseWindow";
 import { IPCTunnel } from "./IPCTunnel";
 import { Messages } from "@shared/Steam";
 import Logger from "./Logger";
+import { require } from "./consts";
+import { connect } from "net";
+
+const SteamSDK = (require("steamworks-ffi-node") as typeof import("steamworks-ffi-node")).default;
 
 interface AuthorizedDevice extends VDF.VDFObject {
 	timeused: string;
@@ -267,13 +271,15 @@ class Steam implements IInitialable {
 		return editIds;
 	}
 
+
+
 	public async testLaunchPath(id: number): Promise<TestLaunch> {
 		const path = await this.getLaunchOptions(id);
 		Logger.log(`Current path: ${path}`, { prefix: 'Steam] [Game ' + id })
 		if (!path) return TestLaunch.NO;
-		// /".*\/electron.exe" ".*" --launch=\d+ %command%/
+		// /".*\/electron.exe" ".*" --app=\d+ %command%/
 
-		if (!/\\".*\/(?:steam-launch-custom.exe|electron.exe\\" \\".*)\\" --launch=\d+ %command%/.test(path))
+		if (!/\\".*\/(?:steam-launch-custom.exe|electron.exe\\" \\".*)\\" --(?:app|launch)=\d+ %command%/.test(path))
 			return TestLaunch.NO;
 
 		Logger.log(`Need set path: ${this.getLaunchPath(id)}`, { prefix: 'Steam] [Game ' + id })
@@ -282,7 +288,7 @@ class Steam implements IInitialable {
 	public getLaunchPath(id: number) {
 		const args = [`\\"${App.getExecutable()}\\"`];
 		if (!app.isPackaged) args.push(`\\"${process.argv[1].replace(/\\/g, "/")}\\"`);
-		args.push(`--launch=${id}`, "%command%")
+		args.push(`${App.APP_ARG}=${id}`, "%command%")
 		return args.join(' ')
 	}
 
@@ -343,6 +349,37 @@ class Steam implements IInitialable {
 	private static convertSteam64IDtoAccountID(id: bigint | string): number {
 		if (typeof id == "string") id = BigInt(id);
 		return Number(id - 0x0110000100000000n);
+	}
+
+	public async startSDK(game_id: number): Promise<boolean> {
+		const sdk = SteamSDK.getInstance();
+
+		if (sdk.init({ appId: game_id }))
+			return true;
+
+		const steam_startup = await new Promise<boolean>(r => {
+			const steam_client = spawn(resolve(this.path, "steam.exe"), { detached: true, stdio: 'ignore' });
+			steam_client.on('close', () => {
+				clearInterval(loopCheckPipe);
+				r(false)
+			});
+			const loopCheckPipe = setInterval(() => {
+				const socket = connect("\\\\.\\pipe\\SteamClient");
+				socket.on('connect', () => {
+					clearInterval(loopCheckPipe);
+					steam_client.unref();
+					r(true)
+				})
+			}, 500);
+		});
+
+		if (!steam_startup) return false;
+
+		return sdk.init({ appId: game_id });;
+	}
+	public static stopSDK() {
+		const sdk = SteamSDK.getInstance();
+		sdk.shutdown();
 	}
 }
 

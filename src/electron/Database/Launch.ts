@@ -12,7 +12,10 @@ import BaseWindow from "../Window/BaseWindow";
 import Logger from "../Logger";
 import { dirname } from "path";
 import Configure from "../Configure/Configure";
-
+import { app } from "electron";
+import { require } from '../consts';
+import { spawn } from "child_process";
+const ws = require('windows-shortcuts') as typeof import('windows-shortcuts');
 
 type SQLLaunch = Omit<ILaunch, 'launch'> & { launch: string, state: Launch.SteamState };
 class Launch extends Database.Model implements ILaunch {
@@ -25,10 +28,10 @@ class Launch extends Database.Model implements ILaunch {
 	state: Launch.SteamState = Launch.SteamState.NEED_ADD;
 
 	public get image(): string {
-		return ImageProtocol.getIcon(this);
+		return ImageProtocol.getURLIcon(this);
 	}
 
-	private static readonly DB_NAME: string = "launch";
+	public static readonly DB_NAME: string = "launch";
 	private static readonly DB_VER_KEY: string = "launch-db-ver";
 	private static readonly DB_VER: number = 2;
 
@@ -190,7 +193,7 @@ class Launch extends Database.Model implements ILaunch {
 	}
 
 	public static async getCurrentLaunch(): Promise<ILaunch | null> {
-		const game_id = App.getLaunchApp();
+		const game_id = App.getAppId();
 		if (game_id == 0) return null;
 		const [exe, ...args] = App.getSteamArgs();
 		const launch = new Launch();
@@ -249,7 +252,15 @@ class Launch extends Database.Model implements ILaunch {
 			return true;
 		});
 		ipc.handle(Messages.getCurrentLaunch, () => Launch.getCurrentLaunch());
-		ipc.on(Messages.start, async (id: number) => {
+		ipc.on(Messages.start, async (id: number, deatached: boolean = false) => {
+			if (deatached) {
+				const args = [];
+				if (!app.isPackaged) args.push(`${process.argv[1].replace(/\\/g, "/")}`);
+				args.push(`${App.LAUNCH_ARG}=${id}`);
+				return spawn(App.getExecutable(), args, {
+					detached: true
+				})
+			}
 			const launch = await (id == -1 ? Launch.getCurrentLaunch() : Launch.get(id));
 			Logger.log(`Try launch ${id}. ${launch ? JSON.stringify(launch) : false}`);
 			if (!launch) return false;
@@ -257,6 +268,25 @@ class Launch extends Database.Model implements ILaunch {
 			win.webContents.close();
 			return true;
 		});
+		ipc.handle(Messages.createShortcut, async (launch_id: number) => {
+			const launch = await Launch.get(launch_id);
+			if (!launch) return;
+			Logger.log(`${launch.name} | ${launch.game_id} | ${launch.id}`, { prefix: "SHORTCUT" })
+
+			await new Promise<void>(async (r) => {
+				const args = [];
+				if (!app.isPackaged) args.push(`${process.argv[1].replace(/\\/g, "/")}`);
+				args.push(`${App.LAUNCH_ARG}=${launch.id}`);
+				Logger.log(JSON.stringify(args), { prefix: 'SHORTCUT' })
+				const icon = await ImageProtocol.get().getIcon(launch.game_id.toString(), launch.id.toString());
+				Logger.log(icon, { prefix: "SHORTCUT" })
+				ws.create(`%USERPROFILE%/Desktop/${launch.name}.lnk`, {
+					target: App.getExecutable(),
+					args: `"${args.join("\" \"")}"`,
+					icon
+				}, () => r());
+			})
+		})
 	}
 }
 namespace Launch {

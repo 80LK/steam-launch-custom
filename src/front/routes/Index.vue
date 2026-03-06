@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { mdiMagnify, mdiDownload, mdiStar, mdiCog } from "@mdi/js";
+import { mdiMagnify, mdiDownload, mdiStar, mdiViewList } from "@mdi/js";
 import ToggleBtn from "@components/ToggleBtn.vue";
 import Updater from '@components/Updater.vue';
 import NeedConfigure from '@components/Game/NeedConfigure.vue';
@@ -8,26 +8,23 @@ import GameCard from "@components/Game/Card.vue";
 import TextField from "@components/Input/TextField.vue";
 import { ref, useTemplateRef } from "vue";
 import useGamesStore from "@store/games";
-import useConfigure from "@store/configure";
 
 const store = useGamesStore();
-const configure = useConfigure();
 
 const search = ref(null as string | null);
 const filterInstalled = ref(false);
 const filterFavourites = ref(false);
-const filterConfigured = ref(false);
+const filterHaveLaunches = ref(false);
 
 const container = useTemplateRef('container');
 const limit = 12;
 
 async function loadGames(done: Done) {
-	await scaned();
 	const loaded = await store.load(limit, {
 		search: search.value,
 		stared: filterFavourites.value,
 		installed: filterInstalled.value,
-		configured: filterConfigured.value
+		haveLaunches: filterHaveLaunches.value,
 	});
 	done(loaded < limit ? 'empty' : 'ok');
 }
@@ -39,18 +36,6 @@ function resetGames() {
 
 function searching() {
 	resetGames();
-}
-
-
-let isScaning = false;
-let onScaned = () => { };
-
-function scaned() {
-	if (!isScaning) return Promise.resolve();
-
-	return new Promise<void>(resolve => {
-		onScaned = resolve;
-	})
 }
 </script>
 
@@ -72,9 +57,8 @@ function scaned() {
 					active-color="#c16100">
 					{{ $t('main.favourites') }}
 				</ToggleBtn>
-				<ToggleBtn :icon="mdiCog" v-model="filterConfigured" @update:model-value="searching"
-					v-if="!configure.useAppInfo">
-					{{ $t('main.configured') }}
+				<ToggleBtn :icon="mdiViewList" v-model="filterHaveLaunches" @update:model-value="searching">
+					{{ $t('main.have_launches') }}
 				</ToggleBtn>
 			</div>
 		</template>

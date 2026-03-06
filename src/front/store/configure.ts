@@ -1,6 +1,5 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-// import useGamesStore from "./games";
 
 const useConfigure = defineStore('configure', () => {
 	const needWrite = ref(false);
@@ -11,8 +10,8 @@ const useConfigure = defineStore('configure', () => {
 	Configure.canUseAppInfo().then(v => canUseAppInfo.value = v);
 	const useAppInfo = ref(false);
 	Configure.useAppInfo().then(v => useAppInfo.value = v);
-
-
+	const integrateSteam = ref(true);
+	Configure.integrateSteam().then(v => integrateSteam.value = v);
 
 	return {
 		get canUseAppInfo() {
@@ -21,12 +20,19 @@ const useConfigure = defineStore('configure', () => {
 		get useAppInfo() {
 			return useAppInfo;
 		},
+		get integrateSteam() {
+			return integrateSteam;
+		},
 		get needWrite() {
 			return needWrite
 		},
 		setUseAppInfo(value: boolean) {
 			Configure.setUseAppInfo(value);
 			useAppInfo.value = value;
+		},
+		setIntegrateSteam(value: boolean) {
+			Configure.setIntegrateSteam(value);
+			integrateSteam.value = value;
 		},
 		write() {
 			return Configure.write();

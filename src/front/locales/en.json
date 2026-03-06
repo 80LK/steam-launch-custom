@@ -10,13 +10,15 @@
 	},
 	"configure": {
 		"need_write": "You need close Steam and rewrite launch options",
-		"now": "Now"
+		"now": "Now",
+		"cant_write": "Cannot be overwritten, the application is running through Steam"
 	},
 	"main": {
 		"search": "Search",
 		"installed": "Installed",
 		"configured": "Configured",
-		"favourites": "Favourites"
+		"favourites": "Favourites",
+		"have_launches": "Have launches"
 	},
 	"game": {
 		"installed": "@:main.installed",
@@ -24,14 +26,18 @@
 		"configured": "@:main.configured",
 		"not_configured": "Not configured",
 		"favourites": "@:main.favourites",
+		"have_launches": "@:main.have_launches",
+		"not_have_launches": "NOt have launches",
 		"launch": "Launch",
+		"launch_steam": "Launch game in Steam",
 		"cancel": "Cancel",
 		"configure": "Configure",
 		"not_have_launchs": "No Launchs",
 		"reset_configure": "Reset configuration",
 		"add_launch": "Add variant launch",
 		"edit_launch": "Edit launch setting",
-		"remove_launch": "Remove launch setting"
+		"remove_launch": "Remove launch setting",
+		"shortcut": "Create shortcut on desktop"
 	},
 	"launch": {
 		"edit": "Edit laucnh \"{0}\"",
@@ -73,9 +79,12 @@
 		"open": "Open",
 		"close": "Close",
 		"language": "Language",
-		"use_appinfo": "Use AppInfo.vdf for creating launch options",
-		"use_appinfo_tooltip": "Using AppInfo.vdf requires overwriting the Steam files every time you change the launch options.",
-		"check_prerelease": "Check Pre-release"
+		"use_appinfo": "Use the native Steam launch options window",
+		"use_appinfo_tooltip": "Using the native Steam window requires overwriting the Steam files every time you change the startup options.",
+		"use_appinfo_warning": "The feature is experimental and will not be supported. It works as it is.",
+		"check_prerelease": "Check Pre-release",
+		"integrate_in_steam": "Steam Integration",
+		"integrate_in_steam_tooltip": "Integrate the Steam-Launch-Custom launch window into Steam"
 	},
 	"theme": {
 		"dark": "Dark",

@@ -10,6 +10,7 @@ namespace Wrapper {
 	const VERSION_FILE = resolve(DEV ? process.cwd() : ASAR_ROOT, "wrapper/go.ver");
 
 	export async function init() {
+		return;
 		const libraries = Object.values(await Steam.get().getLibraries());
 
 		const VERSION = Version.createFromString(await readFile(VERSION_FILE, "utf-8"));

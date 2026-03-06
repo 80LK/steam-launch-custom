@@ -1,28 +1,44 @@
 import Settings from "../Database/Settings";
 import { IPCTunnel } from "../IPCTunnel";
-import { USE_APPINFO, Messages } from "@shared/Configure"
+import { USE_APPINFO, Messages, INTEGRATE_STEAM } from "@shared/Configure"
 import Value from "@utils/Value"
 import Steam from "../Steam";
 import Launch from "../Database/Launch";
 import AppInfo from "./AppInfo";
 import LocalConfig from "./LocalConfig";
-import Game from "../Database/Game";
 
 namespace Configure {
-	let useAppInfo = new Value(false, (_, v) => {
-		Settings.setBoolean(USE_APPINFO, v)
-		needWrite.set(v ? AppInfo.needWrite.get() : LocalConfig.needWrite.get())
+	let integrateSteam = new Value(true, (_, v) => {
+		Settings.setBoolean(INTEGRATE_STEAM, v);
+		checkNeedWrite();
 	});
 	let canUseAppInfo = true;
+	let useAppInfo = new Value(false, (_, v) => {
+		Settings.setBoolean(USE_APPINFO, v)
+		checkNeedWrite();
+	});
 
-	export function editLaunch(launch: Launch) {
-		AppInfo.configure(launch);
+	function checkNeedWrite() {
+		if (!integrateSteam.get())
+			return needWrite.set(LocalConfig.hasConfigured() || AppInfo.hasConfigured());
+
+		if (useAppInfo.get())
+			return needWrite.set(AppInfo.needWrite());
+
+		needWrite.set(LocalConfig.needWrite());
+
 	}
-	export function editGame(game: Game) {
-		LocalConfig.configure(game);
+
+
+	export async function editLaunch(launch: Launch) {
+		await LocalConfig.configure(launch);
+		await AppInfo.configure(launch);
+
+		checkNeedWrite();
 	}
 
 	export async function init() {
+		integrateSteam.set(await Settings.getBoolean(INTEGRATE_STEAM, true));
 		useAppInfo.set(await Settings.getBoolean(USE_APPINFO, false));
 		const inited = await AppInfo.init();
 
@@ -39,24 +55,32 @@ namespace Configure {
 		const SteamIsRunning = await steam.isRunning();
 		SteamIsRunning && await steam.stop();
 
-		await Promise.all(
-			useAppInfo.get()
-				? [AppInfo.write(), LocalConfig.reset()]
-				: [LocalConfig.write(), AppInfo.reset()]
-		);
+		if (!integrateSteam.get()) {
+			if (AppInfo.hasConfigured()) await AppInfo.reset();
+			if (LocalConfig.hasConfigured()) await LocalConfig.reset();
+		} else if (useAppInfo.get()) {
+			if (LocalConfig.hasConfigured()) await LocalConfig.reset();
+			if (AppInfo.needWrite()) await AppInfo.write();
+		} else {
+			if (AppInfo.hasConfigured()) await AppInfo.reset();
+			if (LocalConfig.needWrite()) await LocalConfig.write();
+		}
+
+		checkNeedWrite();
 
 		SteamIsRunning && await steam.start();
 	}
 
 	const needWrite = new Value(false);
-	AppInfo.needWrite.on((_, v) => useAppInfo.get() && needWrite.set(v));
-	LocalConfig.needWrite.on((_, v) => (!useAppInfo.get()) && needWrite.set(v));
 
 	export function IPC(_: any, ipc: IPCTunnel) {
 		ipc.handle(Messages.canUseAppInfo, () => canUseAppInfo);
 
 		ipc.handle(Messages.setUseAppInfo, async (value: boolean) => useAppInfo.set(value))
 		ipc.handle(Messages.useAppInfo, () => useAppInfo.get());
+
+		ipc.handle(Messages.integrateSteam, () => integrateSteam.get());
+		ipc.handle(Messages.setIntegrateSteam, async (value: boolean) => integrateSteam.set(value))
 
 		ipc.handle(Messages.checkNeedWrite, () => needWrite.get())
 		needWrite.on((_, v) => ipc.send(Messages.changeNeedWrite, v));

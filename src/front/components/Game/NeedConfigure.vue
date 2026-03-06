@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import { mdiAlertOutline } from '@mdi/js';
 import useConfigure from '@store/configure';
 import { ref } from 'vue';
 
 const store = useConfigure();
+const cantWrite = ref(true);
+App.parentProcessIsSteam().then((v) => cantWrite.value = v);
 
 const isWriting = ref(false);
 async function write() {
@@ -17,7 +20,10 @@ async function write() {
 	<v-alert type="warning" variant="tonal" border="start" v-if="store.needWrite">
 		{{ $t('configure.need_write') }}
 		<template v-slot:close>
-			<v-btn color="warning" size="small" variant="flat" :icon="false" :loading="isWriting" @click="write">
+			<span v-if="cantWrite">
+				<v-icon :icon="mdiAlertOutline" v-tooltip="$t('configure.cant_write')" color="error" />
+			</span>
+			<v-btn v-else color="warning" size="small" variant="flat" :icon="false" :loading="isWriting" @click="write">
 				{{ $t('configure.now') }}
 			</v-btn>
 		</template>

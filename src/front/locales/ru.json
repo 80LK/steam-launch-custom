@@ -10,13 +10,15 @@
 	},
 	"configure": {
 		"need_write": "Нужно закрыть Steam и перезаписать параметры запуска",
-		"now": "Перезаписать"
+		"now": "Перезаписать",
+		"cant_write": "Невозможна перезапись, приложение запущено через Steam"
 	},
 	"main": {
 		"search": "Поиск",
 		"installed": "Установлено",
 		"configured": "Сконфигурировано",
-		"favourites": "Избранное"
+		"favourites": "Избранное",
+		"have_launches": "Имеет варианты запуска"
 	},
 	"game": {
 		"installed": "@:main.installed",
@@ -24,14 +26,18 @@
 		"configured": "@:main.configured",
 		"not_configured": "Не сконфигурировано",
 		"favourites": "@:main.favourites",
+		"have_launches": "@:main.have_launches",
+		"not_have_launches": "Не имеет варианты запуска",
 		"launch": "Запустить",
+		"launch_steam": "Запустить игру в Steam",
 		"cancel": "Отмена",
 		"configure": "Сконфигурировать",
 		"not_have_launchs": "Нет вариантов запуска",
 		"reset_configure": "Сбросить конфигурацию",
 		"add_launch": "Добавить вариант запуска",
 		"edit_launch": "Изменить вариант запуска",
-		"remove_launch": "Удалить вариант запуска"
+		"remove_launch": "Удалить вариант запуска",
+		"shortcut": "Создать ярлык на рабочем столе"
 	},
 	"launch": {
 		"edit": "Редактирование варианта \"{0}\"",
@@ -73,9 +79,12 @@
 		"open": "Открыть",
 		"close": "Закрыть",
 		"language": "Язык",
-		"use_appinfo": "Использовать AppInfo.vdf для создания вариантов запуска",
-		"use_appinfo_tooltip": "Использование AppInfo.vdf требует перезаписывания файлов Steam при каждом изменении вариантов запуска.",
-		"check_prerelease": "Проверять ПРЕ-релизы"
+		"use_appinfo": "Использовать нативное окно вариантов запуска Steam",
+		"use_appinfo_tooltip": "Использование нативного окна Steam требует перезаписывания файлов Steam при каждом изменении вариантов запуска.",
+		"use_appinfo_warning": "Функция является экспериментальной и не будет поддерживаться. Работает как есть.",
+		"check_prerelease": "Проверять ПРЕ-релизы",
+		"integrate_in_steam": "Интеграция в Steam",
+		"integrate_in_steam_tooltip": "Интегрировать окно запуска Steam-Launch-Custom в Steam"
 	},
 	"theme": {
 		"dark": "Темная",

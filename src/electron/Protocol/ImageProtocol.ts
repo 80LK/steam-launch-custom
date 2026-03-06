@@ -7,6 +7,7 @@ import exsist from "@utils/exists";
 import { pathToFileURL } from "url";
 import { glob } from "glob";
 import { ILaunch } from "@shared/Launch";
+import Settings from "../Database/Settings";
 import { getAppDataFilePath, require } from "../consts";
 import { readFile, rm } from "fs/promises";
 import { IPCTunnel } from "../IPCTunnel";
@@ -24,7 +25,8 @@ type ImageProtocolHandler = (...args: string[]) => Promise<string> | string;
 
 class ImageProtocol extends Protocol {
 	private static readonly ICON_CACHE = getAppDataFilePath('cache', true);
-
+	private static readonly DB_VER_KEY: string = "icon-cache-ver";
+	private static readonly DB_VER: number = 1;
 
 	private constructor() {
 		super("slc-image");
@@ -62,7 +64,7 @@ class ImageProtocol extends Protocol {
 		return resolve(ImageProtocol.ICON_CACHE, `${game_id}_${id}.ico`);
 	}
 
-	private async getIcon(game_id: string, id: string) {
+	public async getIcon(game_id: string, id: string) {
 		const image_path = ImageProtocol.getFileIcon(game_id, id);
 		if (await exsist(image_path)) return image_path;
 
@@ -110,16 +112,25 @@ class ImageProtocol extends Protocol {
 	}
 	private static HEADER = "header";
 	private static ICON = "icon";
-	public static getHeader(game: IGame) {
+	public static getURLHeader(game: IGame) {
 		const protocol = this.get();
 		return `${protocol.protocol}://${this.HEADER}_${game.id}`;
 	}
 
-	public static getIcon(launch: Pick<ILaunch, 'game_id' | 'id'>) {
+	public static getURLIcon(launch: Pick<ILaunch, 'game_id' | 'id'>) {
 		const protocol = this.get();
 		return `${protocol.protocol}://${this.ICON}_${launch.game_id}_${launch.id}`;
 	}
 
+	public static async init() {
+		(await glob('*_0.ico', { cwd: this.ICON_CACHE, absolute: true })).forEach(file => rm(file));
+		const ver = await Settings.getNumber(this.DB_VER_KEY, 0);
+		if (ver == this.DB_VER) return;
+
+		await rm(this.ICON_CACHE, { recursive: true, force: true });
+
+		await Settings.setNumber(this.DB_VER_KEY, this.DB_VER);
+	}
 	public isProtocol(path: string) {
 		return path.startsWith(this.protocol)
 	}
@@ -133,9 +144,6 @@ class ImageProtocol extends Protocol {
 		})
 	}
 
-	public static async init() {
-		(await glob('*_0.ico', { cwd: this.ICON_CACHE, absolute: true })).forEach(file => rm(file));
-	}
 
 	public static async generateIcon(launch: Pick<ILaunch, 'game_id' | 'id'>, file: string) {
 		const ext = extname(file);
@@ -152,7 +160,7 @@ class ImageProtocol extends Protocol {
 			], ImageProtocol.getFileIcon(launch.game_id, launch.id))
 		}
 
-		return ImageProtocol.getIcon(launch);
+		return ImageProtocol.getURLIcon(launch);
 	}
 	public static async deleteIcon(launch: Pick<ILaunch, 'game_id' | 'id'>) {
 		Logger.log(JSON.stringify(launch), { prefix: "ImageProtocol" });

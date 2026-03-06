@@ -1,24 +1,23 @@
 <script setup lang="ts">
-import { mdiCog, mdiDownload, mdiDownloadOff, mdiStar, mdiStarOutline } from '@mdi/js';
+import { mdiDownload, mdiDownloadOff, mdiStar, mdiStarOutline, mdiViewList } from '@mdi/js';
 import { IGame } from "@shared/Game";
-import useConfigure from '@store/configure';
 import useGamesStore from '@store/games';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+
 const { game } = defineProps<{ game: IGame }>()
 const store = useGamesStore();
-const configure = useConfigure()
 const { t } = useI18n();
 
 const installedIcon = computed(() => game.installed ? mdiDownload : mdiDownloadOff);
 const installedColor = computed(() => game.installed ? 'success' : 'grey');
 const installedTooltip = computed(() => t(game.installed ? 'game.installed' : 'game.not_installed'));
 
-const configuredColor = computed(() => game.installed && game.configured ? 'success' : 'grey')
-const configuredTooltip = computed(() => t(game.installed && game.configured ? 'game.configured' : 'game.not_configured'))
-
 const isFavoriteIcon = computed(() => game.stared ? mdiStar : mdiStarOutline);
 const isFavoriteColor = computed(() => game.stared ? 'yellow' : 'grey');
+
+const haveLaunchesColor = computed(() => game.countLaunches > 0 ? 'success' : 'grey');
+const haveLaunchesTooltip = computed(() => t(game.installed ? 'game.have_launches' : 'game.not_have_launches'));
 
 function star(event: PointerEvent) {
 	event.stopPropagation();
@@ -29,7 +28,7 @@ function star(event: PointerEvent) {
 <template>
 	<div>
 		<v-icon :icon="installedIcon" :color="installedColor" v-tooltip="installedTooltip" />
-		<v-icon :icon="mdiCog" :color="configuredColor" v-tooltip="configuredTooltip" v-if="!configure.useAppInfo" />
+		<v-icon :icon="mdiViewList" :color="haveLaunchesColor" v-tooltip="haveLaunchesTooltip" />
 		<v-icon :icon="isFavoriteIcon" :color="isFavoriteColor" v-tooltip="$t('game.favourites')" @click="star" />
 	</div>
 </template>
