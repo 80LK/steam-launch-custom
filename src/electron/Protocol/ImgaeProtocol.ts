@@ -8,7 +8,7 @@ import { pathToFileURL } from "url";
 import { glob } from "glob";
 import { ILaunch } from "@shared/Launch";
 import { getAppDataFilePath, require } from "../consts";
-import { readFile } from "fs/promises";
+import { readFile, rm } from "fs/promises";
 import { IPCTunnel } from "../IPCTunnel";
 import BaseWindow from "../Window/BaseWindow";
 import { Messages } from "@shared/ImageProtocol";
@@ -124,9 +124,17 @@ class ImageProtocol extends Protocol {
 		return path.startsWith(this.protocol)
 	}
 	public IPC(_: BaseWindow, ipc: IPCTunnel) {
-		ipc.handle(Messages.generate, async (launch: Pick<ILaunch, 'game_id' | 'id'>, file: string) => {
-			return ImageProtocol.generateIcon(launch, file);
+		ipc.handle(Messages.generateIcon, async (game_id: number, file: string) => {
+			return ImageProtocol.generateIcon({ game_id, id: 0 }, file);
 		})
+
+		ipc.handle(Messages.deleteGeneratedIcon, async (game_id: number) => {
+			return ImageProtocol.deleteIcon({ game_id, id: 0 });
+		})
+	}
+
+	public static async init() {
+		(await glob('*_0.ico', { cwd: this.ICON_CACHE, absolute: true })).forEach(file => rm(file));
 	}
 
 	public static async generateIcon(launch: Pick<ILaunch, 'game_id' | 'id'>, file: string) {
@@ -146,6 +154,11 @@ class ImageProtocol extends Protocol {
 
 		return ImageProtocol.getIcon(launch);
 	}
+	public static async deleteIcon(launch: Pick<ILaunch, 'game_id' | 'id'>) {
+		Logger.log(JSON.stringify(launch), { prefix: "ImageProtocol" });
+		rm(ImageProtocol.getFileIcon(launch.game_id, launch.id));
+	}
+
 }
 
 export default ImageProtocol;

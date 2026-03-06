@@ -1,5 +1,6 @@
 enum Messages {
-	generate = 'imageProtocol.generate',
+	generateIcon = 'imageProtocol.generateIcon',
+	deleteGeneratedIcon = 'imageProtocol.deleteGeneratedIcon'
 }
 
 export {

@@ -51,7 +51,11 @@ async function submit(event: SubmitEventPromise) {
 
 	close();
 }
+
 function close() {
+	console.log(launch.value);
+	if (launch.value) ImageProtocol.deleteIcon(launch.value.game_id);
+
 	isOpened.value = false;
 }
 const defaultPathForExe = computed(() => {
@@ -77,14 +81,14 @@ async function generateIconFromExe() {
 	if (launch.value.image) return;
 	const l = toRaw(unref(launch))!;
 
-	launch.value.image = await ImageProtocol.generate({ game_id: l.game_id, id: 0 }, l.execute) + "?" + Date.now();
+	launch.value.image = await ImageProtocol.generateIcon(l.game_id, l.execute) + "?" + Date.now();
 }
 
 async function generateIcon(value: string) {
 	if (!launch.value) return;
 	const l = toRaw(unref(launch))!;
 
-	launch.value.image = await ImageProtocol.generate({ game_id: l.game_id, id: 0 }, value) + "?" + Date.now();
+	launch.value.image = await ImageProtocol.generateIcon(l.game_id, value) + "?" + Date.now();
 }
 
 function pasteArgs(event: ClipboardEvent) {
