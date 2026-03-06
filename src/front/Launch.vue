@@ -9,6 +9,7 @@ import useLaunchStore from '@store/launch';
 import { ref, useTemplateRef } from 'vue';
 import LaunchList from '@components/Launch/List.vue';
 import Editor from '@components/Launch/Editor.vue';
+import Updater from '@components/Updater.vue';
 const game = ref(null as IGame | null);
 Game.getLaunch().then(e => game.value = e);
 
@@ -62,6 +63,9 @@ function relaod() {
 									@click="editor?.create(game.id)" />
 							</div>
 						</Header>
+					</template>
+					<template v-slot:footer>
+						<Updater only-info flat />
 					</template>
 
 					<LaunchList :launchs="launchs" v-if="game">

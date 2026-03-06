@@ -5,7 +5,8 @@
 		"available": "Update {0} is available",
 		"install": "Install",
 		"download": "Download",
-		"hide": "Hide"
+		"hide": "Hide",
+		"error": "Update check failed"
 	},
 	"configure": {
 		"need_write": "You need close Steam and rewrite launch options",
