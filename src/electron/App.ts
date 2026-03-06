@@ -43,11 +43,9 @@ class App {
 		ipc.handle(Messages.getCurrentState, () => this.message);
 		ipc.handle(Messages.selectFile, async (type: FileType, defaultPath: string) => {
 			let property: 'openFile' | 'openDirectory' = 'openFile';
-			const filters = [];
+			const filters = type == 'directory' ? [] : type;
 			if (type == 'directory') {
 				property = 'openDirectory';
-			} else {
-				filters.push(type);
 			}
 
 			if (defaultPath) defaultPath = resolve(defaultPath);
@@ -57,11 +55,6 @@ class App {
 				return files[0];
 
 			return false;
-
-
-			const { canceled, filePaths } = await dialog.showOpenDialog({ defaultPath, properties: [property], filters: filters });
-			if (canceled || filePaths.length == 0) return false;
-			return filePaths[0]
 		})
 		ipc.handle(Messages.getAppData, () => getAppDataFilePath())
 		ipc.on(Messages.openExplorer, (dir: string) => {

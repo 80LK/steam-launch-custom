@@ -3,10 +3,8 @@ import { IPCTunnel } from "../IPCTunnel";
 import Database from "./Database";
 import Settings from "./Settings";
 import { ILaunch, Messages } from "@shared/Launch";
-import { writeFileSync } from "fs";
-import extractIcon from "../extractIcon";
-import ImageProtocol from "../Protocol/ImgaeProtocol";
-import { rm } from "fs/promises";
+import ImageProtocol from "../Protocol/ImageProtocol";
+import { rename, rm } from "fs/promises";
 import App from "../App";
 import Game from "./Game";
 import Spawn from "../Spawn";
@@ -14,7 +12,6 @@ import BaseWindow from "../Window/BaseWindow";
 import Logger from "../Logger";
 import { dirname } from "path";
 import Configure from "../Configure/Configure";
-
 
 
 type SQLLaunch = Omit<ILaunch, 'launch'> & { launch: string, state: Launch.SteamState };
@@ -29,16 +26,6 @@ class Launch extends Database.Model implements ILaunch {
 
 	public get image(): string {
 		return ImageProtocol.getIcon(this);
-	}
-
-	private async generateIcon() {
-		if (this.id == 0 || this.game_id == 0) return;
-		if (!await exsist(this.execute)) return;
-		try {
-			const buf = extractIcon(this.execute)
-			if (buf)
-				writeFileSync(ImageProtocol.getFileIcon(this.game_id, this.id), buf);
-		} catch (e) { }
 	}
 
 	private static readonly DB_NAME: string = "launch";
@@ -115,7 +102,7 @@ class Launch extends Database.Model implements ILaunch {
 		launch.state = raw.state;
 
 		if (!await exsist(ImageProtocol.getFileIcon(launch.game_id, launch.id)))
-			await launch.generateIcon();
+			await ImageProtocol.generateIcon(launch, launch.execute);
 
 		return launch;
 	}
@@ -161,8 +148,6 @@ class Launch extends Database.Model implements ILaunch {
 			);
 		}
 
-		await this.generateIcon();
-
 		return this;
 	}
 
@@ -183,7 +168,15 @@ class Launch extends Database.Model implements ILaunch {
 		})
 		return this;
 	}
-
+	public async updateIcon() {
+		const new_icon = ImageProtocol.getFileIcon(this.game_id, 0);
+		if (await exsist(new_icon, 'file')) {
+			await rename(
+				new_icon,
+				ImageProtocol.getFileIcon(this.game_id, this.id)
+			)
+		}
+	}
 	public toJSON(): ILaunch {
 		return {
 			id: this.id,
@@ -207,9 +200,12 @@ class Launch extends Database.Model implements ILaunch {
 		launch.execute = exe;
 		launch.launch = args;
 		launch.workdir = process.cwd();
-		await launch.generateIcon();
+
+		await ImageProtocol.generateIcon(launch, launch.execute);
+
 		return launch.toJSON();
 	}
+
 
 	public static IPC(win: BaseWindow, ipc: IPCTunnel) {
 		ipc.handle(Messages.getForGame, async (game_id: number, offset: number, limit: number) => (await Launch.getForGame(game_id, offset, limit)).map(e => e.toJSON()))
@@ -219,6 +215,8 @@ class Launch extends Database.Model implements ILaunch {
 			launch.edit(ilaunch);
 			await launch.save();
 			Configure.editLaunch(launch);
+
+			await launch.updateIcon();
 
 			return launch.toJSON();
 		})
@@ -230,6 +228,8 @@ class Launch extends Database.Model implements ILaunch {
 			launch.state = Launch.SteamState.NEED_EDIT;
 			await launch.save();
 			Configure.editLaunch(launch);
+
+			await launch.updateIcon();
 
 			return launch.toJSON();
 		})

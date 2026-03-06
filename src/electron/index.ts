@@ -5,7 +5,7 @@ import Database from './Database/Database';
 import Settings from './Database/Settings';
 import Game from './Database/Game';
 import Steam from './Steam';
-import ImageProtocol from './Protocol/ImgaeProtocol';
+import ImageProtocol from './Protocol/ImageProtocol';
 import Launch from './Database/Launch';
 import Updater from './Updater';
 import LaunchWindow from './Window/LaunchWindow';
@@ -26,7 +26,8 @@ const app = App.create(isLaunch ? LaunchWindow : MainWindow)
 	.init(
 		Logger.get(isLaunch ? `log.${appId}.txt` : 'log.txt'),
 		Steam.get(),
-		Database.get().register(Settings, Game, Launch)
+		Database.get().register(Settings, Game, Launch),
+		ImageProtocol
 	)
 	.useIPC(
 		SystemBar,
@@ -34,7 +35,8 @@ const app = App.create(isLaunch ? LaunchWindow : MainWindow)
 		Logger.IPC,
 		Game.IPC,
 		Launch.IPC,
-		Updater.IPC
+		Updater.IPC,
+		image.IPC
 	)
 	.addProtocols(image);
 

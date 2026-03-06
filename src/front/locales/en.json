@@ -43,7 +43,8 @@
 		"work": "Work Directory",
 		"cancel": "Cancel",
 		"save": "Save",
-		"must_set": "{0} must be set"
+		"must_set": "{0} must be set",
+		"edit_icon": "Change icon"
 	},
 	"remove": {
 		"confirm": "Confirm remove",

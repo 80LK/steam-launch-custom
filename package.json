@@ -43,6 +43,8 @@
   "dependencies": {
     "extract-file-icon": "^0.3.2",
     "glob": "^11.0.3",
+    "sharp": "^0.34.5",
+    "sharp-ico": "^0.1.5",
     "sqlite3": "^5.1.7",
     "valve-key-values": "^1.0.0",
     "valve-key-values-binary": "^1.0.0",
