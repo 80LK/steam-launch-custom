@@ -14,7 +14,8 @@ import Logger from './Logger';
 import Configure from './Configure/Configure';
 import Wrapper from './Wrapper';
 import { dirname } from 'path';
-import { app as electron, } from "electron";
+import { dialog, app as electron, } from "electron";
+import { name, version } from '../../package.json';
 
 // process.argv.push('--app=41700');
 
@@ -36,13 +37,12 @@ if (isGame) {
 		const steam = Steam.get();
 		await steam.init(_void);
 
-		if (!Steam.startSDK(launch.game_id)) {
-			await steam.start();
-			await new Promise<void>(r => setTimeout(() => {
-				if (!Steam.startSDK(launch.game_id))
-					return electron.quit();
-				r();
-			}, 10000));
+		if (!steam.startSDK(launch.game_id)) {
+			dialog.showMessageBoxSync({
+				title: `${name}-${version}`,
+				message: "Can't init SteamSDK and start Steam"
+			});
+			return electron.quit();
 		}
 
 		const spawn = Spawn.get();
