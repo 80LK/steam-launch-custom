@@ -33,7 +33,8 @@ const app = App.create(isLaunch ? LaunchWindow : MainWindow)
 		Settings.IPC,
 		Logger.IPC,
 		Game.IPC,
-		Launch.IPC
+		Launch.IPC,
+		image.IPC
 	)
 	.addProtocols(image);
 

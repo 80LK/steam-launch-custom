@@ -72,6 +72,21 @@ function blockNullRule(thing: string) {
 	}
 }
 
+async function generateIconFromExe() {
+	if (!launch.value) return;
+	if (launch.value.image) return;
+	const l = toRaw(unref(launch))!;
+
+	launch.value.image = await ImageProtocol.generate({ game_id: l.game_id, id: 0 }, l.execute) + "?" + Date.now();
+}
+
+async function generateIcon(value: string) {
+	if (!launch.value) return;
+	const l = toRaw(unref(launch))!;
+
+	launch.value.image = await ImageProtocol.generate({ game_id: l.game_id, id: 0 }, value) + "?" + Date.now();
+}
+
 function pasteArgs(event: ClipboardEvent) {
 	event.preventDefault();
 
@@ -102,8 +117,9 @@ function pasteArgs(event: ClipboardEvent) {
 						:rules="[blockNullRule($t('launch.title'))]" :prepend-inner-icon="mdiAlphabetical" />
 
 					<FilePicker v-model="launch.execute" :default-path="defaultPathForExe"
-						:type="{ name: 'Application', extensions: ['exe'] }" :label="$t('launch.execute')"
-						:rules="[blockNullRule($t('launch.execute'))]" :icon="mdiApplicationOutline" />
+						@update:model-value="generateIconFromExe" :type="[{ name: 'Application', extensions: ['exe'] }]"
+						:label="$t('launch.execute')" :rules="[blockNullRule($t('launch.execute'))]"
+						:icon="mdiApplicationOutline" />
 
 					<Combobox :prepend-inner-icon="mdiCog" :label="$t('launch.options')" clearable chips multiple
 						closable-chips :hint="$t('launch.options_hint')" v-model="launch.launch" @paste="pasteArgs" />
@@ -113,8 +129,8 @@ function pasteArgs(event: ClipboardEvent) {
 				</v-card-text>
 				<v-divider />
 				<v-card-actions>
-					<FilePickerBtn v-model="launch.image" color="warning" :label="$t('launch.edit_icon')"
-						:type="{ name: 'Image', extensions: ['png', 'jpg', 'webp', 'gif'] }" />
+					<FilePickerBtn color="warning" :label="$t('launch.edit_icon')" @update:model-value="generateIcon"
+						:type="[{ name: 'Image', extensions: ['png', 'jpg', 'jpeg', 'webp', 'gif'] }, { name: 'Application', extensions: ['exe'] }]" />
 					<v-spacer />
 					<v-btn color="error" @click="close()">{{ $t('launch.cancel') }}</v-btn>
 					<v-btn color="success" type="submit">{{ $t('launch.save') }}</v-btn>

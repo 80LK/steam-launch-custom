@@ -8,6 +8,7 @@ import Updater from './Updater';
 import Steam from './Steam';
 import Logger from './Logger';
 import Configure from './Configure';
+import ImageProtocol from './ImageProtocol';
 
 contextBridge.exposeInMainWorld('App', App);
 contextBridge.exposeInMainWorld('SystemBar', SystemBar);
@@ -18,3 +19,4 @@ contextBridge.exposeInMainWorld('Updater', Updater);
 contextBridge.exposeInMainWorld('Steam', Steam);
 contextBridge.exposeInMainWorld('Logger', Logger);
 contextBridge.exposeInMainWorld('Configure', Configure);
+contextBridge.exposeInMainWorld('ImageProtocol', ImageProtocol);
