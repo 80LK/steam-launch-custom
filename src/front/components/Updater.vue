@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n';
 const { t } = useI18n();
 
 const showen = ref(true);
+const { onlyInfo = false, flat = false } = defineProps<{ onlyInfo?: boolean, flat?: boolean }>();
 
 const store = useUpdaterStore();
 store.check();
@@ -15,17 +16,19 @@ const isCheck = computed(() => store.state == UpdateState.CHECK);
 const isAvailable = computed(() => store.state == UpdateState.HAVE || store.state == UpdateState.DOWNLOADING);
 const isDownloading = computed(() => store.state == UpdateState.DOWNLOADING);
 const isDownloaded = computed(() => store.state == UpdateState.DOWNLOADED);
-const color = computed(() => isCheck.value ? undefined : 'success')
-const message = computed(() => t(isCheck.value ? 'update.checking' : `update.available`, [store.version]));
+const isError = computed(() => store.state == UpdateState.ERROR);
+const color = computed(() => isCheck.value ? undefined : isError.value ? 'error' : 'success')
+const message = computed(() => t(isCheck.value ? 'update.checking' : isError.value ? 'update.error' : `update.available`, [store.version]));
 </script>
 
 <template>
-	<v-alert :type="color" variant="tonal" border="start" v-if="hasUpdate">
+	<v-alert :type="color" variant="tonal" border="start" v-if="hasUpdate" :rounded="flat ? 0 : undefined"
+		max-height="60">
 		<template v-slot:prepend v-if="isCheck">
 			<v-progress-circular indeterminate />
 		</template>
 		{{ message }}
-		<template v-slot:close v-if="!isCheck">
+		<template v-slot:close v-if="!isCheck && !onlyInfo">
 			<v-btn color="success" class="mr-2" size="small" variant="flat" :icon="false" v-if="isDownloaded"
 				@click="store.install()">
 				{{ $t('update.install') }}

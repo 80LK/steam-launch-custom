@@ -5,7 +5,7 @@ interface PropFilePickerBase {
 	type?: FileType;
 	defaultPath?: string;
 }
-const { type = { name: "Any files", extensions: ['*'] }, defaultPath } = defineProps<PropFilePickerBase>();
+const { type = [{ name: "Any files", extensions: ['*'] }], defaultPath } = defineProps<PropFilePickerBase>();
 
 async function selectFile() {
 	const result = await App.selectFile(type, defaultPath);

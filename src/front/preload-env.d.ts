@@ -8,5 +8,6 @@ declare global {
 	const Steam: typeof import('D:/dev/electron/steam-launch-custom/src/electron-preload/Steam').default;
 	const Logger: typeof import('D:/dev/electron/steam-launch-custom/src/electron-preload/Logger').default;
 	const Configure: typeof import('D:/dev/electron/steam-launch-custom/src/electron-preload/Configure').default;
+	const ImageProtocol: typeof import('D:/dev/electron/steam-launch-custom/src/electron-preload/ImageProtocol').default;
 }
 export {};

@@ -14,6 +14,7 @@ enum UpdateState {
 	NO = 'no',
 	HAVE = 'have',
 	DOWNLOADED = 'downloaded',
+	ERROR = 'error',
 
 	INIT = 'init',
 	CHECK = 'check',

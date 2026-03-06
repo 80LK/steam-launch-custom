@@ -5,7 +5,8 @@
 		"available": "Update {0} is available",
 		"install": "Install",
 		"download": "Download",
-		"hide": "Hide"
+		"hide": "Hide",
+		"error": "Update check failed"
 	},
 	"configure": {
 		"need_write": "You need close Steam and rewrite launch options",
@@ -48,7 +49,8 @@
 		"work": "Work Directory",
 		"cancel": "Cancel",
 		"save": "Save",
-		"must_set": "{0} must be set"
+		"must_set": "{0} must be set",
+		"edit_icon": "Change icon"
 	},
 	"remove": {
 		"confirm": "Confirm remove",

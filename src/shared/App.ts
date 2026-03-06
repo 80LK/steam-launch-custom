@@ -24,5 +24,5 @@ type StateMessage = {
 export { State, type StateMessage };
 
 
-type FileType = 'directory' | { name: string, extensions: string[] };
+type FileType = 'directory' | ({ name: string, extensions: string[] }[]);
 export { type FileType }

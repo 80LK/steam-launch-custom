@@ -9,6 +9,7 @@ class BaseWindow extends BrowserWindow {
 		}, options, {
 			webPreferences: Object.assign({
 				devTools: DEV,
+				webSecurity: !DEV,
 				preload: join(dirname, './preload.js')
 			}, options.webPreferences || {})
 		}));

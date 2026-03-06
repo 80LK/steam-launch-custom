@@ -2,12 +2,13 @@
 import { mdiAlphabetical, mdiApplicationOutline, mdiCog, mdiFolder, mdiPencil } from '@mdi/js';
 import { ILaunch, INIT_LAUNCH } from '@shared/Launch';
 import useLaunchStore from '@store/launch';
-import FilePicker from '@components/Input/FilePicker.vue';
+import FilePicker from '@components/Input/FilePickerTextField.vue';
 import TextField from '@components/Input/TextField.vue';
 import Combobox from '@components/Input/Combobox.vue';
 import { computed, ref, toRaw, unref } from 'vue';
 import { SubmitEventPromise } from 'vuetify';
 import { useI18n } from 'vue-i18n';
+import FilePickerBtn from '@components/Input/FilePickerBtn.vue';
 const { t } = useI18n()
 const emit = defineEmits(['create']);
 
@@ -50,7 +51,11 @@ async function submit(event: SubmitEventPromise) {
 
 	close();
 }
+
 function close() {
+	console.log(launch.value);
+	if (launch.value) ImageProtocol.deleteIcon(launch.value.game_id);
+
 	isOpened.value = false;
 }
 const defaultPathForExe = computed(() => {
@@ -58,7 +63,6 @@ const defaultPathForExe = computed(() => {
 	if (!l || !l.execute) return undefined;
 	return l.execute + '/..';
 })
-
 const defaultPathForWorkDir = computed(() => {
 	const l = launch.value;
 	if (!l || !l.workdir) return defaultPathForExe.value;
@@ -70,6 +74,21 @@ function blockNullRule(thing: string) {
 		if (value.length == 0) return t('launch.must_set', [thing]);
 		return true;
 	}
+}
+
+async function generateIconFromExe() {
+	if (!launch.value) return;
+	if (launch.value.image) return;
+	const l = toRaw(unref(launch))!;
+
+	launch.value.image = await ImageProtocol.generateIcon(l.game_id, l.execute) + "?" + Date.now();
+}
+
+async function generateIcon(value: string) {
+	if (!launch.value) return;
+	const l = toRaw(unref(launch))!;
+
+	launch.value.image = await ImageProtocol.generateIcon(l.game_id, value) + "?" + Date.now();
 }
 
 function pasteArgs(event: ClipboardEvent) {
@@ -89,6 +108,9 @@ function pasteArgs(event: ClipboardEvent) {
 		<v-form @submit.prevent="submit" v-if="launch">
 			<v-card>
 				<v-card-item :prepend-icon="mdiPencil">
+					<template #prepend>
+						<v-avatar :image="launch.image" class="bg-grey-lighten-2" />
+					</template>
 					<v-card-title>
 						{{ $t(isEdit ? `launch.edit` : 'launch.new', [store.get(launch.id)?.name]) }}
 					</v-card-title>
@@ -99,8 +121,9 @@ function pasteArgs(event: ClipboardEvent) {
 						:rules="[blockNullRule($t('launch.title'))]" :prepend-inner-icon="mdiAlphabetical" />
 
 					<FilePicker v-model="launch.execute" :default-path="defaultPathForExe"
-						:type="{ name: 'Application', extensions: ['exe'] }" :label="$t('launch.execute')"
-						:rules="[blockNullRule($t('launch.execute'))]" :icon="mdiApplicationOutline" />
+						@update:model-value="generateIconFromExe" :type="[{ name: 'Application', extensions: ['exe'] }]"
+						:label="$t('launch.execute')" :rules="[blockNullRule($t('launch.execute'))]"
+						:icon="mdiApplicationOutline" />
 
 					<Combobox :prepend-inner-icon="mdiCog" :label="$t('launch.options')" clearable chips multiple
 						closable-chips :hint="$t('launch.options_hint')" v-model="launch.launch" @paste="pasteArgs" />
@@ -110,6 +133,9 @@ function pasteArgs(event: ClipboardEvent) {
 				</v-card-text>
 				<v-divider />
 				<v-card-actions>
+					<FilePickerBtn color="warning" :label="$t('launch.edit_icon')" @update:model-value="generateIcon"
+						:type="[{ name: 'Image', extensions: ['png', 'jpg', 'jpeg', 'webp', 'gif'] }, { name: 'Application', extensions: ['exe'] }]" />
+					<v-spacer />
 					<v-btn color="error" @click="close()">{{ $t('launch.cancel') }}</v-btn>
 					<v-btn color="success" type="submit">{{ $t('launch.save') }}</v-btn>
 				</v-card-actions>

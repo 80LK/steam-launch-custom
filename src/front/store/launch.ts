@@ -7,7 +7,10 @@ const useLaunchStore = defineStore('launch', () => {
 
 	async function getForGame(game_id: number, offset: number, limit: number): Promise<ILaunch[]> {
 		const launchs = await Launch.getForGame(game_id, offset, limit);
-		launchs.forEach(launch => launchsStore.value[launch.id] = launch);
+		launchs.forEach(launch => {
+			if (launch.image) launch.image += "?" + Date.now();
+			launchsStore.value[launch.id] = launch;
+		});
 		return launchs;
 	}
 

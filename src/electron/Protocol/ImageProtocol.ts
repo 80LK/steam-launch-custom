@@ -1,5 +1,5 @@
 import { net } from "electron";
-import { resolve } from "path";
+import { extname, resolve } from "path";
 import Protocol from "./Protocol";
 import Steam from "../Steam";
 import { IGame } from "@shared/Game";
@@ -7,9 +7,17 @@ import exsist from "@utils/exists";
 import { pathToFileURL } from "url";
 import { glob } from "glob";
 import { ILaunch } from "@shared/Launch";
-import { getAppDataFilePath } from "../consts";
 import Settings from "../Database/Settings";
-import { rm } from "fs/promises";
+import { getAppDataFilePath, require } from "../consts";
+import { readFile, rm } from "fs/promises";
+import { IPCTunnel } from "../IPCTunnel";
+import BaseWindow from "../Window/BaseWindow";
+import { Messages } from "@shared/ImageProtocol";
+import { URL } from "url";
+import Logger from "../Logger";
+import extractIcon from "../extractIcon";
+const sharp = require('sharp') as typeof import('sharp');
+const sharpIco = require('sharp-ico') as typeof import('sharp-ico');
 
 const steam = Steam.get();
 
@@ -74,7 +82,10 @@ class ImageProtocol extends Protocol {
 	}
 
 	public async handle(request: GlobalRequest): Promise<GlobalResponse> {
-		const image = request.url.slice((this.protocol + '://').length);
+		Logger.log(`URL: ${request.url}`, { prefix: "ImageProtocol" });
+
+		const image = new URL(request.url).host; // request.url.slice((this.protocol + '://').length);
+
 		const [type, ...args] = image.split('_');
 
 		const placeholder = resolve(steam.path, "tenfoot/resource/images/bootstrapper.jpg");
@@ -106,12 +117,13 @@ class ImageProtocol extends Protocol {
 		return `${protocol.protocol}://${this.HEADER}_${game.id}`;
 	}
 
-	public static getURLIcon(launch: ILaunch) {
+	public static getURLIcon(launch: Pick<ILaunch, 'game_id' | 'id'>) {
 		const protocol = this.get();
 		return `${protocol.protocol}://${this.ICON}_${launch.game_id}_${launch.id}`;
 	}
 
 	public static async init() {
+		(await glob('*_0.ico', { cwd: this.ICON_CACHE, absolute: true })).forEach(file => rm(file));
 		const ver = await Settings.getNumber(this.DB_VER_KEY, 0);
 		if (ver == this.DB_VER) return;
 
@@ -119,6 +131,42 @@ class ImageProtocol extends Protocol {
 
 		await Settings.setNumber(this.DB_VER_KEY, this.DB_VER);
 	}
+	public isProtocol(path: string) {
+		return path.startsWith(this.protocol)
+	}
+	public IPC(_: BaseWindow, ipc: IPCTunnel) {
+		ipc.handle(Messages.generateIcon, async (game_id: number, file: string) => {
+			return ImageProtocol.generateIcon({ game_id, id: 0 }, file);
+		})
+
+		ipc.handle(Messages.deleteGeneratedIcon, async (game_id: number) => {
+			return ImageProtocol.deleteIcon({ game_id, id: 0 });
+		})
+	}
+
+
+	public static async generateIcon(launch: Pick<ILaunch, 'game_id' | 'id'>, file: string) {
+		const ext = extname(file);
+		let buf: Buffer | null = null;
+		if (ext == ".exe") {
+			buf = extractIcon(file) || null;
+		} else {
+			buf = await readFile(file);
+		}
+
+		if (buf) {
+			await sharpIco.sharpsToIco([
+				sharp(buf).resize(64).toFormat('png')
+			], ImageProtocol.getFileIcon(launch.game_id, launch.id))
+		}
+
+		return ImageProtocol.getURLIcon(launch);
+	}
+	public static async deleteIcon(launch: Pick<ILaunch, 'game_id' | 'id'>) {
+		Logger.log(JSON.stringify(launch), { prefix: "ImageProtocol" });
+		rm(ImageProtocol.getFileIcon(launch.game_id, launch.id));
+	}
+
 }
 
 export default ImageProtocol;
