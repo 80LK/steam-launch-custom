@@ -253,17 +253,19 @@ class Launch extends Database.Model implements ILaunch {
 		});
 		ipc.handle(Messages.getCurrentLaunch, () => Launch.getCurrentLaunch());
 		ipc.on(Messages.start, async (id: number, deatached: boolean = false) => {
+			const launch = await (id == -1 ? Launch.getCurrentLaunch() : Launch.get(id));
+			Logger.log(`Try launch ${id}. ${launch ? JSON.stringify(launch) : false}`);
+			if (!launch) return false;
 			if (deatached) {
 				const args = [];
 				if (!app.isPackaged) args.push(`${process.argv[1].replace(/\\/g, "/")}`);
+				args.push(`${App.APP_ARG}=${launch.game_id}`);
 				args.push(`${App.LAUNCH_ARG}=${id}`);
 				return spawn(App.getExecutable(), args, {
 					detached: true
 				})
 			}
-			const launch = await (id == -1 ? Launch.getCurrentLaunch() : Launch.get(id));
-			Logger.log(`Try launch ${id}. ${launch ? JSON.stringify(launch) : false}`);
-			if (!launch) return false;
+
 			Spawn.get().start(launch.execute, launch.launch, launch.workdir || dirname(launch.execute));
 			win.webContents.close();
 			return true;
