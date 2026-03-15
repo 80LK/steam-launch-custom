@@ -1,5 +1,7 @@
 <p align="center">
   <img src="public/logo.png" alt="Logo" height=170/>
+  <br/>
+  [ <span style="font-weight:bold">EN</span> | <a href="./README.RU.md">RU</a> ]
 </p>
 
 # Steam-Launcher-Custom
@@ -19,11 +21,11 @@ The configuration changes the Steam files to run **steam-launch-custom** to inte
 1. Open the app and select a game
 2. In the window that opens, click the "CONFIGURE" button
 
-![Page with no configured game](./md/game_no_configure.png)
+![Page without configured game](./md/game_no_configure.png)
 
 3. To reset the configuration, click on the round red button with a cross.
 
-![Page with no configured game](./md/reset_configure.png)
+![Page game without launch options](./md/reset_configure.png)
 
 4. Changing the configuration status requires overwriting the Steam files and restarting it.  To do this, go back to the games page using the left arrow. You will see a notification saying "You need to close Steam and rewrite launch options". Click on the "NOW" button
 
