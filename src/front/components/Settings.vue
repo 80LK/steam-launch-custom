@@ -18,7 +18,7 @@ function copyPath(path: string) {
 	navigator.clipboard.writeText(path);
 }
 function openPath(path: string) {
-	App.openExploret(path);
+	App.openExplorer(path);
 }
 </script>
 
