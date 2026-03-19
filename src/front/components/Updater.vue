@@ -6,12 +6,15 @@ import { useI18n } from 'vue-i18n';
 const { t } = useI18n();
 
 const showen = ref(true);
-const { onlyInfo = false, flat = false } = defineProps<{ onlyInfo?: boolean, flat?: boolean }>();
+const {
+	onlyInfo = false,
+	flat = false,
+	ignoreStates = []
+} = defineProps<{ onlyInfo?: boolean, flat?: boolean, ignoreStates?: UpdateState[] }>();
 
 const store = useUpdaterStore();
 store.check();
 
-const hasUpdate = computed(() => store.state != UpdateState.NO && showen.value);
 const isCheck = computed(() => store.state == UpdateState.CHECK);
 const isAvailable = computed(() => store.state == UpdateState.HAVE || store.state == UpdateState.DOWNLOADING);
 const isDownloading = computed(() => store.state == UpdateState.DOWNLOADING);
@@ -19,10 +22,15 @@ const isDownloaded = computed(() => store.state == UpdateState.DOWNLOADED);
 const isError = computed(() => store.state == UpdateState.ERROR);
 const color = computed(() => isCheck.value ? undefined : isError.value ? 'error' : 'success')
 const message = computed(() => t(isCheck.value ? 'update.checking' : isError.value ? 'update.error' : `update.available`, [store.version]));
+const visible = computed(() => {
+	if (store.state == UpdateState.NO) return false
+	if (ignoreStates.indexOf(store.state) != -1) return false;
+	return showen.value
+})
 </script>
 
 <template>
-	<v-alert :type="color" variant="tonal" border="start" v-if="hasUpdate" :rounded="flat ? 0 : undefined"
+	<v-alert :type="color" variant="tonal" border="start" v-if="visible" :rounded="flat ? 0 : undefined"
 		max-height="60">
 		<template v-slot:prepend v-if="isCheck">
 			<v-progress-circular indeterminate />

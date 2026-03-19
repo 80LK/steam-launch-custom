@@ -10,6 +10,7 @@ import { ref, useTemplateRef } from 'vue';
 import LaunchList from '@components/Launch/List.vue';
 import Editor from '@components/Launch/Editor.vue';
 import Updater from '@components/Updater.vue';
+import { UpdateState } from '@shared/Updater';
 const game = ref(null as IGame | null);
 Game.getLaunch().then(e => game.value = e);
 
@@ -65,7 +66,7 @@ function relaod() {
 						</Header>
 					</template>
 					<template v-slot:footer>
-						<Updater only-info flat />
+						<Updater only-info flat :ignore-states="[UpdateState.CHECK, UpdateState.ERROR]" />
 					</template>
 
 					<LaunchList :launchs="launchs" v-if="game">
