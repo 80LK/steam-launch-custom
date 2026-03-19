@@ -37,7 +37,8 @@
 		"add_launch": "Add variant launch",
 		"edit_launch": "Edit launch setting",
 		"remove_launch": "Remove launch setting",
-		"shortcut": "Create shortcut on desktop"
+		"shortcut": "Create shortcut on desktop",
+		"open_directory": "Open in Explorer"
 	},
 	"launch": {
 		"edit": "Edit laucnh \"{0}\"",
