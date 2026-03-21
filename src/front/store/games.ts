@@ -10,18 +10,15 @@ interface GamesStorage {
 const useGamesStore = defineStore('games', () => {
 	const storage = reactive({} as GamesStorage);
 
-	function get(id: number) {
+	async function get(id: number, force: boolean = false) {
+		if (force || !storage[id]) {
+			storage[id] = await Game.get(id);
+		}
 		return storage[id];
 	}
 
 	async function stared(id: number, stared: boolean) {
 		storage[id].stared = await Game.stared(id, stared);
-	}
-	async function configure(id: number) {
-		Object.assign(storage[id], await Game.configure(id));
-	}
-	async function resetConfigure(id: number) {
-		Object.assign(storage[id], await Game.resetConfigure(id));
 	}
 
 	const feed = reactive([] as IGame[]);
@@ -46,8 +43,6 @@ const useGamesStore = defineStore('games', () => {
 		get,
 
 		stared,
-		configure,
-		resetConfigure,
 
 		feed,
 		load,

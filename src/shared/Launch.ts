@@ -6,6 +6,7 @@ interface ILaunch {
 	launch: string[];
 	workdir: string;
 	image: string;
+	broken: boolean;
 }
 
 function INIT_LAUNCH(game_id: number = 0): ILaunch {
@@ -16,13 +17,16 @@ function INIT_LAUNCH(game_id: number = 0): ILaunch {
 		execute: '',
 		launch: [],
 		workdir: '',
-		image: ''
+		image: '',
+		broken: false
 	}
 }
 
 
 enum Messages {
 	getForGame = 'launch.getForGame',
+	getAllForGame = 'launch.getAllForGame',
+	get = 'launch.get',
 	create = 'launch.create',
 	edit = 'launch.edit',
 	remove = 'launch.remove',

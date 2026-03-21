@@ -14,7 +14,18 @@ const useLaunchStore = defineStore('launch', () => {
 		return launchs;
 	}
 
-	function get(id: number) {
+	async function getAllForGame(game_id: number): Promise<ILaunch[]> {
+		const launchs = await Launch.getAllForGame(game_id);
+		launchs.forEach(launch => {
+			if (launch.image) launch.image += "?" + Date.now();
+			launchsStore.value[launch.id] = launch;
+		});
+		return launchs;
+	}
+
+	async function get(id: number, force: boolean = false) {
+		if (!launchsStore.value[id] || force)
+			launchsStore.value[id] = await Launch.get(id)
 		return launchsStore.value[id];
 	}
 
@@ -40,7 +51,7 @@ const useLaunchStore = defineStore('launch', () => {
 		return Launch.createShortcut(launch_id);
 	}
 
-	return { get, getForGame, create, remove, edit, createShortcut };
+	return { get, getForGame, create, remove, edit, createShortcut, getAllForGame };
 });
 
 export default useLaunchStore;

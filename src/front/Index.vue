@@ -13,9 +13,11 @@ import Index from './routes/Index.vue';
 		<v-main scrollable>
 			<Init>
 				<RouterView v-slot="{ Component }">
-					<KeepAlive :include="Index.__name">
-						<component :is="Component" />
-					</KeepAlive>
+					<Suspense>
+						<KeepAlive :include="Index.__name">
+							<component :is="Component" />
+						</KeepAlive>
+					</Suspense>
 				</RouterView>
 			</Init>
 		</v-main>

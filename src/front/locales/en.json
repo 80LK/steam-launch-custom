@@ -11,7 +11,10 @@
 	"configure": {
 		"need_write": "You need close Steam and rewrite launch options",
 		"now": "Now",
-		"cant_write": "Cannot be overwritten, the application is running through Steam"
+		"cant_write": "Cannot be overwritten, the application is running through Steam",
+		"has_broken_launches": "Founds broken launches",
+		"fix_broken_launches": "Fix",
+		"fix_launches": "Fix launches"
 	},
 	"main": {
 		"search": "Search",
@@ -37,7 +40,9 @@
 		"add_launch": "Add variant launch",
 		"edit_launch": "Edit launch setting",
 		"remove_launch": "Remove launch setting",
-		"shortcut": "Create shortcut on desktop"
+		"shortcut": "Create shortcut on desktop",
+		"broken_launch": "Launch broken",
+		"you_fix_all": "You fix all!"
 	},
 	"launch": {
 		"edit": "Edit laucnh \"{0}\"",

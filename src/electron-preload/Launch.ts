@@ -5,6 +5,12 @@ namespace Launch {
 	export function getForGame(game_id: number, offset: number, limit: number): Promise<ILaunch[]> {
 		return ipcRenderer.invoke(Messages.getForGame, game_id, offset, limit)
 	}
+	export function getAllForGame(game_id: number): Promise<ILaunch[]> {
+		return ipcRenderer.invoke(Messages.getAllForGame, game_id)
+	}
+	export function get(launch_id: number): Promise<ILaunch> {
+		return ipcRenderer.invoke(Messages.get, launch_id)
+	}
 
 	export async function create(launch: ILaunch): Promise<ILaunch | null> {
 		return (await ipcRenderer.invoke(Messages.create, launch)) || null;

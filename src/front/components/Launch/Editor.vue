@@ -12,8 +12,8 @@ import FilePickerBtn from '@components/Input/FilePickerBtn.vue';
 const { t } = useI18n()
 const emit = defineEmits(['create']);
 
-function edit(launchID: number) {
-	open(Object.assign({}, toRaw(store.get(launchID))));
+async function edit(launchID: number) {
+	open(Object.assign({}, toRaw(await store.get(launchID))));
 }
 
 function create(gameId: number) {
@@ -112,7 +112,7 @@ function pasteArgs(event: ClipboardEvent) {
 						<v-avatar :image="launch.image" class="bg-grey-lighten-2" />
 					</template>
 					<v-card-title>
-						{{ $t(isEdit ? `launch.edit` : 'launch.new', [store.get(launch.id)?.name]) }}
+						{{ $t(isEdit ? `launch.edit` : 'launch.new', [launch.name]) }}
 					</v-card-title>
 				</v-card-item>
 				<v-divider />

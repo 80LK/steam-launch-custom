@@ -15,6 +15,7 @@ import Configure from "../Configure/Configure";
 import { app } from "electron";
 import { require } from '../consts';
 import { spawn } from "child_process";
+import { existsSync, statSync } from "fs";
 const ws = require('windows-shortcuts') as typeof import('windows-shortcuts');
 
 type SQLLaunch = Omit<ILaunch, 'launch'> & { launch: string, state: Launch.SteamState };
@@ -26,6 +27,9 @@ class Launch extends Database.Model implements ILaunch {
 	launch: string[] = [];
 	workdir: string = "";
 	state: Launch.SteamState = Launch.SteamState.NEED_ADD;
+	get broken() {
+		return !this.checkExsist()
+	}
 
 	public get image(): string {
 		return ImageProtocol.getURLIcon(this);
@@ -166,7 +170,7 @@ class Launch extends Database.Model implements ILaunch {
 	public edit(map: Partial<Omit<Launch, 'id' | "save" | "remove" | "edit" | "toJSON">>) {
 		const keys = Object.keys(map) as (keyof Partial<Omit<Launch, 'id' | "save" | "remove" | "edit" | "toJSON">>)[];
 		keys.forEach(key => {
-			if (key == 'image') return;
+			if (key == 'image' || key == 'broken') return;
 			this[key] = map[key] as never
 		})
 		return this;
@@ -188,8 +192,13 @@ class Launch extends Database.Model implements ILaunch {
 			execute: this.execute,
 			launch: this.launch,
 			workdir: this.workdir,
-			image: this.image
+			image: this.image,
+			broken: this.broken
 		}
+	}
+	public checkExsist() {
+		return existsSync(this.execute) && statSync(this.execute).isFile() &&
+			(this.workdir ? existsSync(this.workdir) && statSync(this.workdir).isDirectory() : true);
 	}
 
 	public static async getCurrentLaunch(): Promise<ILaunch | null> {
@@ -212,6 +221,8 @@ class Launch extends Database.Model implements ILaunch {
 
 	public static IPC(win: BaseWindow, ipc: IPCTunnel) {
 		ipc.handle(Messages.getForGame, async (game_id: number, offset: number, limit: number) => (await Launch.getForGame(game_id, offset, limit)).map(e => e.toJSON()))
+		ipc.handle(Messages.getAllForGame, async (game_id: number) => (await Launch.getAllForGame(game_id)).map(e => e.toJSON()))
+		ipc.handle(Messages.get, async (launch_id: number) => (await Launch.get(launch_id))?.toJSON)
 		ipc.handle(Messages.create, async (ilaunch: ILaunch) => {
 			const launch = new Launch();
 

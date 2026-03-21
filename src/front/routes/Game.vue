@@ -5,7 +5,7 @@ import GameIcons from '@components/Game/Icons.vue';
 import Header from '@components/Game/Header.vue';
 import Editor from '@components/Launch/Editor.vue';
 import LaunchList from '@components/Launch/List.vue';
-import { mdiArrowLeft, mdiPencil, mdiPlay, mdiPlus, mdiTrashCan, mdiLinkBoxVariantOutline } from '@mdi/js';
+import { mdiArrowLeft, mdiPencil, mdiPlay, mdiPlus, mdiTrashCan, mdiLinkBoxVariantOutline, mdiAlertOutline } from '@mdi/js';
 import { ILaunch } from '@shared/Launch';
 import useGamesStore from '@store/games';
 import useLaunchStore from '@store/launch';
@@ -16,7 +16,7 @@ const rawGameId = useRoute().params.gameId;
 const gameId = parseInt(Array.isArray(rawGameId) ? rawGameId[0] : rawGameId)
 
 const gameStore = useGamesStore();
-const game = gameStore.get(gameId);
+const game = await gameStore.get(gameId);
 
 const launchStore = useLaunchStore();
 const launchs = ref([] as ILaunch[]);
@@ -62,7 +62,7 @@ function start(id: number) {
 </script>
 
 <template>
-	<Container padding="0" @load="loadLaunchs" ref="container" is-infinite-scroll>
+	<Container padding="0" @load="loadLaunchs" ref="container" is-infinite-scroll no-divide>
 		<template v-slot:header>
 			<Header :game="game">
 				<template v-slot:toolbar-prepare>
@@ -98,10 +98,14 @@ function start(id: number) {
 					@click="editor?.edit(launch.id)" />
 				<v-btn color="error" :icon="mdiTrashCan" variant="text" v-tooltip="$t('game.remove_launch')"
 					@click="delet(launch.id)" />
-				<v-btn :icon="mdiLinkBoxVariantOutline" variant="text" v-tooltip="$t('game.shortcut')"
-					@click="launchStore.createShortcut(launch.id)" />
-				<v-btn :icon="mdiPlay" color="success" variant="text" v-tooltip="$t('game.launch')"
-					@click="start(launch.id)" />
+				<v-btn v-if="launch.broken" :icon="mdiAlertOutline" color="error" variant="text"
+					v-tooltip="$t('game.broken_launch')" />
+				<template v-else>
+					<v-btn :icon="mdiLinkBoxVariantOutline" variant="text" v-tooltip="$t('game.shortcut')"
+						@click="launchStore.createShortcut(launch.id)" />
+					<v-btn :icon="mdiPlay" color="success" variant="text" v-tooltip="$t('game.launch')"
+						@click="start(launch.id)" />
+				</template>
 			</template>
 		</LaunchList>
 	</Container>

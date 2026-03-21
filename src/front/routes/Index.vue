@@ -2,12 +2,13 @@
 import { mdiMagnify, mdiDownload, mdiStar, mdiViewList } from "@mdi/js";
 import ToggleBtn from "@components/ToggleBtn.vue";
 import Updater from '@components/Updater.vue';
-import NeedConfigure from '@components/Game/NeedConfigure.vue';
+import NeedConfigure from '@components/Configure/Need.vue';
 import Container, { Done } from '@components/Container.vue';
 import GameCard from "@components/Game/Card.vue";
 import TextField from "@components/Input/TextField.vue";
 import { ref, useTemplateRef } from "vue";
 import useGamesStore from "@store/games";
+import HasBroken from "@components/Configure/HasBroken.vue";
 
 const store = useGamesStore();
 
@@ -43,6 +44,8 @@ function searching() {
 	<Container @load="loadGames" ref="container" is-infinite-scroll>
 		<template v-slot:header>
 			<Updater class="mb-4" />
+
+			<HasBroken class="mb-4" />
 
 			<NeedConfigure class="mb-4" />
 

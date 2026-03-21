@@ -2,7 +2,7 @@
 import Container, { Done } from '@components/Container.vue';
 import Header from '@components/Game/Header.vue';
 import Init from '@components/Init.vue'
-import { mdiPlay, mdiPlus, mdiStop } from '@mdi/js';
+import { mdiPlay, mdiPlus, mdiStop, mdiAlertOutline } from '@mdi/js';
 import { IGame } from '@shared/Game';
 import { ILaunch } from '@shared/Launch';
 import useLaunchStore from '@store/launch';
@@ -70,7 +70,9 @@ function relaod() {
 
 					<LaunchList :launchs="launchs" v-if="game">
 						<template v-slot:append="{ launch }">
-							<v-btn :prepend-icon="mdiPlay" tile color="success" size="large"
+							<v-btn v-if="launch.broken" :icon="mdiAlertOutline" color="error" variant="text"
+								v-tooltip="$t('game.broken_launch')" />
+							<v-btn v-else :prepend-icon="mdiPlay" tile color="success" size="large"
 								@click="start(launch.id)">{{ $t('game.launch') }}</v-btn>
 						</template>
 					</LaunchList>

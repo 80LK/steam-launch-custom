@@ -238,6 +238,9 @@ class Game extends Database.Model implements IGame {
 			const games = await Game.getAll(offset, limit, search, filter);
 			return games.map(game => game.toJSON());
 		})
+		ipc.handle(Messages.get, async (game_id: number) => {
+			return (await Game.get(game_id))?.toJSON();
+		})
 		ipc.handle(Messages.stared, async (id: number, stared: boolean) => {
 			const game = await Game.get(id);
 			if (!game) return false;
