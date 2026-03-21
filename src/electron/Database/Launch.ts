@@ -222,7 +222,7 @@ class Launch extends Database.Model implements ILaunch {
 	public static IPC(win: BaseWindow, ipc: IPCTunnel) {
 		ipc.handle(Messages.getForGame, async (game_id: number, offset: number, limit: number) => (await Launch.getForGame(game_id, offset, limit)).map(e => e.toJSON()))
 		ipc.handle(Messages.getAllForGame, async (game_id: number) => (await Launch.getAllForGame(game_id)).map(e => e.toJSON()))
-		ipc.handle(Messages.get, async (launch_id: number) => (await Launch.get(launch_id))?.toJSON)
+		ipc.handle(Messages.get, async (launch_id: number) => (await Launch.get(launch_id))?.toJSON())
 		ipc.handle(Messages.create, async (ilaunch: ILaunch) => {
 			const launch = new Launch();
 

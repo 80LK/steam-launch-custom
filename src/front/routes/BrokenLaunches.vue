@@ -14,22 +14,17 @@ const editor = useTemplateRef('editor');
 const removeModel = useTemplateRef('remove');
 
 
-function removeFromMap(launch: ILaunch) {
-	brokenLaunches.list[launch.game_id].launches = brokenLaunches.list[launch.game_id].launches.filter(l => l.id != launch.id);
-	if (brokenLaunches.list[launch.game_id].launches.length == 0)
-		delete brokenLaunches.list[launch.game_id];
+function create(launch: ILaunch) {
+	console.log("Create emit", launch)
+	brokenLaunches.fix(launch)
 }
 
-function create(launch: ILaunch) {
-	launch.broken = false;
-	removeFromMap(launch)
-}
 function delet(launch: ILaunch) {
 	removeModel.value?.open('launch')
 		.then(async e => {
 			if (!e) return;
 			await useLaunchStore().remove(launch.id);
-			removeFromMap(launch)
+			brokenLaunches.remove(launch)
 		})
 }
 const selected = ref(0);

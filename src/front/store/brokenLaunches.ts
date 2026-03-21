@@ -6,25 +6,42 @@ import { computed, ref } from "vue";
 import useLaunchStore from "./launch";
 
 const useBrokenLaunches = defineStore('broken_launches', () => {
+	const launches = useLaunchStore();
+
 	const list = ref({} as Record<number, { game: IGame, launches: ILaunch[] }>);
 	const count = computed(() => Object.values(list.value).reduce((l, arr) => l + arr.launches.length, 0));
 
-	function log<T>(r: T, ...msg: string[]): T {
-		console.log(...msg, r);
-		return r;
-	}
+	async function loadList() {
+		const map = await Configure.getBrokenLaunches();
 
-	Configure.getBrokenLaunches().then(async (map) => {
 		for (const key in map) {
 			const game_id = parseInt(key);
 			list.value[game_id] = {
-				game: log(await useGamesStore().get(game_id)),
-				launches: (await useLaunchStore().getAllForGame(game_id)).filter(l => map[key].indexOf(l.id) != -1)
+				game: await useGamesStore().get(game_id),
+				launches: await Promise.all(map[key].map(id => launches.get(id, true)))
 			}
 		}
-	});
+	}
 
-	return { list, count };
+	loadList();
+
+
+	async function fix(launch: ILaunch) {
+		console.log("Fix???")
+		await loadList();
+
+		if (launch.broken) return;
+
+		remove(launch);
+	}
+
+	function remove(launch: ILaunch) {
+		list.value[launch.game_id].launches = list.value[launch.game_id].launches.filter(l => l.id != launch.id);
+		if (list.value[launch.game_id].launches.length == 0)
+			delete list.value[launch.game_id];
+	}
+
+	return { list, count, fix, remove };
 });
 
 export default useBrokenLaunches;
