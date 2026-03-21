@@ -64,5 +64,6 @@
 ## Links
 [![TELEGRAM](https://img.shields.io/badge/Telegram-2AABEE?logo=telegram&logoColor=white
 )](https://t.me/steam_launch_custom)
+[![DISCORD](https://img.shields.io/badge/Discord-5865F2?logo=discord&logoColor=white)](https://discord.gg/Wu4j7aBbxy)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2F80LK%2Fsteam-launch-custom.svg?type=shield&issueType=license)](https://app.fossa.com/projects/git%2Bgithub.com%2F80LK%2Fsteam-launch-custom?ref=badge_shield&issueType=license)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2F80LK%2Fsteam-launch-custom.svg?type=shield&issueType=security)](https://app.fossa.com/projects/git%2Bgithub.com%2F80LK%2Fsteam-launch-custom?ref=badge_shield&issueType=security)

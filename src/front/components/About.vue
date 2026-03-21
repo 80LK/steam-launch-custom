@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { mdiGithub } from '@mdi/js';
 import tg from "../assets/Telegram.svg?inline";
+import ds from "../assets/Discord.svg?inline";
 import { name, version } from "../../../package.json";
 function openUrl(url: string) {
 	console.log('Try open url', url);
@@ -35,6 +36,16 @@ function openUrl(url: string) {
 						</template>
 						Telegram
 					</v-btn>
+
+					<v-btn color="#5865F2" class="mr-2" @click="openUrl('https://discord.gg/Wu4j7aBbxy')">
+						<template v-slot:prepend>
+							<v-icon>
+								<img :src="ds" style="width: 120%;" />
+							</v-icon>
+						</template>
+						Discord
+					</v-btn>
+
 					<v-btn :prepend-icon="mdiGithub" class="mr-2" color="#1A1F24"
 						@click="openUrl('https://github.com/80LK/steam-launch-custom')">
 						GitHub
