@@ -42,7 +42,8 @@
 		"remove_launch": "Remove launch setting",
 		"shortcut": "Create shortcut on desktop",
 		"broken_launch": "Launch broken",
-		"you_fix_all": "You fix all!"
+		"you_fix_all": "You fix all!",
+		"open_directory": "Open in Explorer"
 	},
 	"launch": {
 		"edit": "Edit laucnh \"{0}\"",

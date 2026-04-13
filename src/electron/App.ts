@@ -7,6 +7,7 @@ import { DEV, getAppDataFilePath } from "./consts";
 import Protocol from "./Protocol/Protocol";
 import { spawn } from "child_process";
 import Logger from "./Logger";
+import { statSync } from "fs";
 
 interface IInitialable {
 	init(setmessage: (msg: string) => void): Promise<void>;
@@ -58,6 +59,10 @@ class App {
 		ipc.handle(Messages.getAppData, () => getAppDataFilePath())
 		ipc.handle(Messages.parentProcessIsSteam, () => App.parentProcessIsSteam());
 		ipc.on(Messages.openExplorer, (dir: string) => {
+			dir = resolve(dir);
+			while (!statSync(dir).isDirectory()) {
+				dir = resolve(dir, "..");
+			}
 			spawn('explorer', [resolve(dir)], { detached: true })
 		})
 		ipc.on(Messages.openUrl, (url: string) => {

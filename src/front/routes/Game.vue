@@ -5,7 +5,7 @@ import GameIcons from '@components/Game/Icons.vue';
 import Header from '@components/Game/Header.vue';
 import Editor from '@components/Launch/Editor.vue';
 import LaunchList from '@components/Launch/List.vue';
-import { mdiArrowLeft, mdiPencil, mdiPlay, mdiPlus, mdiTrashCan, mdiLinkBoxVariantOutline, mdiAlertOutline } from '@mdi/js';
+import { mdiArrowLeft, mdiPencil, mdiPlay, mdiPlus, mdiTrashCan, mdiLinkBoxVariantOutline, mdiDotsHorizontal, mdiFolderOpen, mdiAlertOutline } from '@mdi/js';
 import { ILaunch } from '@shared/Launch';
 import useGamesStore from '@store/games';
 import useLaunchStore from '@store/launch';
@@ -59,6 +59,10 @@ function delet(launch_id: number) {
 function start(id: number) {
 	Launch.start(id, true);
 }
+
+function openExplorer(dir: string) {
+	App.openExplorer(dir)
+}
 </script>
 
 <template>
@@ -96,13 +100,39 @@ function start(id: number) {
 			<template v-slot:append="{ launch }">
 				<v-btn :icon="mdiPencil" variant="text" v-tooltip="$t('game.edit_launch')"
 					@click="editor?.edit(launch.id)" />
-				<v-btn color="error" :icon="mdiTrashCan" variant="text" v-tooltip="$t('game.remove_launch')"
-					@click="delet(launch.id)" />
-				<v-btn v-if="launch.broken" :icon="mdiAlertOutline" color="error" variant="text"
-					v-tooltip="$t('game.broken_launch')" />
+				<template v-if="launch.broken">
+					<v-btn color="error" :icon="mdiTrashCan" variant="text" v-tooltip="$t('game.remove_launch')"
+						@click="delet(launch.id)" />
+					<v-btn :icon="mdiAlertOutline" color="error" variant="text" v-tooltip="$t('game.broken_launch')" />
+				</template>
 				<template v-else>
-					<v-btn :icon="mdiLinkBoxVariantOutline" variant="text" v-tooltip="$t('game.shortcut')"
-						@click="launchStore.createShortcut(launch.id)" />
+					<v-menu open-on-hover location="bottom center">
+						<template v-slot:activator="{ props }">
+							<v-btn v-bind="props" variant="text" :icon="mdiDotsHorizontal" />
+						</template>
+						<v-list class="py-0" density="compact" slim>
+							<v-list-item @click="delet(launch.id)" base-color="error">
+								<template v-slot:prepend>
+									<v-icon class="mr-n2" size="small" :icon="mdiTrashCan" />
+								</template>
+								<v-list-item-title>{{ $t('game.remove_launch') }}</v-list-item-title>
+							</v-list-item>
+							<v-divider />
+							<v-list-item @click="launchStore.createShortcut(launch.id)" slim>
+								<template v-slot:prepend>
+									<v-icon class="mr-n2" size="small" :icon="mdiLinkBoxVariantOutline" />
+								</template>
+								<v-list-item-title>{{ $t('game.shortcut') }}</v-list-item-title>
+							</v-list-item>
+							<v-divider />
+							<v-list-item @click="openExplorer(launch.execute)" slim>
+								<template v-slot:prepend>
+									<v-icon class="mr-n2" size="small" :icon="mdiFolderOpen" />
+								</template>
+								<v-list-item-title>{{ $t('game.open_directory') }}</v-list-item-title>
+							</v-list-item>
+						</v-list>
+					</v-menu>
 					<v-btn :icon="mdiPlay" color="success" variant="text" v-tooltip="$t('game.launch')"
 						@click="start(launch.id)" />
 				</template>
