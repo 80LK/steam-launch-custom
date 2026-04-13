@@ -49,12 +49,11 @@ class App {
 			}
 
 			if (defaultPath) defaultPath = resolve(defaultPath);
-			const files = dialog.showOpenDialogSync(win, { defaultPath, properties: [property], filters: filters });
+			const { canceled, filePaths } = await dialog.showOpenDialog(win, { defaultPath, properties: [property], filters: filters });
 
-			if (Array.isArray(files))
-				return files[0];
+			if (canceled) return false;
 
-			return false;
+			return filePaths[0] ?? false;
 		})
 		ipc.handle(Messages.getAppData, () => getAppDataFilePath())
 		ipc.handle(Messages.parentProcessIsSteam, () => App.parentProcessIsSteam());
