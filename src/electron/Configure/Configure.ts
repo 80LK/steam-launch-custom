@@ -86,6 +86,9 @@ namespace Configure {
 		needWrite.on((_, v) => ipc.send(Messages.changeNeedWrite, v));
 
 		ipc.handle(Messages.write, async () => await write())
+		ipc.handle(Messages.getBrokenLaunches, () => {
+			return LocalConfig.getBrokenLaunches()
+		})
 	}
 }
 

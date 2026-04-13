@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { VInfiniteScroll } from 'vuetify/components';
-const { padding, isInfiniteScroll = false } = defineProps<{ padding?: string, isInfiniteScroll?: boolean }>();
+const { padding, isInfiniteScroll = false, noDivide = false } = defineProps<{ padding?: string, isInfiniteScroll?: boolean, noDivide?: boolean }>();
 const _padding = padding || '16px';
 
 const emit = defineEmits(['load']);
@@ -27,7 +27,7 @@ export type { Done };
 		<div :class="$style.header">
 			<slot name="header" />
 		</div>
-		<v-divider />
+		<v-divider v-if="!noDivide" />
 
 		<v-infinite-scroll :onLoad="onLoad" :class="$style.body" v-if="isInfiniteScroll">
 			<slot />

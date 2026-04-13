@@ -1,16 +1,46 @@
 import Game from "../Database/Game";
 import Steam, { TestLaunch } from "../Steam";
 import Launch from "../Database/Launch";
+import Logger from "../Logger";
 
 namespace LocalConfig {
 	const needWriteGames = new Set<number>();
 	const configuredGames = new Set<number>();
+	const brokenGamesLaunches = new Map<number, Set<number>>();
 
 	export function needWrite() {
 		return needWriteGames.size > 0;
 	}
 	export function hasConfigured() {
 		return configuredGames.size > 0;
+	}
+
+	async function addInConfigured(app_id: number) {
+		configuredGames.add(app_id);
+
+		const launches = await Launch.getAllForGame(app_id);
+		const brokenLaunches = new Set<number>();
+
+		for (const launch of launches) {
+			Logger.log(`Launch: ${JSON.stringify(launch)}. Broken: ${!launch.checkExsist()}`, { prefix: "BROKEN LAUNCHES" })
+			if (!launch.checkExsist())
+				brokenLaunches.add(launch.id);
+		}
+
+		if (brokenLaunches.size > 0)
+			brokenGamesLaunches.set(app_id, brokenLaunches);
+	}
+
+	export function getBrokenLaunches(): Record<number, number[]> {
+
+		const record = {} as Record<number, number[]>;
+		for (const key of brokenGamesLaunches.keys()) {
+			const launches = brokenGamesLaunches.get(key) ?? new Set();
+			if (launches.size > 0)
+				record[key] = Array.from(launches)
+		}
+
+		return record;
 	}
 
 	export async function init(): Promise<boolean> {
@@ -36,17 +66,17 @@ namespace LocalConfig {
 							if (registerd.countLaunches == 0) continue;
 							else needWriteGames.add(app_id);
 						} else if (test == TestLaunch.CURRENT && registerd.countLaunches > 0) {
-							configuredGames.add(app_id);
+							addInConfigured(app_id);
 						} else {
 							needWriteGames.add(app_id);
-							configuredGames.add(app_id);
+							addInConfigured(app_id);
 						}
 					}
 				} else if (manifest) {
 					const game = Game.create(app_id, manifest.appstate.name, path, manifest.appstate.installdir);
 					game.installed = true;
 					if (test != TestLaunch.NO) {
-						configuredGames.add(app_id);
+						addInConfigured(app_id);
 						needWriteGames.add(app_id);
 					}
 					await game.save();

@@ -8,7 +8,8 @@ enum Messages {
 
 	checkNeedWrite = "configure.getNeedWrite",
 	changeNeedWrite = "configure.changeNeedWrite",
-	write = "configure.write"
+	write = "configure.write",
+	getBrokenLaunches = "configure.getBrokenLaunches",
 }
 interface CanUseAppInfoListener { (state: boolean): void; };
 interface ChangeNeedWriteListener { (state: boolean): void; };

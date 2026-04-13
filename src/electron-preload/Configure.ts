@@ -43,6 +43,10 @@ namespace Configure {
 	export function write() {
 		return ipcRenderer.invoke(Messages.write);
 	}
+
+	export function getBrokenLaunches(): Promise<Record<number, number[]>> {
+		return ipcRenderer.invoke(Messages.getBrokenLaunches);
+	}
 }
 
 export default Configure;

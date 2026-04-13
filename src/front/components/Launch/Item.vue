@@ -5,7 +5,7 @@ const { detail = false, launch } = defineProps<{ detail?: boolean, launch: ILaun
 </script>
 
 <template>
-	<v-list-item>
+	<v-list-item border="t-thin">
 		<template v-slot:prepend>
 			<v-avatar :image="launch.image" class="bg-grey-lighten-2" />
 		</template>

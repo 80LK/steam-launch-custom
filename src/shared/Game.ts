@@ -21,6 +21,7 @@ interface GameFilter {
 
 enum Messages {
 	getAll = 'game.getAll',
+	get = 'game.get',
 	stared = 'game.stared',
 	getLaunch = 'game.getLaunch'
 }
