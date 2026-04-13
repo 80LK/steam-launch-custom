@@ -30,7 +30,7 @@ namespace App {
 	}
 
 
-	export function openExploret(dir: string) {
+	export function openExplorer(dir: string) {
 		ipcRenderer.send(Messages.openExplorer, dir);
 	}
 
