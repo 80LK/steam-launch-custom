@@ -32,8 +32,8 @@ namespace Launch {
 		return await ipcRenderer.invoke(Messages.getCurrentLaunch);
 	}
 
-	export function start(id: number) {
-		ipcRenderer.send(Messages.start, id);
+	export function start(id: number): Promise<boolean> {
+		return ipcRenderer.invoke(Messages.start, id);
 	}
 }
 

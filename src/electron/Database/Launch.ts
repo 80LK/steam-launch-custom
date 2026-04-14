@@ -199,11 +199,13 @@ class Launch extends Database.Model implements ILaunch {
 			(this.workdir ? existsSync(this.workdir) && statSync(this.workdir).isDirectory() : true);
 	}
 
+	private static currentLaunch: ILaunch | null = null;
 	public static async getCurrentLaunch(): Promise<ILaunch | null> {
+		if (this.currentLaunch) return this.currentLaunch;
+
 		const game_id = App.getAppId();
 		if (game_id == 0) return null;
 		const [exe, ...args] = App.getSteamArgs();
-
 		if (!exe) return null;
 
 		const launch = new Launch();
@@ -264,12 +266,12 @@ class Launch extends Database.Model implements ILaunch {
 			return true;
 		});
 		ipc.handle(Messages.getCurrentLaunch, () => Launch.getCurrentLaunch());
-		ipc.on(Messages.start, async (id: number) => {
+		ipc.handle(Messages.start, async (id: number) => {
 			const launch = await (id == -1 ? Launch.getCurrentLaunch() : Launch.get(id));
 			Logger.log(`Try launch ${id}. ${launch ? JSON.stringify(launch) : false}`);
 			if (!launch) return false;
 
-			Wrapper.start(launch)
+			await Wrapper.start(launch)
 			return true;
 		});
 		ipc.handle(Messages.createShortcut, async (launch_id: number) => {
