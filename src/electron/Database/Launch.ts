@@ -205,6 +205,9 @@ class Launch extends Database.Model implements ILaunch {
 		const game_id = App.getAppId();
 		if (game_id == 0) return null;
 		const [exe, ...args] = App.getSteamArgs();
+
+		if (!exe) return null;
+
 		const launch = new Launch();
 		launch.name = (await Game.getLaunch())?.name || "";
 		launch.id = -1;
