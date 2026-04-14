@@ -12,6 +12,7 @@ export const DEV = !app.isPackaged;
 
 export const dirname = getDirname(fileURLToPath(import.meta.url))
 export const ASAR_ROOT = join(dirname, '..')
+export const ROOT = join(ASAR_ROOT, '../..')
 
 export const RENDERER_DIST = join(ASAR_ROOT, 'dist')
 

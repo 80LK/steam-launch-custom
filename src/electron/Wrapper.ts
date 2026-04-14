@@ -1,5 +1,5 @@
 import { resolve } from "path";
-import { ASAR_ROOT, DEV } from "./consts";
+import { ASAR_ROOT, DEV, ROOT } from "./consts";
 import exsist from "@utils/exists";
 import { copyFile, readFile } from "fs/promises";
 import Version from "./Version";
@@ -9,8 +9,8 @@ import Logger from "./Logger";
 import { spawn } from "child_process";
 
 namespace Wrapper {
-	const WRAPPER = resolve(DEV ? process.cwd() : ASAR_ROOT, "wrapper/slc_wrapper.exe");
-	const VERSION_FILE = resolve(DEV ? process.cwd() : ASAR_ROOT, "wrapper/go.ver");
+	const WRAPPER = resolve(DEV ? ROOT : ASAR_ROOT, "wrapper/slc_wrapper.exe");
+	const VERSION_FILE = resolve(DEV ? ROOT : ASAR_ROOT, "wrapper/go.ver");
 
 	export async function init() {
 		const libraries = Object.values(await Steam.get().getLibraries());
@@ -30,11 +30,9 @@ namespace Wrapper {
 
 	export function start(launch: ILaunch) {
 		Logger.log(JSON.stringify(launch), { prefix: 'WRAPPER' })
-		if (launch.id == -1)
-			return spawn(launch.execute, launch.launch, { cwd: launch.workdir })
 
 		const argv = [launch.execute, ...launch.launch];
-		argv.push('-a', launch.game_id.toString());
+		if (launch.id !== -1) argv.push('-a', launch.game_id.toString());
 		launch.workdir && argv.push('-w', launch.workdir);
 
 		spawn(WRAPPER, argv, { detached: true })
