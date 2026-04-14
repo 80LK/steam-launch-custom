@@ -1,16 +1,18 @@
 import { resolve } from "path";
-import { ASAR_ROOT, DEV } from "./consts";
+import { RESOURCES, DEV, ROOT } from "./consts";
 import exsist from "@utils/exists";
 import { copyFile, readFile } from "fs/promises";
 import Version from "./Version";
 import Steam from "./Steam";
+import { ILaunch } from "@shared/Launch";
+import Logger from "./Logger";
+import { ChildProcess, spawn } from "child_process";
 
 namespace Wrapper {
-	const WRAPPER = resolve(DEV ? process.cwd() : ASAR_ROOT, "wrapper/slc_wrapper.exe");
-	const VERSION_FILE = resolve(DEV ? process.cwd() : ASAR_ROOT, "wrapper/go.ver");
+	const WRAPPER = resolve(DEV ? ROOT : RESOURCES, "wrapper/slc_wrapper.exe");
+	const VERSION_FILE = resolve(DEV ? ROOT : RESOURCES, "wrapper/go.ver");
 
 	export async function init() {
-		return;
 		const libraries = Object.values(await Steam.get().getLibraries());
 
 		const VERSION = Version.createFromString(await readFile(VERSION_FILE, "utf-8"));
@@ -24,6 +26,24 @@ namespace Wrapper {
 
 			await copyFile(WRAPPER, wrapper);
 		}
+	}
+
+	export function start(launch: ILaunch) {
+		Logger.log(JSON.stringify(launch), { prefix: 'WRAPPER' })
+
+		const argv = [launch.execute, ...launch.launch];
+		if (launch.id !== -1) argv.push('-a', launch.game_id.toString());
+		launch.workdir && argv.push('-w', launch.workdir);
+
+		return new Promise<ChildProcess>((r, c) => {
+			const proc = spawn(WRAPPER, argv, {
+				detached: true,
+				windowsHide: true
+			})
+
+			proc.on('error', (err) => c(err))
+			proc.on('spawn', () => r(proc))
+		})
 	}
 
 	export function getPath(library: string) {

@@ -7,15 +7,13 @@ import ImageProtocol from "../Protocol/ImageProtocol";
 import { rename, rm } from "fs/promises";
 import App from "../App";
 import Game from "./Game";
-import Spawn from "../Spawn";
 import BaseWindow from "../Window/BaseWindow";
 import Logger from "../Logger";
-import { dirname } from "path";
 import Configure from "../Configure/Configure";
 import { app } from "electron";
 import { require } from '../consts';
-import { spawn } from "child_process";
 import { existsSync, statSync } from "fs";
+import Wrapper from "../Wrapper";
 const ws = require('windows-shortcuts') as typeof import('windows-shortcuts');
 
 type SQLLaunch = Omit<ILaunch, 'launch'> & { launch: string, state: Launch.SteamState };
@@ -201,10 +199,15 @@ class Launch extends Database.Model implements ILaunch {
 			(this.workdir ? existsSync(this.workdir) && statSync(this.workdir).isDirectory() : true);
 	}
 
+	private static currentLaunch: ILaunch | null = null;
 	public static async getCurrentLaunch(): Promise<ILaunch | null> {
+		if (this.currentLaunch) return this.currentLaunch;
+
 		const game_id = App.getAppId();
 		if (game_id == 0) return null;
 		const [exe, ...args] = App.getSteamArgs();
+		if (!exe) return null;
+
 		const launch = new Launch();
 		launch.name = (await Game.getLaunch())?.name || "";
 		launch.id = -1;
@@ -219,7 +222,7 @@ class Launch extends Database.Model implements ILaunch {
 	}
 
 
-	public static IPC(win: BaseWindow, ipc: IPCTunnel) {
+	public static IPC(_: BaseWindow, ipc: IPCTunnel) {
 		ipc.handle(Messages.getForGame, async (game_id: number, offset: number, limit: number) => (await Launch.getForGame(game_id, offset, limit)).map(e => e.toJSON()))
 		ipc.handle(Messages.getAllForGame, async (game_id: number) => (await Launch.getAllForGame(game_id)).map(e => e.toJSON()))
 		ipc.handle(Messages.get, async (launch_id: number) => (await Launch.get(launch_id))?.toJSON())
@@ -263,22 +266,12 @@ class Launch extends Database.Model implements ILaunch {
 			return true;
 		});
 		ipc.handle(Messages.getCurrentLaunch, () => Launch.getCurrentLaunch());
-		ipc.on(Messages.start, async (id: number, deatached: boolean = false) => {
+		ipc.handle(Messages.start, async (id: number) => {
 			const launch = await (id == -1 ? Launch.getCurrentLaunch() : Launch.get(id));
 			Logger.log(`Try launch ${id}. ${launch ? JSON.stringify(launch) : false}`);
 			if (!launch) return false;
-			if (deatached) {
-				const args = [];
-				if (!app.isPackaged) args.push(`${process.argv[1].replace(/\\/g, "/")}`);
-				args.push(`${App.APP_ARG}=${launch.game_id}`);
-				args.push(`${App.LAUNCH_ARG}=${id}`);
-				return spawn(App.getExecutable(), args, {
-					detached: true
-				})
-			}
 
-			Spawn.get().start(launch.execute, launch.launch, launch.workdir || dirname(launch.execute));
-			win.webContents.close();
+			await Wrapper.start(launch)
 			return true;
 		});
 		ipc.handle(Messages.createShortcut, async (launch_id: number) => {

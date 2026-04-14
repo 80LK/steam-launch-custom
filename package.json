@@ -47,7 +47,6 @@
     "sharp": "^0.34.5",
     "sharp-ico": "^0.1.5",
     "sqlite3": "^5.1.7",
-    "steamworks-ffi-node": "^0.9.2",
     "valve-key-values": "^1.0.0",
     "valve-key-values-binary": "^1.0.0",
     "windows-shortcuts": "^0.1.6",

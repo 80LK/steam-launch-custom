@@ -35,7 +35,7 @@ function cancel() {
 	SystemBar.close();
 }
 function start(id: number) {
-	Launch.start(id);
+	Launch.start(id).finally(() => SystemBar.close());
 }
 
 const editor = useTemplateRef('editor');
