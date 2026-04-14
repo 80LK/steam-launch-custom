@@ -36,6 +36,7 @@ function cancel() {
 }
 function start(id: number) {
 	Launch.start(id);
+	SystemBar.close();
 }
 
 const editor = useTemplateRef('editor');

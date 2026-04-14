@@ -3,7 +3,7 @@ import getIPCTunnel, { IPCTunnel } from "./IPCTunnel";
 import BaseWindow from "./Window/BaseWindow";
 import { resolve, join } from 'path';
 import { FileType, Messages, State, StateMessage } from "@shared/App";
-import { DEV, getAppDataFilePath } from "./consts";
+import { getAppDataFilePath } from "./consts";
 import Protocol from "./Protocol/Protocol";
 import { spawn } from "child_process";
 import Logger from "./Logger";
@@ -171,13 +171,17 @@ class App {
 	}
 
 	public static getSteamArgs(): string[] {
-		return process.argv.slice(DEV ? 2 : 1).filter(arg => [this.APP_ARG, this.LAUNCH_ARG].findIndex(test => arg.startsWith(test)) == -1);
+		const i = Math.max(
+			process.argv.findIndex(arg => arg.startsWith(this.APP_ARG)),
+			process.argv.findIndex(arg => arg.startsWith(this.LAUNCH_ARG))
+		)
+		return process.argv.slice(i + 1);
 	}
 
 	public static async parentProcessIsSteam(): Promise<boolean> {
 		if (process.ppid <= 1) return false;
 		const name = await getProcess(process.ppid);
-		return name.toLowerCase() == "steam.exe";
+		return name?.toLowerCase() == "steam.exe";
 	}
 }
 

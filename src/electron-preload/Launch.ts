@@ -32,8 +32,8 @@ namespace Launch {
 		return await ipcRenderer.invoke(Messages.getCurrentLaunch);
 	}
 
-	export function start(id: number, deatached: boolean = false) {
-		ipcRenderer.send(Messages.start, id, deatached);
+	export function start(id: number) {
+		ipcRenderer.send(Messages.start, id);
 	}
 }
 
