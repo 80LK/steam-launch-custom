@@ -35,7 +35,10 @@ namespace Wrapper {
 		if (launch.id !== -1) argv.push('-a', launch.game_id.toString());
 		launch.workdir && argv.push('-w', launch.workdir);
 
-		spawn(WRAPPER, argv, { detached: true })
+		spawn(WRAPPER, argv, {
+			detached: true,
+			windowsHide: true
+		})
 	}
 
 	export function getPath(library: string) {
