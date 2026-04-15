@@ -6,9 +6,10 @@ import FilePicker from '@components/Input/FilePickerTextField.vue';
 import TextField from '@components/Input/TextField.vue';
 import Combobox from '@components/Input/Combobox.vue';
 import { computed, ref, toRaw, unref } from 'vue';
-import { SubmitEventPromise } from 'vuetify';
+import { SubmitEventPromise } from 'vuetify/framework';
 import { useI18n } from 'vue-i18n';
 import FilePickerBtn from '@components/Input/FilePickerBtn.vue';
+import ProcessPicker, { ProcessInfoItem } from '@components/Input/ProcessPicker.vue';
 const { t } = useI18n()
 const emit = defineEmits(['create']);
 
@@ -101,6 +102,17 @@ function pasteArgs(event: ClipboardEvent) {
 
 	launch.value.launch.push(...args.map(arg => arg.replace(/^"|"$/g, '')))
 }
+
+function selectProcess(process: ProcessInfoItem) {
+	if (!launch.value) return;
+
+	console.log("Selected process", process);
+	launch.value.name = process.name;
+	launch.value.execute = process.execute;
+	generateIconFromExe();
+	launch.value.launch = process.argv;
+	launch.value.workdir = process.workDir;
+}
 </script>
 
 <template>
@@ -130,6 +142,8 @@ function pasteArgs(event: ClipboardEvent) {
 
 					<FilePicker v-model="launch.workdir" :default-path="defaultPathForWorkDir" type="directory"
 						:label="$t('launch.work')" :icon="mdiFolder" />
+
+					<ProcessPicker v-if="!isEdit" @select="selectProcess" />
 				</v-card-text>
 				<v-divider />
 				<v-card-actions>
