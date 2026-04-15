@@ -1,3 +1,6 @@
 [submodule "wrapper"]
 	path = wrapper
 	url = git@github.com:80LK/steam-launch-custom-wrapper-go.git
+[submodule "process_list"]
+	path = process_list
+	url = git@github.com:80LK/ProcessList.git
