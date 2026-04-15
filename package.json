@@ -10,8 +10,9 @@
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "npm run slcw && vite",
-    "slcw": "tsx scripts/build_slcw.ts",
-    "build": "npm run slcw && vite build && electron-builder",
+    "build:slcw": "tsx scripts/build_slcw.ts",
+    "build:pl": "tsx scripts/build_pl.ts",
+    "build": "npm run build:slcw && npm run build:pl && vite build && electron-builder",
     "preview": "vite preview",
     "electron": "electron .",
     "postinstall": "electron-builder install-app-deps",

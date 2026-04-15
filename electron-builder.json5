@@ -19,6 +19,11 @@
     {
       "from": "steamworks_sdk",
       "to": "steamworks_sdk"
+    },
+    {
+      "from": "process_list",
+      "filter": "*.exc",
+      "to": "process_list"
     }
   ],
   "win": {
