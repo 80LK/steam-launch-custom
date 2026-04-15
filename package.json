@@ -9,7 +9,7 @@
   "type": "module",
   "main": "dist-electron/main.js",
   "scripts": {
-    "dev": "npm run slcw && vite",
+    "dev": "npm run build:slcw && npm run build:pl && vite",
     "build:slcw": "tsx scripts/build_slcw.ts",
     "build:pl": "tsx scripts/build_pl.ts",
     "build": "npm run build:slcw && npm run build:pl && vite build && electron-builder",
