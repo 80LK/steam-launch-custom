@@ -1,0 +1,43 @@
+[
+	{
+		"pid": 123,
+		"ppid": 0,
+		"name": "todo.exe",
+		"execute": "C:\\Soft\\mytools\\todo.exe",
+		"workDir": "C:\\Soft\\mytools\\",
+		"argv": [
+			"this is fixtures"
+		],
+		"childs": []
+	},
+	{
+		"pid": 124,
+		"ppid": 0,
+		"name": "compiler.exe",
+		"execute": "C:\\Soft\\mytools\\compiler.exe",
+		"workDir": "C:\\devs\\myproject\\",
+		"argv": [],
+		"childs": [
+			{
+				"pid": 125,
+				"ppid": 124,
+				"name": "linter.exe",
+				"execute": "C:\\Soft\\mytools\\linter.exe",
+				"workDir": "C:\\devs\\myproject\\",
+				"argv": [
+					"-someargs"
+				],
+				"childs": []
+			},
+			{
+				"pid": 126,
+				"ppid": 124,
+				"name": "joke_process.exe",
+				"execute": "C:\\Soft\\mytools\\joke_process.exe",
+				"workDir": "C:\\Soft\\mytools\\",
+				"argv": [],
+				"childs": []
+			}
+		]
+	}
+]

@@ -101,5 +101,11 @@
 		"title": "About Steam-Launch-Custom",
 		"text": "Add your own launch options for your steam games. <br> Developed by 80LK",
 		"links": "Links"
+	},
+	"process_picker": {
+		"select": "Select process",
+		"title": "Select process",
+		"search": "Search",
+		"cancel": "Cancel"
 	}
 }

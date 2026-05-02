@@ -8,6 +8,7 @@ import Protocol from "./Protocol/Protocol";
 import { spawn } from "child_process";
 import Logger from "./Logger";
 import { statSync } from "fs";
+import ProcessList from "./ProcessList";
 
 interface IInitialable {
 	init(setmessage: (msg: string) => void): Promise<void>;
@@ -66,6 +67,9 @@ class App {
 		})
 		ipc.on(Messages.openUrl, (url: string) => {
 			shell.openExternal(url);
+		})
+		ipc.handle(Messages.getProcesses, async () => {
+			return await ProcessList.getList()
 		})
 	}
 

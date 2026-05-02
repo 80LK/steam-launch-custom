@@ -5,7 +5,8 @@ enum Messages {
 	getAppData = 'app.getAppData',
 	openExplorer = 'app.openExplorer',
 	openUrl = 'app.openUrl',
-	parentProcessIsSteam = 'app.parentProcessIsSteam'
+	parentProcessIsSteam = 'app.parentProcessIsSteam',
+	getProcesses = 'app.getProcesses'
 }
 
 export { Messages };

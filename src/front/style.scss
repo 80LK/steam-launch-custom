@@ -8,6 +8,10 @@ html {
 	user-select: none;
 }
 
+.v-dialog>.v-overlay__content {
+	margin-top: 48px;
+}
+
 .v-card-text {
 	background-color: rgb(var(--v-theme-background));
 }
