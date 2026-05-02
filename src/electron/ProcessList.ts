@@ -1,5 +1,5 @@
 import { resolve } from "path";
-import { DEV, ROOT, RESOURCES, getAppDataFilePath } from "./consts";
+import { DEV, ROOT, RESOURCES, getAppDataFilePath, require } from "./consts";
 import type { ProcessInfo } from "../shared/ProcessList"
 import { spawn } from "child_process";
 import Logger from "./Logger";
