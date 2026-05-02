@@ -2,6 +2,7 @@ import { StateMessage, Messages, FileType } from "@shared/App";
 import { ipcRenderer } from 'electron'
 import { name, version } from '../../package.json';
 import EventMap from "./EventMap";
+import type { ProcessInfo } from "../shared/ProcessInfo"
 
 namespace App {
 	interface ChangeInitStateListener {
@@ -36,6 +37,10 @@ namespace App {
 
 	export function openUrl(url: string) {
 		ipcRenderer.send(Messages.openUrl, url);
+	}
+
+	export function getProcessList(): Promise<ProcessInfo[]> {
+		return ipcRenderer.invoke(Messages.getProcesses);
 	}
 
 	export const versions = {

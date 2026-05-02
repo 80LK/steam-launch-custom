@@ -143,7 +143,7 @@ function selectProcess(process: ProcessInfoItem) {
 					<FilePicker v-model="launch.workdir" :default-path="defaultPathForWorkDir" type="directory"
 						:label="$t('launch.work')" :icon="mdiFolder" />
 
-					<ProcessPicker v-if="!isEdit" @select="selectProcess" />
+					<ProcessPicker @select="selectProcess" />
 				</v-card-text>
 				<v-divider />
 				<v-card-actions>

@@ -1,31 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { mdiApplication, mdiMinusBox, mdiPlusBox } from '@mdi/js';
+import type { ProcessInfo } from "../../../shared/ProcessInfo"
 
 const opened = ref(false);
 const items = ref([] as ProcessInfoItem[]);
 const search = ref("");
 const $emit = defineEmits(['select']);
-
-
-function buildInfoToItem(item: ProcessInfo): ProcessInfoItem {
-	return Object.assign({
-		id: item.pid,
-		title: item.name,
-		subtitle: 'test subtitle',
-		subhead: 'test subheaed',
-		children: item.childs.length > 0 ? item.childs.map(item => buildInfoToItem(item)) : null
-	}, item)
-}
-
-const loading = ref(false);
-async function load() {
-	loading.value = true;
-	const loadedItems: ProcessInfo[] = (await import("../../assets/process_fixtures.json")).default;
-	items.value = loadedItems.map(item => buildInfoToItem(item))
-	loading.value = false
-}
-
 
 export interface ProcessInfoItem extends ProcessInfo {
 	id: number;
@@ -33,14 +14,21 @@ export interface ProcessInfoItem extends ProcessInfo {
 	children: ProcessInfoItem[] | null;
 }
 
-interface ProcessInfo {
-	pid: number;
-	ppid: number;
-	name: string;
-	execute: string;
-	workDir: string;
-	argv: string[];
-	childs: ProcessInfo[];
+function buildInfoToItem(item: ProcessInfo): ProcessInfoItem {
+	return Object.assign({
+		id: item.pid,
+		title: item.name,
+		children: item.childs.length > 0 ? item.childs.map(item => buildInfoToItem(item)) : null
+	}, item)
+}
+
+const loading = ref(false);
+async function load() {
+	loading.value = true;
+	// const loadedItems: ProcessInfo[] = (await import("../../assets/process_fixtures.json")).default;
+	const loadedItems = await App.getProcessList();
+	items.value = loadedItems.map(item => buildInfoToItem(item))
+	loading.value = false
 }
 
 function close() {
