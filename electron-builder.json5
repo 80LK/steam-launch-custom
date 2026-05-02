@@ -8,17 +8,15 @@
   },
   "files": [
     "dist",
-    "dist-electron",
-    {
-      "from": "wrapper",
-      "to": "wrapper",
-      "filter": "*.{exe,ver}"
-    }
+    "dist-electron"
   ],
   "extraResources": [
     {
-      "from": "steamworks_sdk",
-      "to": "steamworks_sdk"
+      "from": "wrapper",
+      "filter": [
+        "*.{exe,ver,dll}"
+      ],
+      "to": "wrapper"
     }
   ],
   "win": {
