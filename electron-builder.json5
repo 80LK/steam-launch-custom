@@ -1,4 +1,4 @@
-// @see - https://www.electron.build/configuration/configuration
+// @see - https://www.electron.build/configuration
 {
   "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
   "appId": "ru.80lk.steamlaunchcustom",
@@ -22,7 +22,7 @@
     },
     {
       "from": "process_list",
-      "filter": "*.exc",
+      "filter": "process_list.exe",
       "to": "process_list"
     }
   ],
