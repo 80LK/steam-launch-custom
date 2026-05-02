@@ -57,7 +57,7 @@ function delet(launch_id: number) {
 		})
 }
 function start(id: number) {
-	Launch.start(id, true);
+	Launch.start(id);
 }
 
 function openExplorer(dir: string) {

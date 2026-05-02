@@ -18,7 +18,7 @@ const builded_version_file = resolve(node_modules, ".slcw-version");
 		if (version == builded_version) return;
 	}
 
-	const build = exec("go run ./scripts build", { cwd: root });
+	const build = exec("go run ./devtool build", { cwd: root });
 	build.stdout?.on('data', console.log);
 	build.stderr?.on('data', console.error);
 	await new Promise<void>(r => build.on('exit', r));
