@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { mdiApplication, mdiMinusBox, mdiPlusBox } from '@mdi/js';
-import type { ProcessInfo } from "../../../shared/ProcessInfo"
+import type { ProcessInfo } from "../../../shared/ProcessList"
 
 const opened = ref(false);
 const items = ref([] as ProcessInfoItem[]);
@@ -11,6 +11,7 @@ const $emit = defineEmits(['select']);
 export interface ProcessInfoItem extends ProcessInfo {
 	id: number;
 	title: string;
+	icon: string;
 	children: ProcessInfoItem[] | null;
 }
 
@@ -18,6 +19,7 @@ function buildInfoToItem(item: ProcessInfo): ProcessInfoItem {
 	return Object.assign({
 		id: item.pid,
 		title: item.name,
+		icon: `slc-image://process_${item.name}`,
 		children: item.childs.length > 0 ? item.childs.map(item => buildInfoToItem(item)) : null
 	}, item)
 }
@@ -78,8 +80,12 @@ function toggleTree(e: PointerEvent, callback: (_: PointerEvent) => void) {
 			<v-treeview v-else :items="items" indent-lines="default" density="compact" :separate-roots="false"
 				@click:select="select" @click:open="open" :open-on-click="true" return-object :search="search"
 				false-icon="null" true-icon="null">
-				<template #prepend>
-					<v-icon :icon="mdiApplication" density="compact" />
+				<template #prepend="{ item }">
+					<v-img :src="item.icon" :width="30" :height="30">
+						<template #placeholder>
+							<v-icon :icon="mdiApplication" density="compact" />
+						</template>
+					</v-img>
 				</template>
 				<template #toggle="{ isOpen, props: { onClick } }">
 					<v-btn :icon="isOpen ? mdiMinusBox : mdiPlusBox" @click="toggleTree($event, onClick)" />

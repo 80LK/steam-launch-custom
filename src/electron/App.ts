@@ -3,12 +3,12 @@ import getIPCTunnel, { IPCTunnel } from "./IPCTunnel";
 import BaseWindow from "./Window/BaseWindow";
 import { resolve, join } from 'path';
 import { FileType, Messages, State, StateMessage } from "@shared/App";
-import { DEV, getAppDataFilePath, ROOT, RESOURCES } from "./consts";
+import { DEV, getAppDataFilePath } from "./consts";
 import Protocol from "./Protocol/Protocol";
 import { spawn } from "child_process";
 import Logger from "./Logger";
 import { statSync } from "fs";
-import type { ProcessInfo } from "../shared/ProcessInfo"
+import ProcessList from "./ProcessList";
 
 interface IInitialable {
 	init(setmessage: (msg: string) => void): Promise<void>;
@@ -70,24 +70,7 @@ class App {
 			shell.openExternal(url);
 		})
 		ipc.handle(Messages.getProcesses, async () => {
-			const PL = resolve(DEV ? ROOT : RESOURCES, "process_list/process_list.exe");
-			try {
-				const list = await new Promise<ProcessInfo[]>((r, c) => {
-					const proc = spawn(PL, ['-f', 'json', '-t']);
-					var plist_raw = ''
-					proc.on('close', () => {
-						r(JSON.parse(plist_raw))
-					})
-					proc.on('err', (err) => {
-						c(err)
-					})
-					proc.stdout.on('data', chunk => plist_raw += chunk.toString())
-				})
-				return list
-			} catch (err: any) {
-				Logger.error("Error: " + err.toString(), { prefix: 'PLIST' })
-			}
-
+			return await ProcessList.getList()
 		})
 	}
 
