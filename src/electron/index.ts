@@ -13,9 +13,6 @@ import Logger from './Logger';
 import Configure from './Configure/Configure';
 import Wrapper from './Wrapper';
 
-process.argv.push('--app=41700');
-process.argv.push('--launch=4');
-
 
 (async function main() {
 	Database.debug({ logSql: true })
