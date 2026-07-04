@@ -33,6 +33,7 @@ namespace ProcessList {
 		}))
 	}
 
+
 	export async function getList(): Promise<ProcessInfo[]> {
 		try {
 			const list = await new Promise<ProcessInfo[]>((r, c) => {
@@ -54,6 +55,26 @@ namespace ProcessList {
 			Logger.error("Error: " + err.toString(), { prefix: 'PLIST' })
 		}
 		return []
+	}
+
+	export async function getById(pid: number): Promise<ProcessInfo | null> {
+		try {
+			const list = await new Promise<ProcessInfo[]>((r, c) => {
+				const proc = spawn(EXECUTABLE, ['-f', 'json', '-p', pid.toString()]);
+				var plist_raw = ''
+				proc.on('close', () => {
+					r(JSON.parse(plist_raw))
+				})
+				proc.on('err', (err) => {
+					c(err)
+				})
+				proc.stdout.on('data', chunk => plist_raw += chunk.toString())
+			})
+			return list[0] ?? null
+		} catch (err: any) {
+			Logger.error("Error: " + err.toString(), { prefix: 'PLIST' })
+		}
+		return null
 	}
 }
 

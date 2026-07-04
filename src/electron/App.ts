@@ -183,38 +183,9 @@ class App {
 
 	public static async parentProcessIsSteam(): Promise<boolean> {
 		if (process.ppid <= 1) return false;
-		const name = await getProcess(process.ppid);
-		return name?.toLowerCase() == "steam.exe";
+		const proc = await ProcessList.getById(process.ppid);
+		return proc ? proc.name.toLowerCase() == "steam.exe" : false;
 	}
-}
-
-
-async function getProcess(pid: number): Promise<string> {
-	return new Promise<string>((r, c) => {
-		const wmic = spawn(`wmic`, [
-			"process", "where", `ProcessId=${pid}`, "get", "Name,ProcessId", "/format:csv"
-		]);
-
-		const processes: Record<number, string> = {};
-		wmic.stdout.on('data', (data: Buffer) => {
-			const items = data.toString().replace(/[\r]/g, '').split('\n');
-			for (const item of items) {
-				if (item == '' || item == 'Node,Name,ProcessId') continue;
-				const [, name, _pid] = item.split(',');
-				const pid = parseInt(_pid);
-
-				processes[pid] = name;
-			}
-		});
-		const err: string[] = [];
-		wmic.stderr.on('data', (data: Buffer) => {
-			err.push(data.toString());
-		});
-		wmic.on('exit', () => {
-			if (err.length > 0) return c(err.join('\n\r'));
-			return r(processes[pid]);
-		})
-	})
 }
 
 export default App;
